@@ -282,7 +282,7 @@ const requestAiTeacher = async (
 };
 
 const mockTeacherReply = (message: string): TeacherReply => ({
-  text: `Wolli burada. Güzel başlangıç. A1 seviyesinde kısa cümlelerle ilerleyelim: "${message}" ifadesinden sonra "Ich lerne Deutsch." gibi net bir cümle kurabilirsin.`,
+  text: `Şu an canlı AI bağlantısı yerine yerel Wolli yanıtı kullanılıyor. A1 seviyesinde kısa cümlelerle ilerleyelim: "${message}" ifadesinden sonra "Ich lerne Deutsch." gibi net bir cümle kurabilirsin.`,
   corrections:
     message.trim().length > 0
       ? ['Cümleni Almanca yazarsan kelime sırası ve artikel için geri bildirim verebilirim.']

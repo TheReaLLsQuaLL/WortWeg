@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { Alert, StyleSheet, Text, View } from 'react-native';
-import { Map, RotateCcw, Settings2 } from 'lucide-react-native';
+import { Alert, Linking, StyleSheet, Text, View } from 'react-native';
+import { Map, MessageCircle, RotateCcw, Settings2 } from 'lucide-react-native';
 
 import { AppButton } from '../components/AppButton';
 import { AppScrollView, Screen } from '../components/layout';
 import { TopBar } from '../components/TopBar';
-import { lessonsA1 } from '../data/lessons.a1';
+import { getPlayableLessonsForPlan } from '../data/lessons';
 import { colors, radius, spacing, typography } from '../data/theme';
 import { getKnownReviewCardCount, getReviewCoverage } from '../lib/srs';
 import { defaultUserState } from '../lib/storage';
@@ -25,10 +25,12 @@ export function ProfileScreen({ navigation, userState, onUpdateState, onResetApp
   const xpInCurrentLevel = userState.xp % 50;
   const xpToNextLevel = xpInCurrentLevel === 0 ? 50 : 50 - xpInCurrentLevel;
   const knownWords = getKnownReviewCardCount(userState.reviewCards);
+  const lessonPath = getPlayableLessonsForPlan(userState.learningPlan);
+  const completedPathCount = lessonPath.filter((lesson) => userState.completedLessons.includes(lesson.id)).length;
   const a1Coverage = Math.round(
     Math.min(
       1,
-      (userState.completedLessons.length / lessonsA1.length) * 0.7 +
+      (completedPathCount / Math.max(1, lessonPath.length)) * 0.7 +
         getReviewCoverage(userState.reviewCards) * 0.3,
     ) * 100,
   );
@@ -65,6 +67,40 @@ export function ProfileScreen({ navigation, userState, onUpdateState, onResetApp
         },
       ],
     );
+  };
+
+  const openFeedbackDraft = async () => {
+    const template = [
+      'WortWeg alfa geri bildirimi',
+      '',
+      'Ne yapmaya çalışıyordun?',
+      '- ',
+      '',
+      'Ne ters gitti?',
+      '- ',
+      '',
+      'Ekran görüntüsü opsiyonel.',
+      '',
+      'Cihaz modeli:',
+      '- ',
+      '',
+      'App ekranı:',
+      '- ',
+    ].join('\n');
+    const url = 'mailto:?subject=' + encodeURIComponent('WortWeg alfa geri bildirimi') + '&body=' + encodeURIComponent(template);
+
+    try {
+      const supported = await Linking.canOpenURL(url);
+
+      if (supported) {
+        await Linking.openURL(url);
+        return;
+      }
+    } catch {
+      // Fall back to the visible template below.
+    }
+
+    Alert.alert('Geri Bildirim', template);
   };
 
   const developerReset = () => {
@@ -166,7 +202,7 @@ export function ProfileScreen({ navigation, userState, onUpdateState, onResetApp
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Hatalar defteri</Text>
           {recentMistakes.length === 0 ? (
-            <Text style={styles.body}>Henüz kayıtlı hata yok.</Text>
+            <Text style={styles.body}>Henüz kayıtlı hata yok. Yanlış cevapların burada kısa notlarla birikecek.</Text>
           ) : (
             recentMistakes.map((mistake) => {
               const open = activeMistakeId === mistake.id;
@@ -212,6 +248,19 @@ export function ProfileScreen({ navigation, userState, onUpdateState, onResetApp
               </View>
             ))}
           </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Geri Bildirim</Text>
+          <Text style={styles.body}>
+            Alfa testte takıldığın ekranı, cihazını ve ne yapmaya çalıştığını kısa not olarak gönder.
+          </Text>
+          <AppButton
+            icon={MessageCircle}
+            onPress={() => void openFeedbackDraft()}
+            title="Geri bildirim taslağı aç"
+            variant="secondary"
+          />
         </View>
 
         <View style={styles.section}>

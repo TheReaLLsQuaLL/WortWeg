@@ -40,7 +40,7 @@ export type RootStackParamList = {
   Onboarding: undefined;
   PlacementTest: { setup: LearningPlanInput; profileName?: string };
   PlacementResult: { setup: LearningPlanInput; profileName?: string; result: PlacementResult };
-  Main: undefined;
+  Main: { initialTab?: TabKey } | undefined;
   LessonIntro: { lessonId: string };
   ExercisePlayer: { lessonId: string };
   SpeakingPractice: { promptId?: string };
@@ -66,8 +66,14 @@ type MainTabsProps = {
   onResetApp: () => Promise<void>;
 };
 
-function MainTabs({ navigation, userState, onUpdateState, onResetApp }: MainTabsProps) {
-  const [activeTab, setActiveTab] = useState<TabKey>('home');
+function MainTabs({ navigation, userState, onUpdateState, onResetApp, initialTab }: MainTabsProps & { initialTab?: TabKey }) {
+  const [activeTab, setActiveTab] = useState<TabKey>(initialTab ?? 'home');
+
+  useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
 
   return (
     <View style={styles.shell}>
@@ -178,12 +184,13 @@ export function AppNavigator() {
         ) : (
           <>
             <Stack.Screen name="Main">
-              {({ navigation }) => (
+              {({ navigation, route }) => (
                 <MainTabs
                   navigation={navigation}
                   userState={userState}
                   onUpdateState={commitUserState}
                   onResetApp={resetAppState}
+                  initialTab={route.params?.initialTab}
                 />
               )}
             </Stack.Screen>

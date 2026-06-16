@@ -1,13 +1,14 @@
 import { ArrowLeft, BookOpen, Clock, Lock } from 'lucide-react-native';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { RouteProp } from '@react-navigation/native';
 
 import { AppScrollView, Screen } from '../components/layout';
 import { curriculumLevels, getModulesForLevel } from '../data/curriculum';
+import { getPlayableLessonByModuleId } from '../data/lessons';
 import { colors, radius, spacing, typography } from '../data/theme';
 import type { RootNavigation, RootStackParamList } from '../navigation/AppNavigator';
 
-type LevelOverviewScreenProps = {
+ type LevelOverviewScreenProps = {
   navigation: RootNavigation;
   route: RouteProp<RootStackParamList, 'LevelOverview'>;
 };
@@ -25,6 +26,17 @@ const skillLabels = {
 export function LevelOverviewScreen({ navigation, route }: LevelOverviewScreenProps) {
   const level = curriculumLevels.find((item) => item.id === route.params.levelId) ?? curriculumLevels[1]!;
   const modules = getModulesForLevel(level.id);
+
+  const openModule = (moduleId: string) => {
+    const playableLesson = getPlayableLessonByModuleId(moduleId);
+
+    if (!playableLesson) {
+      Alert.alert('Yakında', 'Bu modül yakında oynanabilir olacak.');
+      return;
+    }
+
+    navigation.navigate('LessonIntro', { lessonId: playableLesson.id });
+  };
 
   return (
     <Screen backgroundColor={colors.deepViolet}>
@@ -62,34 +74,47 @@ export function LevelOverviewScreen({ navigation, route }: LevelOverviewScreenPr
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Modüller</Text>
-          {modules.map((module) => (
-            <View key={module.id} style={[styles.moduleCard, level.isPlaceholder && styles.placeholderCard]}>
-              <View style={styles.moduleHeader}>
-                <View style={styles.moduleIcon}>
-                  {level.isPlaceholder ? <Lock color={colors.muted} size={18} /> : <BookOpen color={colors.royalPurple} size={18} />}
+          {modules.map((module) => {
+            const playableLesson = getPlayableLessonByModuleId(module.id);
+
+            return (
+              <Pressable
+                key={module.id}
+                onPress={() => openModule(module.id)}
+                style={({ pressed }) => [
+                  styles.moduleCard,
+                  !playableLesson && styles.placeholderCard,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <View style={styles.moduleHeader}>
+                  <View style={styles.moduleIcon}>
+                    {!playableLesson ? <Lock color={colors.muted} size={18} /> : <BookOpen color={colors.royalPurple} size={18} />}
+                  </View>
+                  <View style={styles.moduleCopy}>
+                    <Text style={styles.moduleTitle}>{module.order}. {module.titleTr}</Text>
+                    <Text style={styles.muted}>{module.titleDe}</Text>
+                  </View>
+                  <View style={styles.timePill}>
+                    <Clock color={colors.royalPurple} size={14} />
+                    <Text style={styles.timeText}>{module.estimatedMinutes} dk</Text>
+                  </View>
                 </View>
-                <View style={styles.moduleCopy}>
-                  <Text style={styles.moduleTitle}>{module.order}. {module.titleTr}</Text>
-                  <Text style={styles.muted}>{module.titleDe}</Text>
+                <Text style={styles.body}>{module.goalTr}</Text>
+                {!playableLesson ? <Text style={styles.comingSoon}>Bu modül yakında oynanabilir olacak.</Text> : null}
+                <Text style={styles.warning}>{module.turkishLearnerWarnings[0]}</Text>
+                <View style={styles.taskGrid}>
+                  <TaskBlock title="Konuşma" items={module.speakingTasks} />
+                  <TaskBlock title="Okuma" items={module.readingTasks} />
+                  <TaskBlock title="Yazma" items={module.writingTasks} />
+                  <TaskBlock title="Sınav" items={module.examTasks} />
                 </View>
-                <View style={styles.timePill}>
-                  <Clock color={colors.royalPurple} size={14} />
-                  <Text style={styles.timeText}>{module.estimatedMinutes} dk</Text>
+                <View style={styles.tags}>
+                  {module.topics.slice(0, 5).map((topic) => <Text key={topic} style={styles.tag}>{topic}</Text>)}
                 </View>
-              </View>
-              <Text style={styles.body}>{module.goalTr}</Text>
-              <Text style={styles.warning}>{module.turkishLearnerWarnings[0]}</Text>
-              <View style={styles.taskGrid}>
-                <TaskBlock title="Konuşma" items={module.speakingTasks} />
-                <TaskBlock title="Okuma" items={module.readingTasks} />
-                <TaskBlock title="Yazma" items={module.writingTasks} />
-                <TaskBlock title="Sınav" items={module.examTasks} />
-              </View>
-              <View style={styles.tags}>
-                {module.topics.slice(0, 5).map((topic) => <Text key={topic} style={styles.tag}>{topic}</Text>)}
-              </View>
-            </View>
-          ))}
+              </Pressable>
+            );
+          })}
         </View>
       </AppScrollView>
     </Screen>
@@ -142,6 +167,7 @@ const styles = StyleSheet.create({
   body: { ...typography.body, color: colors.muted },
   muted: { ...typography.small, color: colors.muted },
   warning: { ...typography.small, color: colors.deepViolet, fontWeight: '800' },
+  comingSoon: { ...typography.small, color: colors.royalPurple, fontWeight: '900' },
   skillRow: { backgroundColor: colors.surface, borderRadius: radius.md, gap: spacing.xs, padding: spacing.md },
   skillName: { ...typography.small, color: colors.royalPurple, fontWeight: '900' },
   moduleCard: { backgroundColor: colors.surface, borderRadius: radius.md, gap: spacing.md, padding: spacing.md },
@@ -157,4 +183,5 @@ const styles = StyleSheet.create({
   taskTitle: { ...typography.small, color: colors.deepViolet, fontWeight: '900' },
   tags: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
   tag: { ...typography.small, backgroundColor: colors.lavender, borderRadius: radius.sm, color: colors.deepViolet, paddingHorizontal: spacing.sm, paddingVertical: 2 },
+  pressed: { opacity: 0.82 },
 });

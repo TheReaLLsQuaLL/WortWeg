@@ -1,8 +1,9 @@
 import { ArrowLeft, CheckCircle2, Lock, MapPinned } from 'lucide-react-native';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { AppScrollView, Screen } from '../components/layout';
 import { curriculumLevels, getModulesForLevel } from '../data/curriculum';
+import { getLessonsForLevel, getPlayableLessonByModuleId } from '../data/lessons';
 import { colors, radius, spacing, typography } from '../data/theme';
 import type { RootNavigation } from '../navigation/AppNavigator';
 import type { TrackId } from '../types/curriculum';
@@ -26,12 +27,19 @@ const trackLabels: Record<TrackId, string> = {
   balanced: 'dengeli',
 };
 
-const getCompletedModuleCount = (userState: UserState, levelId: string) => {
-  if (levelId !== 'A1') {
-    return 0;
+const getCompletedModuleCount = (userState: UserState, levelId: string) =>
+  getLessonsForLevel(levelId as Parameters<typeof getLessonsForLevel>[0])
+    .filter((lesson) => userState.completedLessons.includes(lesson.id)).length;
+
+const openModule = (navigation: RootNavigation, moduleId: string) => {
+  const lesson = getPlayableLessonByModuleId(moduleId);
+
+  if (!lesson) {
+    Alert.alert('Yakında', 'Bu modül yakında oynanabilir olacak.');
+    return;
   }
 
-  return userState.completedLessons.length;
+  navigation.navigate('LessonIntro', { lessonId: lesson.id });
 };
 
 export function CurriculumMapScreen({ navigation, userState }: CurriculumMapScreenProps) {
@@ -69,8 +77,9 @@ export function CurriculumMapScreen({ navigation, userState }: CurriculumMapScre
               </Pressable>
 
               {modules.slice(0, level.isPlaceholder ? 1 : 4).map((module, index) => {
-                const unlocked = level.isPlaceholder ? false : level.id === 'A1' ? index <= completedCount : level.id === 'A0' || activeLevel || index === 0;
-                const completed = level.id === 'A1' && index < completedCount;
+                const playableLesson = getPlayableLessonByModuleId(module.id);
+                const unlocked = Boolean(playableLesson) ? index <= completedCount : false;
+                const completed = playableLesson ? userState.completedLessons.includes(playableLesson.id) : false;
                 const labels = Object.entries(module.trackBoosts)
                   .sort((a, b) => b[1] - a[1])
                   .slice(0, 3)
@@ -79,7 +88,7 @@ export function CurriculumMapScreen({ navigation, userState }: CurriculumMapScre
                 return (
                   <Pressable
                     key={module.id}
-                    onPress={() => navigation.navigate('LevelOverview', { levelId: level.id })}
+                    onPress={() => openModule(navigation, module.id)}
                     style={({ pressed }) => [styles.moduleRow, !unlocked && styles.lockedModule, pressed && styles.pressed]}
                   >
                     <View style={styles.moduleIcon}>

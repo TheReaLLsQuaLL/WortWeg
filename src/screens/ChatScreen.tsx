@@ -104,7 +104,7 @@ export function ChatScreen({ userState, onUpdateState }: ChatScreenProps) {
       >
         <TopBar
           streak={userState.streak}
-          subtitle="Mock AI öğretmen"
+          subtitle="Wolli ile A1 pratik"
           title="AI pratik"
           xp={userState.xp}
         />

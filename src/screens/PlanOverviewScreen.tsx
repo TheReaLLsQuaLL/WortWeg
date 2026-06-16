@@ -1,11 +1,11 @@
 import { BookOpen, CalendarDays, ClipboardList, Map, Mic, PenLine, RotateCcw, Settings2 } from 'lucide-react-native';
-import { Pressable, StyleSheet, Text, View, type ColorValue } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, View, type ColorValue } from 'react-native';
 
 import { AppButton } from '../components/AppButton';
 import { AppScrollView, Screen } from '../components/layout';
 import { TopBar } from '../components/TopBar';
 import { getModuleById, getTrackById } from '../data/curriculum';
-import { lessonsA1 } from '../data/lessons.a1';
+import { getNextPlayableLesson, getPlayableLessonByModuleId } from '../data/lessons';
 import { colors, radius, spacing, typography } from '../data/theme';
 import { getDueReviewCards } from '../lib/srs';
 import type { CommitUserState, RootNavigation } from '../navigation/AppNavigator';
@@ -79,15 +79,17 @@ export function PlanOverviewScreen({ navigation, userState }: PlanOverviewScreen
     }
 
     if (action.type === 'lesson') {
-      const nextLesson = lessonsA1.find((lesson, index) => {
-        const previousLessonId = lessonsA1[index - 1]?.id;
-        return !userState.completedLessons.includes(lesson.id) && (index === 0 || userState.completedLessons.includes(previousLessonId ?? ''));
-      });
+      const nextLesson = action.targetId
+        ? getPlayableLessonByModuleId(action.targetId)
+        : getNextPlayableLesson(userState.completedLessons, plan);
 
-      if (nextLesson) {
-        navigation.navigate('LessonIntro', { lessonId: nextLesson.id });
+      if (!nextLesson) {
+        Alert.alert('Yakında', 'Bu modül yakında oynanabilir olacak.');
         return;
       }
+
+      navigation.navigate('LessonIntro', { lessonId: nextLesson.id });
+      return;
     }
 
     navigation.navigate('CurriculumMap');

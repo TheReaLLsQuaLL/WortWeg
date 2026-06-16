@@ -291,6 +291,58 @@ Local state is centralized in `src/lib/storage.ts`. When Supabase is added, keep
 - mistakes notebook
 - chat history if desired
 
+## Alpha Testing Checklist
+
+Use Node `22.22.3` for the first private alpha pass. Keep the backend and Expo running in separate terminals.
+
+Setup:
+
+```bash
+nvm use
+npm install
+cp .env.example .env
+npm run server:dev
+npm start -- --clear
+```
+
+For Expo Go on a real phone, set `EXPO_PUBLIC_AI_BACKEND_URL` in `.env` to your computer LAN IP, for example `http://192.168.1.8:3001`, then restart Expo with `--clear`.
+
+Reset before a fresh-user test:
+
+- Open `Profil`.
+- In development builds, tap `Geliştirici: Uygulama verisini sıfırla`.
+- Confirm that onboarding appears again.
+
+Flows to test:
+
+- onboarding and optional placement test
+- plan creation and PlanOverview
+- Home recommendations
+- A0.1 lesson start, wrong answer feedback, completion, XP update
+- `Sıradaki ders`, `Kelime tekrarı`, and `Ana sayfaya dön` after lesson completion
+- SRS review and mistakes notebook
+- CurriculumMap A0/A1 playable lesson
+- CurriculumMap A2/B1/B2 coming-soon message
+- AI chat with backend online and with backend offline fallback
+- speaking practice record, stop, replay, mocked transcript/scoring
+- Profile reset and feedback draft
+
+Feedback to report:
+
+- What were you trying to do?
+- What went wrong or felt unclear?
+- Screenshot optional.
+- Device model and OS version.
+- App screen name.
+
+Known alpha limitations:
+
+- A2/B1/B2 modules are curriculum metadata only and show coming-soon behavior.
+- Speaking transcription and pronunciation scoring are mocked.
+- No Supabase account sync yet; progress is local to the device.
+- Feedback opens a mail draft or template; there is no feedback backend yet.
+- AI chat needs the local backend and falls back to a local Wolli response if unavailable.
+
 ## Product Notes
 
 - User-facing explanations and feedback are in Turkish.

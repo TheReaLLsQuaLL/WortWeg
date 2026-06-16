@@ -8,7 +8,7 @@ import { useDetailFooterSpacing } from '../components/layout';
 import { ArticleWord } from '../components/ArticleWord';
 import { SpeakerButton } from '../components/SpeakerButton';
 import { ARTICLE_HINTS, ARTICLES } from '../data/constants';
-import { getLessonById } from '../data/lessons.a1';
+import { getLessonById } from '../data/lessons';
 import {
   articleColors,
   articleLightColors,
@@ -69,6 +69,7 @@ export function LessonIntroScreen({ navigation, route }: LessonIntroScreenProps)
       >
         <View style={styles.intro}>
           <Text style={styles.title}>{lesson.subtitle}</Text>
+          {lesson.titleDe ? <Text style={styles.kickerDark}>{lesson.titleDe}</Text> : null}
           <Text style={styles.body}>{lesson.descriptionTr}</Text>
         </View>
 
@@ -101,7 +102,7 @@ export function LessonIntroScreen({ navigation, route }: LessonIntroScreenProps)
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Mini diyalog</Text>
             {lesson.dialog.map((line) => (
-              <View key={`${line.speaker}-${line.line}`} style={styles.dialogLine}>
+              <View key={line.speaker + '-' + line.line} style={styles.dialogLine}>
                 <View style={styles.dialogText}>
                   <Text style={styles.noteTitle}>{line.speaker}</Text>
                   <Text style={styles.exampleGerman}>{line.line}</Text>
@@ -110,6 +111,45 @@ export function LessonIntroScreen({ navigation, route }: LessonIntroScreenProps)
                 <SpeakerButton text={line.line} />
               </View>
             ))}
+          </View>
+        ) : null}
+
+        {lesson.commonMistakeTr ? (
+          <View style={styles.warningBox}>
+            <Text style={styles.sectionTitle}>Türkçe konuşanlar için dikkat</Text>
+            <Text style={styles.body}>{lesson.commonMistakeTr}</Text>
+          </View>
+        ) : null}
+
+        {lesson.speakingPrompt ? (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>{lesson.speakingPrompt.titleTr}</Text>
+            <View style={styles.promptBox}>
+              <View style={styles.dialogText}>
+                <Text style={styles.exampleGerman}>{lesson.speakingPrompt.promptDe}</Text>
+                <Text style={styles.exampleTurkish}>{lesson.speakingPrompt.promptTr}</Text>
+              </View>
+              <SpeakerButton text={lesson.speakingPrompt.promptDe} />
+            </View>
+          </View>
+        ) : null}
+
+        {lesson.writingPrompt ? (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>{lesson.writingPrompt.titleTr}</Text>
+            <Text style={styles.body}>{lesson.writingPrompt.promptTr}</Text>
+            {lesson.writingPrompt.sampleAnswerDe ? (
+              <View style={styles.exampleRow}>
+                <Text style={styles.exampleGerman}>{lesson.writingPrompt.sampleAnswerDe}</Text>
+              </View>
+            ) : null}
+          </View>
+        ) : null}
+
+        {lesson.reviewSummaryTr ? (
+          <View style={styles.reviewBox}>
+            <Text style={styles.sectionTitle}>Ders özeti</Text>
+            <Text style={styles.body}>{lesson.reviewSummaryTr}</Text>
           </View>
         ) : null}
 
@@ -192,6 +232,11 @@ const styles = StyleSheet.create({
     ...typography.small,
     color: colors.yellow,
   },
+  kickerDark: {
+    ...typography.small,
+    color: colors.royalPurple,
+    fontWeight: '900',
+  },
   headerTitle: {
     ...typography.heading,
     color: colors.white,
@@ -250,6 +295,30 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderRadius: radius.md,
     borderWidth: 1,
+    gap: spacing.sm,
+    padding: spacing.md,
+  },
+  warningBox: {
+    backgroundColor: '#FFF2C4',
+    borderColor: colors.yellow,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    gap: spacing.sm,
+    padding: spacing.md,
+  },
+  promptBox: {
+    alignItems: 'center',
+    backgroundColor: colors.white,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: spacing.md,
+    padding: spacing.md,
+  },
+  reviewBox: {
+    backgroundColor: colors.lavender,
+    borderRadius: radius.md,
     gap: spacing.sm,
     padding: spacing.md,
   },

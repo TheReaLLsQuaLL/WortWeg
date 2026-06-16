@@ -10,7 +10,8 @@
     "web": "expo start --web",
     "server:dev": "tsx server/index.ts",
     "dev:all": "concurrently \"npm run server:dev\" \"npm start\"",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "content:qa": "tsx scripts/content-qa.ts"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",
@@ -36,7 +37,7 @@
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^25.9.3",
-    "@types/react": "latest",
+    "@types/react": "~19.1.10",
     "concurrently": "^9.2.1",
     "tsx": "^4.22.4",
     "typescript": "latest"

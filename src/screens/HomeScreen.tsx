@@ -1,12 +1,12 @@
 import { CheckCircle2, ClipboardList, Lock, Map, Mic, PlayCircle, RotateCcw, Sparkles } from 'lucide-react-native';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { AppButton } from '../components/AppButton';
 import { AppScrollView, Screen } from '../components/layout';
 import { ProgressRing } from '../components/ProgressRing';
 import { TopBar } from '../components/TopBar';
 import { getTrackById } from '../data/curriculum';
-import { lessonsA1 } from '../data/lessons.a1';
+import { getNextPlayableLesson, getPlayableLessonByModuleId, getPlayableLessonsForPlan, isLessonUnlocked } from '../data/lessons';
 import { colors, radius, spacing, typography } from '../data/theme';
 import { getDueReviewCards, getReviewCoverage } from '../lib/srs';
 import type { RootNavigation } from '../navigation/AppNavigator';
@@ -30,8 +30,9 @@ const actionIcons = {
 };
 
 export function HomeScreen({ navigation, userState }: HomeScreenProps) {
-  const completedCount = userState.completedLessons.length;
-  const progress = completedCount / lessonsA1.length;
+  const lessonPath = getPlayableLessonsForPlan(userState.learningPlan);
+  const completedCount = lessonPath.filter((lesson) => userState.completedLessons.includes(lesson.id)).length;
+  const progress = lessonPath.length > 0 ? completedCount / lessonPath.length : 0;
   const dueCards = getDueReviewCards(userState.reviewCards);
   const dailyGoalXp = userState.profile?.dailyGoalXp ?? 20;
   const dailyProgress = Math.min(1, userState.todayXp / dailyGoalXp);
@@ -40,10 +41,7 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
   const track = plan ? getTrackById(plan.selectedTrack) : undefined;
   const planActions = plan ? getTodayRecommendedActions(plan, { dueReviewCount: dueCards.length }) : [];
 
-  const nextLegacyLesson = lessonsA1.find((lesson, index) => {
-    const previousLessonId = lessonsA1[index - 1]?.id;
-    return !userState.completedLessons.includes(lesson.id) && (index === 0 || userState.completedLessons.includes(previousLessonId ?? ''));
-  });
+  const nextPlayableLesson = getNextPlayableLesson(userState.completedLessons, plan);
 
   const openAction = (action: RecommendedAction) => {
     if (action.type === 'speaking') {
@@ -56,8 +54,15 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
       return;
     }
 
-    if (action.type === 'lesson' && nextLegacyLesson) {
-      navigation.navigate('LessonIntro', { lessonId: nextLegacyLesson.id });
+    if (action.type === 'lesson') {
+      const targetLesson = action.targetId ? getPlayableLessonByModuleId(action.targetId) : nextPlayableLesson;
+
+      if (!targetLesson) {
+        Alert.alert('Yakında', 'Bu modül yakında oynanabilir olacak.');
+        return;
+      }
+
+      navigation.navigate('LessonIntro', { lessonId: targetLesson.id });
       return;
     }
 
@@ -115,9 +120,9 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
 
         <View style={styles.summary}>
           <View style={styles.summaryCopy}>
-            <Text style={styles.sectionTitle}>A1 öğrenme yolu</Text>
+            <Text style={styles.sectionTitle}>Aktif öğrenme yolu</Text>
             <Text style={styles.muted}>
-              {completedCount}/{lessonsA1.length} ders tamamlandı. A1 yolculuğu %{Math.round(a1Coverage * 100)}.
+              {completedCount}/{lessonPath.length} ders tamamlandı. Yolculuk %{Math.round(a1Coverage * 100)}.
             </Text>
             <View style={styles.goalBar}>
               <View style={[styles.goalFill, { flex: dailyProgress }]} />
@@ -148,11 +153,9 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
         </Pressable>
 
         <View style={styles.path}>
-          {lessonsA1.map((lesson, index) => {
+          {lessonPath.map((lesson) => {
             const completed = userState.completedLessons.includes(lesson.id);
-            const unlocked =
-              index === 0 ||
-              userState.completedLessons.includes(lessonsA1[index - 1]?.id ?? '');
+            const unlocked = isLessonUnlocked(lesson.id, userState.completedLessons, plan);
             const lessonProgress = userState.lessonProgress[lesson.id];
             const Icon = completed ? CheckCircle2 : unlocked ? PlayCircle : Lock;
 
