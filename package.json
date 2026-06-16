@@ -1,0 +1,44 @@
+{
+  "name": "wortweg",
+  "version": "0.1.0",
+  "private": true,
+  "main": "expo/AppEntry",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "server:dev": "tsx server/index.ts",
+    "dev:all": "concurrently \"npm run server:dev\" \"npm start\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "@react-navigation/native": "latest",
+    "@react-navigation/native-stack": "latest",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "expo": "~54.0.0",
+    "expo-audio": "~1.1.1",
+    "expo-linear-gradient": "~15.0.8",
+    "expo-speech": "~14.0.8",
+    "expo-status-bar": "~3.0.9",
+    "express": "^5.2.1",
+    "lucide-react-native": "latest",
+    "react": "19.1.0",
+    "react-native": "0.81.5",
+    "react-native-safe-area-context": "~5.6.0",
+    "react-native-screens": "~4.16.0",
+    "react-native-svg": "15.12.1",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.9.3",
+    "@types/react": "latest",
+    "concurrently": "^9.2.1",
+    "tsx": "^4.22.4",
+    "typescript": "latest"
+  }
+}

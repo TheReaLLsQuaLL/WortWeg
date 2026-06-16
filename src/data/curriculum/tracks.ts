@@ -1,0 +1,107 @@
+import type { SkillWeights, Track } from '../../types/curriculum';
+
+export const balancedSkillWeights: SkillWeights = {
+  reading: 1,
+  listening: 1,
+  speaking: 1,
+  writing: 1,
+  grammar: 1,
+  vocabulary: 1,
+  pronunciation: 1,
+};
+
+export const curriculumTracks: Track[] = [
+  {
+    id: 'exam_a1',
+    titleTr: 'A1 Sınav Planı',
+    descriptionTr: 'A1 sınav tarzı kısa okuma, dinleme, yazma ve konuşma görevlerini dengeli çalıştırır.',
+    recommendedLevels: ['A0', 'A1'],
+    skillWeights: { reading: 1.25, listening: 1.25, speaking: 1.2, writing: 1.2, grammar: 1.1, vocabulary: 1.1, pronunciation: 0.9 },
+    weeklyPlanTemplate: ['2 kısa ders', '2 SRS tekrar', '1 konuşma görevi', '1 yazma görevi', 'Haftada 1 A1 sınav tarzı mini pratik'],
+    recommendedModuleTags: ['sınav', 'form', 'mesaj', 'tanışma', 'dinleme'],
+  },
+  {
+    id: 'exam_b1',
+    titleTr: 'B1 Sınav Modülü',
+    descriptionTr: 'B1 seviyesinde modüler okuma, dinleme, yazma ve konuşma hazırlığına ağırlık verir.',
+    recommendedLevels: ['A2', 'B1'],
+    skillWeights: { reading: 1.3, listening: 1.25, speaking: 1.25, writing: 1.25, grammar: 1.15, vocabulary: 1.1, pronunciation: 0.9 },
+    weeklyPlanTemplate: ['1 beceri modülü', '1 yazma görevi', '1 konuşma planlama görevi', '1 uzun dinleme/okuma', 'Haftada 1 B1 sınav modülü'],
+    recommendedModuleTags: ['B1 sınav', 'görüş', 'şikayet', 'planlama', 'tartışma'],
+  },
+  {
+    id: 'daily_life',
+    titleTr: 'Günlük Yaşam Başlangıç Planı',
+    descriptionTr: 'Ev, şehir, alışveriş, doktor, randevu ve günlük iletişim için pratik yol.',
+    recommendedLevels: ['A0', 'A1', 'A2'],
+    skillWeights: { reading: 1, listening: 1.15, speaking: 1.2, writing: 0.9, grammar: 1, vocabulary: 1.2, pronunciation: 1 },
+    weeklyPlanTemplate: ['3 mikro günlük yaşam dersi', '2 SRS tekrar', '2 konuşma cümlesi', '1 kısa mesaj/form çalışması'],
+    recommendedModuleTags: ['günlük yaşam', 'şehir', 'alışveriş', 'doktor', 'randevu'],
+  },
+  {
+    id: 'speaking_confidence',
+    titleTr: 'Konuşma Güveni Planı',
+    descriptionTr: 'Kısa, tekrarlı ve telaffuz odaklı konuşma görevleriyle çekinmeden cümle kurmayı hedefler.',
+    recommendedLevels: ['A0', 'A1', 'A2', 'B1'],
+    skillWeights: { reading: 0.75, listening: 1.25, speaking: 1.6, writing: 0.75, grammar: 0.95, vocabulary: 1.1, pronunciation: 1.45 },
+    weeklyPlanTemplate: ['Her gün 1 konuşma promptu', '2 telaffuz odağı', '2 dinle-tekrar et çalışması', '1 kısa diyalog görevi'],
+    recommendedModuleTags: ['konuşma', 'telaffuz', 'du/Sie', 'soru-cevap'],
+  },
+  {
+    id: 'work_german',
+    titleTr: 'İş Almancası Planı',
+    descriptionTr: 'İş, kariyer, resmi e-posta, telefon ve randevu durumlarına erken ağırlık verir.',
+    recommendedLevels: ['A1', 'A2', 'B1', 'B2'],
+    skillWeights: { reading: 1.1, listening: 1.1, speaking: 1.25, writing: 1.25, grammar: 1.1, vocabulary: 1.15, pronunciation: 0.95 },
+    weeklyPlanTemplate: ['2 iş/okul temalı ders', '1 resmi mesaj/e-posta', '1 telefon cümlesi', '1 kelime tekrar bloğu'],
+    recommendedModuleTags: ['iş', 'meslek', 'telefon', 'resmi', 'e-posta'],
+  },
+  {
+    id: 'travel',
+    titleTr: 'Seyahat Almancası Planı',
+    descriptionTr: 'Ulaşım, yön tarifi, otel, restoran ve acil durum cümlelerini öne çıkarır.',
+    recommendedLevels: ['A0', 'A1', 'A2'],
+    skillWeights: { reading: 1, listening: 1.2, speaking: 1.35, writing: 0.7, grammar: 0.85, vocabulary: 1.3, pronunciation: 1.1 },
+    weeklyPlanTemplate: ['3 seyahat senaryosu', '2 konuşma tekrarı', '1 yön tarifi dinleme', '1 kelime kartı turu'],
+    recommendedModuleTags: ['seyahat', 'ulaşım', 'şehir', 'yol tarifi', 'restoran'],
+  },
+  {
+    id: 'family_reunion',
+    titleTr: 'Aile ve Almanya’da Yaşam Planı',
+    descriptionTr: 'Aile, ev, okul, doktor, resmi formlar ve günlük yaşama uyum konularını öne alır.',
+    recommendedLevels: ['A0', 'A1', 'A2', 'B1'],
+    skillWeights: { reading: 1.1, listening: 1.1, speaking: 1.2, writing: 1.05, grammar: 1, vocabulary: 1.2, pronunciation: 0.95 },
+    weeklyPlanTemplate: ['2 günlük yaşam dersi', '1 form/mesaj çalışması', '1 doktor/randevu senaryosu', '2 SRS tekrar'],
+    recommendedModuleTags: ['aile', 'ev', 'doktor', 'form', 'randevu'],
+  },
+  {
+    id: 'university',
+    titleTr: 'Üniversite ve Okul Planı',
+    descriptionTr: 'Okul, başvuru, e-posta, sunum ve akademik becerilere doğru düzenli ilerler.',
+    recommendedLevels: ['A1', 'A2', 'B1', 'B2'],
+    skillWeights: { reading: 1.25, listening: 1.1, speaking: 1.1, writing: 1.3, grammar: 1.15, vocabulary: 1.1, pronunciation: 0.9 },
+    weeklyPlanTemplate: ['2 okul/üniversite görevi', '1 yazma pratiği', '1 sunum cümlesi', '1 okuma tarama görevi'],
+    recommendedModuleTags: ['okul', 'üniversite', 'e-posta', 'sunum', 'akademik'],
+  },
+  {
+    id: 'fast_track',
+    titleTr: 'Hızlı A1-B1 Planı',
+    descriptionTr: 'Daha yoğun tempoda en gerekli modülleri seçip tekrar ve sınav pratiğiyle hızlandırır.',
+    recommendedLevels: ['A0', 'A1', 'A2', 'B1'],
+    skillWeights: { reading: 1.15, listening: 1.15, speaking: 1.15, writing: 1.1, grammar: 1.15, vocabulary: 1.15, pronunciation: 0.95 },
+    weeklyPlanTemplate: ['4 kısa ders', '3 SRS tekrar', '2 beceri pratiği', '1 haftalık kontrol'],
+    recommendedModuleTags: ['temel', 'yüksek frekans', 'sınav', 'konuşma'],
+  },
+  {
+    id: 'balanced',
+    titleTr: 'Dengeli CEFR Planı',
+    descriptionTr: 'CEFR seviyelerine göre tüm becerileri dengeli geliştirir.',
+    recommendedLevels: ['A0', 'A1', 'A2', 'B1', 'B2'],
+    skillWeights: balancedSkillWeights,
+    weeklyPlanTemplate: ['2 ders', '2 SRS tekrar', '1 dinleme', '1 konuşma', '1 kısa yazma veya sınav tarzı pratik'],
+    recommendedModuleTags: ['CEFR', 'dengeli', 'kelime', 'gramer', 'beceri'],
+  },
+];
+
+export const getTrackById = (trackId: Track['id']) =>
+  curriculumTracks.find((track) => track.id === trackId) ?? curriculumTracks[curriculumTracks.length - 1]!;
