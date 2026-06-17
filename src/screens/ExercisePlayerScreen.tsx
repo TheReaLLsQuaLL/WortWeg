@@ -13,7 +13,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import type { RouteProp } from '@react-navigation/native';
 import { ArrowLeft, BookOpen, Check, CheckCircle2, Home, RotateCcw } from 'lucide-react-native';
 
+import { AnimatedCard } from '../components/AnimatedCard';
 import { AppButton } from '../components/AppButton';
+import { FeedbackBanner } from '../components/FeedbackBanner';
+import { LessonProgressBar } from '../components/LessonProgressBar';
+import { ProgressPill } from '../components/ProgressPill';
 import { useDetailFooterSpacing } from '../components/layout';
 import { SpeakerButton } from '../components/SpeakerButton';
 import { XP } from '../data/constants';
@@ -27,6 +31,7 @@ import {
 import { getLocalDateKey } from '../lib/date';
 import { createReviewCardsFromLesson } from '../lib/srs';
 import { awardXpForStudy } from '../lib/storage';
+import { trackLocalEvent } from '../services/localEventLog';
 import type {
   CommitUserState,
   RootNavigation,
@@ -107,7 +112,6 @@ export function ExercisePlayerScreen({
   }, [initialExercises]);
 
   const exercise = queue[currentIndex];
-  const progress = queue.length > 0 ? (currentIndex + 1) / queue.length : 0;
   const answer =
     exercise?.type === 'sentenceBuild'
       ? builtWords.join(' ')
@@ -179,6 +183,12 @@ export function ExercisePlayerScreen({
       });
       const nextLesson = getNextPlayableLesson(nextState.completedLessons, nextState.learningPlan);
 
+      trackLocalEvent({
+        type: 'lesson_completed',
+        screen: 'ExercisePlayer',
+        metadata: { lessonId: lesson.id, level: lesson.cefr },
+      });
+
       setCompletion({
         correctAnswers,
         totalAnswers: Math.max(1, finishedAttempts.length),
@@ -201,6 +211,16 @@ export function ExercisePlayerScreen({
     answerLockedRef.current = true;
 
     const checked = checkExerciseAnswer(exercise, answer);
+    trackLocalEvent({
+      type: 'exercise_answered',
+      screen: 'ExercisePlayer',
+      metadata: {
+        lessonId: lesson?.id,
+        level: lesson?.cefr,
+        exerciseType: exercise.type,
+        result: checked.correct ? 'correct' : 'incorrect',
+      },
+    });
     const displayAnswer = exercise.choices
       ? getChoiceText(exercise.choices, answer) ?? answer
       : answer;
@@ -266,16 +286,20 @@ export function ExercisePlayerScreen({
       <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
         <View style={styles.completionHeader}>
           <CheckCircle2 color={colors.green} size={42} strokeWidth={2.6} />
+          <AnimatedCard>
           <Text style={styles.completionTitle}>Ders tamamlandı</Text>
           <Text style={styles.completionSubtitle}>{lesson.title}</Text>
+          </AnimatedCard>
         </View>
 
         <ScrollView contentContainerStyle={styles.completionContent}>
           <View style={styles.completionCard}>
             <Text style={styles.completionCardTitle}>Harika, kayıt edildi.</Text>
-            <Text style={styles.completionText}>
-              {completion.correctAnswers}/{completion.totalAnswers} doğru · +{completion.xpEarned} XP · {completion.newReviewCards} yeni kelime kartı
-            </Text>
+            <View style={styles.completionPills}>
+              <ProgressPill label={completion.correctAnswers + '/' + completion.totalAnswers + ' doğru'} tone="green" />
+              <ProgressPill label={'+' + completion.xpEarned + ' XP'} tone="yellow" />
+              <ProgressPill label={completion.newReviewCards + ' kart'} tone="purple" />
+            </View>
             {completion.nextLessonTitle ? (
               <Text style={styles.completionText}>Sıradaki ders: {completion.nextLessonTitle}</Text>
             ) : (
@@ -339,11 +363,7 @@ export function ExercisePlayerScreen({
           </Pressable>
           <View style={styles.headerCopy}>
             <Text style={styles.kicker}>{lesson.title}</Text>
-            <Text style={styles.stepCounter}>{currentIndex + 1}/{queue.length}</Text>
-            <View style={styles.progressTrack}>
-              <View style={[styles.progressFill, { flex: progress }]} />
-              <View style={{ flex: 1 - progress }} />
-            </View>
+            <LessonProgressBar current={currentIndex + 1} total={queue.length} />
           </View>
         </View>
 
@@ -463,17 +483,11 @@ export function ExercisePlayerScreen({
           )}
 
           {result ? (
-            <View
-              style={[
-                styles.feedback,
-                result.correct ? styles.correctFeedback : styles.wrongFeedback,
-              ]}
-            >
-              <Text style={styles.feedbackTitle}>
-                {result.correct ? 'Doğru' : 'Tekrar bak'}
-              </Text>
-              <Text style={styles.feedbackText}>{result.feedback}</Text>
-            </View>
+            <AnimatedCard>
+              <FeedbackBanner tone={result.correct ? 'success' : 'error'} title={result.correct ? 'Doğru' : 'Tekrar bak'}>
+                {result.feedback}
+              </FeedbackBanner>
+            </AnimatedCard>
           ) : null}
         </ScrollView>
 
@@ -534,21 +548,6 @@ const styles = StyleSheet.create({
   kicker: {
     ...typography.small,
     color: colors.lavender,
-  },
-  stepCounter: {
-    ...typography.small,
-    color: colors.yellow,
-    fontWeight: '900',
-  },
-  progressTrack: {
-    backgroundColor: 'rgba(255,255,255,0.18)',
-    borderRadius: radius.pill,
-    flexDirection: 'row',
-    height: 8,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    backgroundColor: colors.yellow,
   },
   content: {
     backgroundColor: colors.surface,
@@ -676,26 +675,6 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     textAlignVertical: 'top',
   },
-  feedback: {
-    borderRadius: radius.md,
-    gap: spacing.xs,
-    padding: spacing.md,
-  },
-  correctFeedback: {
-    backgroundColor: '#DFF7EB',
-  },
-  wrongFeedback: {
-    backgroundColor: '#FFE5E5',
-  },
-  feedbackTitle: {
-    ...typography.body,
-    color: colors.deepViolet,
-    fontWeight: '900',
-  },
-  feedbackText: {
-    ...typography.small,
-    color: colors.deepViolet,
-  },
   footer: {
     backgroundColor: colors.white,
     borderTopColor: colors.border,
@@ -750,6 +729,11 @@ const styles = StyleSheet.create({
   completionText: {
     ...typography.body,
     color: colors.muted,
+  },
+  completionPills: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
   },
   center: {
     backgroundColor: colors.surface,

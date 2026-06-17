@@ -34,6 +34,7 @@ import type { CurriculumLevelId } from '../types/curriculum';
 import type { LearningPlanInput } from '../types/learningPlan';
 import type { PlacementResult } from '../types/placement';
 import type { UserState } from '../types/userState';
+import { trackLocalEvent } from '../services/localEventLog';
 import type { OnboardingCompletion } from '../services/onboardingService';
 
 export type RootStackParamList = {
@@ -138,6 +139,12 @@ export function AppNavigator() {
         placementResult,
       };
       setUserState(nextState);
+      trackLocalEvent({ type: 'onboarding_completed', screen: 'Onboarding' });
+      trackLocalEvent({
+        type: 'plan_created',
+        screen: 'Onboarding',
+        metadata: { level: learningPlan.currentLevel, moduleId: learningPlan.currentModuleId },
+      });
       setOpenPlanAfterOnboarding(true);
       await saveUserState(nextState);
     },
@@ -174,7 +181,18 @@ export function AppNavigator() {
   }
 
   return (
-    <NavigationContainer ref={navigationRef}>
+    <NavigationContainer
+      ref={navigationRef}
+      onReady={() => trackLocalEvent({ type: 'app_opened', screen: 'AppNavigator' })}
+      onUnhandledAction={(action) =>
+        trackLocalEvent({
+          type: 'navigation_error',
+          screen: 'AppNavigator',
+          action: action.type,
+          severity: 'warning',
+        })
+      }
+    >
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {!userState.hasOnboarded ? (
           <>

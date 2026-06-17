@@ -10,6 +10,7 @@ import type {
   WritingGradeInput,
 } from '../types/ai';
 import { estimateWritingScore } from '../lib/scoring';
+import { trackLocalEvent } from './localEventLog';
 
 type AiBackendMode =
   | 'chat'
@@ -315,6 +316,15 @@ export const generateTeacherReply = async (
         (item): item is string => Boolean(item),
       ),
     };
+  }
+
+  if (fallbackReason) {
+    trackLocalEvent({
+      type: 'ai_chat_backend_fallback',
+      screen: 'Chat',
+      metadata: { fallbackReason: fallbackReason.reason },
+      severity: fallbackReason.reason === 'missing-backend-url' ? 'warning' : 'error',
+    });
   }
 
   await wait(350);

@@ -1,9 +1,11 @@
+import { useEffect } from 'react';
 import { ArrowLeft, Play } from 'lucide-react-native';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { RouteProp } from '@react-navigation/native';
 
 import { AppButton } from '../components/AppButton';
+import { ProgressPill } from '../components/ProgressPill';
 import { useDetailFooterSpacing } from '../components/layout';
 import { ArticleWord } from '../components/ArticleWord';
 import { SpeakerButton } from '../components/SpeakerButton';
@@ -21,6 +23,7 @@ import type {
   RootNavigation,
   RootStackParamList,
 } from '../navigation/AppNavigator';
+import { trackLocalEvent } from '../services/localEventLog';
 
 type LessonIntroScreenProps = {
   navigation: RootNavigation;
@@ -30,6 +33,16 @@ type LessonIntroScreenProps = {
 export function LessonIntroScreen({ navigation, route }: LessonIntroScreenProps) {
   const lesson = getLessonById(route.params.lessonId);
   const { contentPaddingBottom, footerPaddingBottom } = useDetailFooterSpacing();
+
+  useEffect(() => {
+    if (lesson) {
+      trackLocalEvent({
+        type: 'lesson_started',
+        screen: 'LessonIntro',
+        metadata: { lessonId: lesson.id, level: lesson.cefr },
+      });
+    }
+  }, [lesson]);
 
   if (!lesson) {
     return (
@@ -70,7 +83,12 @@ export function LessonIntroScreen({ navigation, route }: LessonIntroScreenProps)
         <View style={styles.intro}>
           <Text style={styles.title}>{lesson.subtitle}</Text>
           {lesson.titleDe ? <Text style={styles.kickerDark}>{lesson.titleDe}</Text> : null}
-          <Text style={styles.body}>{lesson.descriptionTr}</Text>
+          <Text style={styles.body}>{lesson.goalTr ?? lesson.descriptionTr}</Text>
+          <View style={styles.metaPills}>
+            <ProgressPill label={lesson.estimatedMinutes + ' dk'} tone="yellow" />
+            <ProgressPill label={lesson.vocabulary.length + ' kelime'} tone="purple" />
+            <ProgressPill label={lesson.baseExercises.length + ' alıştırma'} tone="green" />
+          </View>
         </View>
 
         <View style={styles.section}>
@@ -252,6 +270,11 @@ const styles = StyleSheet.create({
   title: {
     ...typography.heading,
     color: colors.deepViolet,
+  },
+  metaPills: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
   },
   body: {
     ...typography.body,

@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, Linking, StyleSheet, Text, View } from 'react-native';
-import { Map, MessageCircle, RotateCcw, Settings2 } from 'lucide-react-native';
+import { Map, NotebookTabs, RotateCcw, Settings2 } from 'lucide-react-native';
 
 import { AppButton } from '../components/AppButton';
+import { DevEventLogPanel } from '../components/DevEventLogPanel';
+import { EmptyState } from '../components/EmptyState';
 import { AppScrollView, Screen } from '../components/layout';
 import { TopBar } from '../components/TopBar';
 import { getPlayableLessonsForPlan } from '../data/lessons';
@@ -10,6 +12,7 @@ import { colors, radius, spacing, typography } from '../data/theme';
 import { getKnownReviewCardCount, getReviewCoverage } from '../lib/srs';
 import { defaultUserState } from '../lib/storage';
 import type { CommitUserState, RootNavigation } from '../navigation/AppNavigator';
+import { trackLocalEvent } from '../services/localEventLog';
 import type { UserState } from '../types/userState';
 
 type ProfileScreenProps = {
@@ -44,6 +47,10 @@ export function ProfileScreen({ navigation, userState, onUpdateState, onResetApp
     { label: 'A1 yolu', active: a1Coverage >= 100 },
   ];
 
+  useEffect(() => {
+    trackLocalEvent({ type: 'mistakes_opened', screen: 'Profile' });
+  }, []);
+
   const clearMistake = async (mistakeId: string) => {
     await onUpdateState((state) => ({
       ...state,
@@ -69,7 +76,7 @@ export function ProfileScreen({ navigation, userState, onUpdateState, onResetApp
     );
   };
 
-  const openFeedbackDraft = async () => {
+  const openFeedbackDraft = async (eventLogText?: string) => {
     const template = [
       'WortWeg alfa geri bildirimi',
       '',
@@ -86,6 +93,9 @@ export function ProfileScreen({ navigation, userState, onUpdateState, onResetApp
       '',
       'App ekranı:',
       '- ',
+      '',
+      'Opsiyonel yerel test günlüğü:',
+      eventLogText ?? '- ',
     ].join('\n');
     const url = 'mailto:?subject=' + encodeURIComponent('WortWeg alfa geri bildirimi') + '&body=' + encodeURIComponent(template);
 
@@ -113,6 +123,7 @@ export function ProfileScreen({ navigation, userState, onUpdateState, onResetApp
           text: 'Sıfırla',
           style: 'destructive',
           onPress: () => {
+            trackLocalEvent({ type: 'dev_reset_used', screen: 'Profile', action: 'developer_reset' });
             void onResetApp();
           },
         },
@@ -202,7 +213,12 @@ export function ProfileScreen({ navigation, userState, onUpdateState, onResetApp
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Hatalar defteri</Text>
           {recentMistakes.length === 0 ? (
-            <Text style={styles.body}>Henüz kayıtlı hata yok. Yanlış cevapların burada kısa notlarla birikecek.</Text>
+            <EmptyState
+              body="Yanlış cevapların burada kısa notlarla birikecek. Şimdilik temiz görünüyorsun."
+              framed={false}
+              icon={NotebookTabs}
+              title="Henüz hata yok"
+            />
           ) : (
             recentMistakes.map((mistake) => {
               const open = activeMistakeId === mistake.id;
@@ -250,18 +266,7 @@ export function ProfileScreen({ navigation, userState, onUpdateState, onResetApp
           </View>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Geri Bildirim</Text>
-          <Text style={styles.body}>
-            Alfa testte takıldığın ekranı, cihazını ve ne yapmaya çalıştığını kısa not olarak gönder.
-          </Text>
-          <AppButton
-            icon={MessageCircle}
-            onPress={() => void openFeedbackDraft()}
-            title="Geri bildirim taslağı aç"
-            variant="secondary"
-          />
-        </View>
+        <DevEventLogPanel onFeedbackPress={(eventLogText) => void openFeedbackDraft(eventLogText)} />
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Premium</Text>

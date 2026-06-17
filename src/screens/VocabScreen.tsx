@@ -1,7 +1,9 @@
-import { RotateCcw } from 'lucide-react-native';
+import { BookOpen, RotateCcw } from 'lucide-react-native';
+import { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { AppButton } from '../components/AppButton';
+import { EmptyState } from '../components/EmptyState';
 import { AppScrollView, Screen } from '../components/layout';
 import { ArticleWord } from '../components/ArticleWord';
 import { SpeakerButton } from '../components/SpeakerButton';
@@ -16,6 +18,7 @@ import {
 } from '../lib/srs';
 import { awardXpForStudy } from '../lib/storage';
 import type { CommitUserState } from '../navigation/AppNavigator';
+import { trackLocalEvent } from '../services/localEventLog';
 import type { UserState } from '../types/userState';
 import { useState } from 'react';
 import { TopBar } from '../components/TopBar';
@@ -30,6 +33,10 @@ export function VocabScreen({ userState, onUpdateState }: VocabScreenProps) {
   const dueCards = getDueReviewCards(userState.reviewCards);
   const knownCards = getKnownReviewCardCount(userState.reviewCards);
   const card = dueCards[0];
+
+  useEffect(() => {
+    trackLocalEvent({ type: 'srs_opened', screen: 'Vocab' });
+  }, []);
 
   const review = async (quality: ReviewQuality) => {
     if (!card) {
@@ -46,6 +53,9 @@ export function VocabScreen({ userState, onUpdateState }: VocabScreenProps) {
         quality === 'again' ? 0 : XP.reviewCorrect,
       ),
     );
+    if (dueCards.length <= 1) {
+      trackLocalEvent({ type: 'srs_completed', screen: 'Vocab' });
+    }
     setRevealed(false);
   };
 
@@ -107,13 +117,11 @@ export function VocabScreen({ userState, onUpdateState }: VocabScreenProps) {
             ) : null}
           </View>
         ) : (
-          <View style={styles.emptyState}>
-            <Text style={styles.title}>Bugün tekrar yok</Text>
-            <Text style={styles.body}>
-              Ders tamamladıkça kelimeler buraya gelir. Zamanı gelen kartları
-              SRS aralıklarıyla tekrar edersin.
-            </Text>
-          </View>
+          <EmptyState
+            body="Ders bitirdikçe kelimeler buraya düşer. Zamanı gelince kısa tekrar yaparsın."
+            icon={BookOpen}
+            title="Bugün tekrar yok"
+          />
         )}
 
         <View style={styles.section}>
@@ -191,14 +199,6 @@ const styles = StyleSheet.create({
   },
   reviewButtons: {
     gap: spacing.sm,
-  },
-  emptyState: {
-    backgroundColor: colors.white,
-    borderColor: colors.border,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    gap: spacing.sm,
-    padding: spacing.lg,
   },
   body: {
     ...typography.body,

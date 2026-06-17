@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { RouteProp } from '@react-navigation/native';
 import { ArrowLeft, CheckCircle2, Mic, Play, RotateCcw, Square } from 'lucide-react-native';
 
@@ -22,6 +22,7 @@ import {
   type PronunciationScore,
   type TranscriptionResult,
 } from '../services/speechService';
+import { trackLocalEvent } from '../services/localEventLog';
 
 type SpeakingPracticeScreenProps = {
   navigation: RootNavigation;
@@ -85,6 +86,7 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
   const replayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const actionLockedRef = useRef(false);
   const mountedRef = useRef(true);
+  const pulseOpacity = useRef(new Animated.Value(0)).current;
 
   const prompt = speakingPromptsA1[promptIndex] ?? speakingPromptsA1[0]!;
   const progressText = useMemo(
@@ -115,6 +117,27 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
       setStatus(nextStatus);
     }
   };
+
+  useEffect(() => {
+    trackLocalEvent({ type: 'speaking_opened', screen: 'SpeakingPractice' });
+  }, []);
+
+  useEffect(() => {
+    if (status !== 'recording') {
+      pulseOpacity.setValue(0);
+      return;
+    }
+
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseOpacity, { toValue: 0.28, duration: 520, useNativeDriver: true }),
+        Animated.timing(pulseOpacity, { toValue: 0, duration: 520, useNativeDriver: true }),
+      ]),
+    );
+    loop.start();
+
+    return () => loop.stop();
+  }, [pulseOpacity, status]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -167,6 +190,7 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
       }
 
       await startRecording();
+      trackLocalEvent({ type: 'recording_started', screen: 'SpeakingPractice' });
 
       if (!mountedRef.current) {
         await cleanupRecording().catch(() => undefined);
@@ -182,6 +206,12 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
     } catch (error) {
       clearDurationTimer();
       setSafeStatus('error');
+      trackLocalEvent({
+        type: 'recording_error',
+        screen: 'SpeakingPractice',
+        action: 'start_recording',
+        severity: 'error',
+      });
       setErrorMessage(
         error instanceof Error
           ? error.message
@@ -204,6 +234,11 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
 
     try {
       const recording = await stopRecording();
+      trackLocalEvent({
+        type: 'recording_stopped',
+        screen: 'SpeakingPractice',
+        metadata: { durationMs: recording.durationMs },
+      });
 
       if (!mountedRef.current) {
         return;
@@ -229,6 +264,12 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
     } catch (error) {
       clearDurationTimer();
       setSafeStatus('error');
+      trackLocalEvent({
+        type: 'recording_error',
+        screen: 'SpeakingPractice',
+        action: 'stop_recording',
+        severity: 'error',
+      });
       setErrorMessage(
         error instanceof Error
           ? error.message
@@ -257,6 +298,12 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
     } catch (error) {
       clearReplayTimer();
       setReplaying(false);
+      trackLocalEvent({
+        type: 'recording_error',
+        screen: 'SpeakingPractice',
+        action: 'replay_recording',
+        severity: 'error',
+      });
       setErrorMessage(
         error instanceof Error
           ? error.message
@@ -336,6 +383,7 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
           <Text style={styles.body}>{statusCopy}</Text>
 
           <View style={styles.recordActions}>
+            {status === 'recording' ? <Animated.View pointerEvents="none" style={[styles.recordPulse, { opacity: pulseOpacity }]} /> : null}
             {status === 'recording' || status === 'stopping' ? (
               <Pressable
                 accessibilityRole="button"
@@ -553,6 +601,14 @@ const styles = StyleSheet.create({
   recordActions: {
     alignItems: 'center',
     paddingVertical: spacing.md,
+  },
+  recordPulse: {
+    backgroundColor: colors.red,
+    borderRadius: 999,
+    height: 156,
+    position: 'absolute',
+    top: 2,
+    width: 156,
   },
   recordButton: {
     alignItems: 'center',

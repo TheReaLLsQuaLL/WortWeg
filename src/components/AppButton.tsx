@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { colors, radius, spacing, typography } from '../data/theme';
+import { colors, motion, radius, shadows, spacing, typography } from '../data/theme';
 
 type IconProps = {
   color?: string;
@@ -72,7 +72,7 @@ export function AppButton({
         variant === 'ghost' && styles.ghost,
         variant === 'danger' && styles.danger,
         (disabled || loading) && styles.disabled,
-        pressed && !disabled && styles.pressed,
+        pressed && !disabled && !loading && styles.pressed,
         style,
       ]}
       {...pressableProps}
@@ -99,6 +99,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     overflow: 'hidden',
     justifyContent: 'center',
+    ...shadows.soft,
   },
   gradient: {
     minHeight: 52,
@@ -129,9 +130,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.red,
   },
   disabled: {
-    opacity: 0.55,
+    opacity: 0.52,
   },
   pressed: {
-    opacity: 0.84,
+    opacity: 0.9,
+    transform: [{ scale: motion.pressScale }],
   },
 });

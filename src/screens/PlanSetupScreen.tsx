@@ -15,6 +15,7 @@ import {
 } from '../data/planOptions';
 import { colors, radius, spacing, typography } from '../data/theme';
 import { createLearningPlan, getDailyGoalXp } from '../services/planService';
+import { trackLocalEvent } from '../services/localEventLog';
 import type { LearningPlanInput } from '../types/learningPlan';
 import type { OnboardingProfile, UserState } from '../types/userState';
 import type { CommitUserState, RootNavigation } from '../navigation/AppNavigator';
@@ -46,6 +47,12 @@ export function PlanSetupScreen({ navigation, userState, onUpdateState }: PlanSe
   const save = async () => {
     setSaving(true);
     const learningPlan = createLearningPlan({ userGoal, startLevel, selfSelectedLevel: startLevel, targetLevel, dailyMinutes, examDate, prioritySkill, studyStyle });
+    trackLocalEvent({
+      type: 'plan_created',
+      screen: 'PlanSetup',
+      action: 'edit_plan',
+      metadata: { level: learningPlan.currentLevel, moduleId: learningPlan.currentModuleId },
+    });
     const goalLabel = goalOptions.find((option) => option.id === userGoal)?.label ?? 'Günlük yaşam';
 
     await onUpdateState((state) => {

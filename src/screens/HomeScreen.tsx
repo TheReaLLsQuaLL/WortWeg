@@ -1,7 +1,11 @@
 import { BookOpen, MessageCircle, Mic, NotebookTabs, RotateCcw, Sparkles } from 'lucide-react-native';
+import { useEffect } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { AnimatedCard } from '../components/AnimatedCard';
 import { AppButton } from '../components/AppButton';
+import { AppCard } from '../components/AppCard';
+import { ProgressPill } from '../components/ProgressPill';
 import { AppScrollView, Screen } from '../components/layout';
 import { RoadmapPath, type RoadmapPathItem } from '../components/RoadmapPath';
 import { TopBar } from '../components/TopBar';
@@ -9,6 +13,7 @@ import { getNextPlayableLesson, getPlayableLessonsForPlan, isLessonUnlocked } fr
 import { colors, radius, spacing, typography } from '../data/theme';
 import { getDueReviewCards, getReviewCoverage } from '../lib/srs';
 import type { RootNavigation } from '../navigation/AppNavigator';
+import { trackLocalEvent } from '../services/localEventLog';
 import type { UserState } from '../types/userState';
 
 type HomeScreenProps = {
@@ -18,6 +23,10 @@ type HomeScreenProps = {
 
 export function HomeScreen({ navigation, userState }: HomeScreenProps) {
   const plan = userState.learningPlan;
+
+  useEffect(() => {
+    trackLocalEvent({ type: 'home_viewed', screen: 'Home' });
+  }, []);
   const lessonPath = getPlayableLessonsForPlan(plan);
   const completedCount = lessonPath.filter((lesson) => userState.completedLessons.includes(lesson.id)).length;
   const progress = lessonPath.length > 0 ? completedCount / lessonPath.length : 0;
@@ -86,13 +95,14 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
         xp={userState.xp}
       />
       <AppScrollView contentContainerStyle={styles.content} style={styles.scroll}>
-        <View style={styles.todayCard}>
+        <AnimatedCard>
+          <AppCard tone="violet" style={styles.todayCard}>
           <View style={styles.todayHeader}>
             <View style={styles.todayIcon}>
               <Sparkles color={colors.yellow} size={24} strokeWidth={2.6} />
             </View>
             <View style={styles.flexCopy}>
-              <Text style={styles.kicker}>Bugün</Text>
+              <ProgressPill label="Bugün" tone="yellow" />
               <Text style={styles.todayTitle}>{primaryTitle}</Text>
               <Text style={styles.todayMeta}>{primaryMeta}</Text>
             </View>
@@ -102,9 +112,11 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
             <View style={{ flex: 1 - dailyProgress }} />
           </View>
           <AppButton icon={BookOpen} onPress={startPrimary} title={primaryButton} />
-        </View>
+          </AppCard>
+        </AnimatedCard>
 
-        <View style={styles.section}>
+        <AnimatedCard delayMs={70}>
+          <AppCard style={styles.section}>
           <View style={styles.sectionHeader}>
             <View>
               <Text style={styles.sectionTitle}>Yolun</Text>
@@ -115,14 +127,17 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
             </Pressable>
           </View>
           <RoadmapPath items={roadmapItems} />
-        </View>
+          </AppCard>
+        </AnimatedCard>
 
+        <AnimatedCard delayMs={120}>
         <View style={styles.quickActions}>
           <QuickAction icon={RotateCcw} label="Kelime" onPress={() => navigation.navigate('Main', { initialTab: 'vocab' })} />
           <QuickAction icon={NotebookTabs} label="Hatalarım" onPress={() => navigation.navigate('Main', { initialTab: 'profile' })} />
           <QuickAction icon={MessageCircle} label="Wolli" onPress={() => navigation.navigate('Main', { initialTab: 'chat' })} />
           <QuickAction icon={Mic} label="Sesli" onPress={() => navigation.navigate('SpeakingPractice', {})} />
         </View>
+        </AnimatedCard>
 
         {plan ? (
           <Pressable onPress={() => navigation.navigate('PlanOverview')} style={({ pressed }) => [styles.planStrip, pressed && styles.pressed]}>

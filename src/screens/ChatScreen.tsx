@@ -18,6 +18,7 @@ import { TopBar } from '../components/TopBar';
 import { colors, radius, spacing, typography } from '../data/theme';
 import type { CommitUserState } from '../navigation/AppNavigator';
 import { generateTeacherReply } from '../services/aiTeacher';
+import { trackLocalEvent } from '../services/localEventLog';
 import type { ChatMessage } from '../types/ai';
 import type { UserState } from '../types/userState';
 
@@ -38,6 +39,10 @@ export function ChatScreen({ userState, onUpdateState }: ChatScreenProps) {
       scrollRef.current?.scrollToEnd({ animated: true });
     });
   };
+
+  useEffect(() => {
+    trackLocalEvent({ type: 'ai_chat_opened', screen: 'Chat' });
+  }, []);
 
   useEffect(() => {
     scrollToEnd();

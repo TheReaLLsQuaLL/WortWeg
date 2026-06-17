@@ -7,6 +7,7 @@ import { AppScrollView, Screen } from '../components/layout';
 import { TopBar } from '../components/TopBar';
 import { colors, radius, spacing, typography } from '../data/theme';
 import { createLearningPlan } from '../services/planService';
+import { trackLocalEvent } from '../services/localEventLog';
 import { buildOnboardingCompletion, type OnboardingCompletion } from '../services/onboardingService';
 import { getPlacementLevelLabel } from '../services/placementService';
 import type { LearningPlanInput, StartLevelId } from '../types/learningPlan';
@@ -56,6 +57,11 @@ export function PlacementResultScreen({ route, onComplete }: PlacementResultScre
 
   const finish = async (useRecommendation: boolean) => {
     setSavingMode(useRecommendation ? 'recommended' : 'selected');
+    trackLocalEvent({
+      type: 'placement_completed',
+      screen: 'PlacementResult',
+      metadata: { level: result.recommendedStartLevel },
+    });
     const input: LearningPlanInput = {
       ...setup,
       startLevel: useRecommendation ? result.recommendedStartLevel : selfSelectedLevel,

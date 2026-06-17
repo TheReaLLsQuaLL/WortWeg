@@ -1,7 +1,8 @@
-import { CheckCircle2, Lock, PlayCircle } from 'lucide-react-native';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors, radius, spacing, typography } from '../data/theme';
+import { colors, radius, shadows, spacing, typography } from '../data/theme';
+import { AnimatedCard } from './AnimatedCard';
+import { RoadmapNode } from './RoadmapNode';
 
 export type RoadmapPathItem = {
   id: string;
@@ -23,26 +24,17 @@ export function RoadmapPath({ items }: RoadmapPathProps) {
     <View style={styles.container}>
       {items.map((item, index) => {
         const disabled = item.locked || item.comingSoon || !item.onPress;
-        const Icon = item.completed ? CheckCircle2 : item.locked || item.comingSoon ? Lock : PlayCircle;
-        const iconColor = item.completed
-          ? colors.green
-          : item.current
-            ? colors.royalPurple
-            : colors.muted;
-
         return (
+          <AnimatedCard key={item.id} delayMs={index * 45}>
           <Pressable
             accessibilityRole="button"
             disabled={disabled}
-            key={item.id}
             onPress={item.onPress}
             style={({ pressed }) => [styles.row, pressed && styles.pressed]}
           >
             <View style={styles.railWrap}>
               {index > 0 ? <View style={styles.railTop} /> : <View style={styles.railSpacer} />}
-              <View style={[styles.node, item.current && styles.nodeCurrent, item.completed && styles.nodeDone]}>
-                <Icon color={iconColor} size={18} strokeWidth={2.6} />
-              </View>
+              <RoadmapNode completed={item.completed} current={item.current} locked={item.locked || item.comingSoon} />
               {index < items.length - 1 ? <View style={styles.railBottom} /> : <View style={styles.railSpacer} />}
             </View>
             <View style={[styles.card, item.current && styles.cardCurrent, disabled && styles.cardLocked]}>
@@ -51,6 +43,7 @@ export function RoadmapPath({ items }: RoadmapPathProps) {
               {item.comingSoon ? <Text style={styles.badge}>Yakında</Text> : null}
             </View>
           </Pressable>
+          </AnimatedCard>
         );
       })}
     </View>
@@ -83,24 +76,6 @@ const styles = StyleSheet.create({
     flex: 1,
     width: 2,
   },
-  node: {
-    alignItems: 'center',
-    backgroundColor: colors.surfaceStrong,
-    borderColor: colors.border,
-    borderRadius: radius.pill,
-    borderWidth: 1,
-    height: 34,
-    justifyContent: 'center',
-    width: 34,
-  },
-  nodeCurrent: {
-    backgroundColor: colors.lavender,
-    borderColor: colors.royalPurple,
-  },
-  nodeDone: {
-    backgroundColor: '#DFF7EB',
-    borderColor: '#B7EBCF',
-  },
   card: {
     backgroundColor: colors.white,
     borderColor: colors.border,
@@ -113,6 +88,7 @@ const styles = StyleSheet.create({
     marginLeft: spacing.sm,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
+    ...shadows.soft,
   },
   cardCurrent: {
     backgroundColor: colors.lavender,

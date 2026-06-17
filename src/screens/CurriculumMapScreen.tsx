@@ -1,4 +1,5 @@
 import { ArrowLeft, CheckCircle2, Lock, MapPinned } from 'lucide-react-native';
+import { useEffect } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { AppScrollView, Screen } from '../components/layout';
@@ -6,6 +7,7 @@ import { curriculumLevels, getModulesForLevel } from '../data/curriculum';
 import { getLessonsForLevel, getPlayableLessonByModuleId } from '../data/lessons';
 import { colors, radius, spacing, typography } from '../data/theme';
 import type { RootNavigation } from '../navigation/AppNavigator';
+import { trackLocalEvent } from '../services/localEventLog';
 import type { TrackId } from '../types/curriculum';
 import type { UserState } from '../types/userState';
 
@@ -44,6 +46,10 @@ const openModule = (navigation: RootNavigation, moduleId: string) => {
 
 export function CurriculumMapScreen({ navigation, userState }: CurriculumMapScreenProps) {
   const plan = userState.learningPlan;
+
+  useEffect(() => {
+    trackLocalEvent({ type: 'curriculum_opened', screen: 'CurriculumMap' });
+  }, []);
 
   return (
     <Screen backgroundColor={colors.deepViolet}>

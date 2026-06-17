@@ -1,9 +1,11 @@
 import type { Article } from '../types/lesson';
 
 export const APP_NAME = 'WortWeg';
+export const APP_VERSION = '0.1.0-alpha';
 
 export const STORAGE_KEYS = {
   userState: 'wortweg:user-state:v1',
+  localEventLog: 'wortweg:local-event-log:v1',
 };
 
 export const XP = {

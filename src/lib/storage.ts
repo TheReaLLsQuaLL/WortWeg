@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STORAGE_KEYS } from '../data/constants';
 import { createLearningPlan, getDailyGoalXp, getGoalLabel } from '../services/planService';
 import type { DailyMinutes, LearningPlan, LearningPlanInput, StartLevelId, TargetLevelId, UserGoalId } from '../types/learningPlan';
+import { trackLocalEvent } from '../services/localEventLog';
 import type { OnboardingProfile, UserState } from '../types/userState';
 import { getLocalDateKey, updateStudyStreak } from './date';
 
@@ -127,6 +128,15 @@ const isLearningPlanLike = (plan: unknown): plan is LearningPlan => {
 
 const migrateUserState = (state: UserState): UserState => {
   const profile = state.profile;
+  const hadInvalidPlan = Boolean(state.learningPlan) && !isLearningPlanLike(state.learningPlan);
+  if (hadInvalidPlan) {
+    trackLocalEvent({
+      type: 'storage_migration_error',
+      screen: 'Storage',
+      action: 'learning_plan_defaulted',
+      severity: 'warning',
+    });
+  }
   const baseLearningPlan = isLearningPlanLike(state.learningPlan)
     ? state.learningPlan
     : createDefaultLearningPlan(profile);
@@ -192,6 +202,12 @@ export const loadUserState = async (): Promise<UserState> => {
       examHistory: Array.isArray(parsedState.examHistory) ? parsedState.examHistory : [],
     });
   } catch {
+    trackLocalEvent({
+      type: 'storage_migration_error',
+      screen: 'Storage',
+      action: 'parse_failed',
+      severity: 'error',
+    });
     return defaultUserState;
   }
 };

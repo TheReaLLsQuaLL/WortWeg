@@ -28,7 +28,10 @@ import {
   TimerReset,
 } from 'lucide-react-native';
 
+import { AnimatedCard } from '../components/AnimatedCard';
 import { AppButton } from '../components/AppButton';
+import { StepDots } from '../components/StepDots';
+import { WolliBubble } from '../components/WolliBubble';
 import { Chip } from '../components/Chip';
 import { Mascot } from '../components/Mascot';
 import {
@@ -41,6 +44,7 @@ import {
 import { colors, radius, spacing, typography } from '../data/theme';
 import type { RootNavigation } from '../navigation/AppNavigator';
 import { createLearningPlan } from '../services/planService';
+import { trackLocalEvent } from '../services/localEventLog';
 import { buildOnboardingCompletion, type OnboardingCompletion } from '../services/onboardingService';
 import type { LearningPlanInput, StudyStyleId, UserGoalId } from '../types/learningPlan';
 
@@ -125,6 +129,10 @@ export function OnboardingScreen({ navigation, onComplete }: OnboardingScreenPro
   );
   const planPreview = useMemo(() => createLearningPlan(setupInput), [setupInput]);
   const selectedGoal = goalCards.find((item) => item.id === userGoal) ?? goalCards[1]!;
+
+  useEffect(() => {
+    trackLocalEvent({ type: 'onboarding_started', screen: 'Onboarding' });
+  }, []);
   const progressStep = Math.min(step + 1, setupStepCount);
   const progressWidth = (Math.round((progressStep / setupStepCount) * 100) + '%') as any;
   const mascotStyle = {
@@ -218,6 +226,7 @@ export function OnboardingScreen({ navigation, onComplete }: OnboardingScreenPro
           helper="Wolli birkaç soruyla sana sade bir Almanca yolu hazırlayacak."
           title="Almancanı birlikte planlayalım."
         >
+          <WolliBubble text="Kısa dersler, tekrar ve konuşma pratiği aynı yolda birleşecek." />
           <ValueIllustration title="A0'dan A1'e" lines={['Kısa ders', 'Akıllı tekrar', 'Konuşma pratiği']} />
           <AppButton icon={ArrowRight} onPress={goNext} title="Başlayalım" />
         </StepCard>
@@ -400,6 +409,7 @@ export function OnboardingScreen({ navigation, onComplete }: OnboardingScreenPro
             ) : <View style={styles.backPlaceholder} />}
             <View style={styles.progressCopy}>
               <Text style={styles.progressLabel}>{step < 9 ? progressStep + ' / ' + setupStepCount : 'Hazırlanıyor'}</Text>
+              <StepDots current={step < 9 ? progressStep : setupStepCount} total={setupStepCount} />
               <View style={styles.progressTrack}>
                 <View style={[styles.progressFill, { width: step < 9 ? progressWidth : '100%' }]} />
               </View>
@@ -426,12 +436,14 @@ export function OnboardingScreen({ navigation, onComplete }: OnboardingScreenPro
 
 function StepCard({ children, eyebrow, helper, title }: { children: ReactNode; eyebrow: string; helper: string; title: string }) {
   return (
+    <AnimatedCard>
     <View style={styles.panel}>
       <Text style={styles.eyebrow}>{eyebrow}</Text>
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.helper}>{helper}</Text>
       {children}
     </View>
+    </AnimatedCard>
   );
 }
 

@@ -325,7 +325,22 @@ Flows to test:
 - CurriculumMap A2/B1/B2 coming-soon message
 - AI chat with backend online and with backend offline fallback
 - speaking practice record, stop, replay, mocked transcript/scoring
-- Profile reset and feedback draft
+- Profile reset, feedback draft, local alpha log export, and local alpha log clear
+
+Local alpha event log:
+
+- Open `Profil` -> `Alpha test günlüğü`.
+- Tap `Test günlüğünü kopyala` to show a selectable local log.
+- Tap `Geri bildirim gönder` to open a feedback draft that can include the copied local log.
+- Tap `Test günlüğünü temizle` to remove only the local event log.
+- The log stays on the device until the tester manually shares it.
+
+Privacy rules for the local log:
+
+- no external analytics SDK is used
+- no events are sent to a server
+- no contacts, location, microphone content, audio files, audio URI, device fingerprint, API keys, AI prompts/responses, chat messages, placement free text, or lesson answer text are logged
+- safe metadata is limited to labels such as `lessonId`, `level`, `moduleId`, `exerciseType`, `result`, `durationMs`, `routeName`, and `fallbackReason`
 
 Feedback to report:
 
@@ -341,6 +356,7 @@ Known alpha limitations:
 - Speaking transcription and pronunciation scoring are mocked.
 - No Supabase account sync yet; progress is local to the device.
 - Feedback opens a mail draft or template; there is no feedback backend yet.
+- Local alpha event logs are manually exportable only; there is no analytics backend.
 - AI chat needs the local backend and falls back to a local Wolli response if unavailable.
 
 ## Product Notes

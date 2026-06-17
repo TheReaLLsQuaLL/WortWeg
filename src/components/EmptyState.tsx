@@ -1,0 +1,64 @@
+import type { ComponentType } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+
+import { colors, radius, spacing, typography } from '../data/theme';
+import { AppButton } from './AppButton';
+
+type IconProps = { color?: string; size?: number; strokeWidth?: number };
+
+type EmptyStateProps = {
+  title: string;
+  body: string;
+  actionTitle?: string;
+  icon?: ComponentType<IconProps>;
+  framed?: boolean;
+  onActionPress?: () => void;
+};
+
+export function EmptyState({ actionTitle, body, framed = true, icon: Icon, onActionPress, title }: EmptyStateProps) {
+  return (
+    <View style={[styles.card, !framed && styles.unframed]}>
+      {Icon ? (
+        <View style={styles.iconWrap}>
+          <Icon color={colors.royalPurple} size={24} strokeWidth={2.6} />
+        </View>
+      ) : null}
+      <Text style={styles.title}>{title}</Text>
+      <Text style={styles.body}>{body}</Text>
+      {actionTitle && onActionPress ? <AppButton onPress={onActionPress} title={actionTitle} variant="secondary" /> : null}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  card: {
+    alignItems: 'flex-start',
+    backgroundColor: colors.white,
+    borderColor: colors.border,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    gap: spacing.sm,
+    padding: spacing.lg,
+  },
+  unframed: {
+    backgroundColor: 'transparent',
+    borderWidth: 0,
+    padding: 0,
+  },
+  iconWrap: {
+    alignItems: 'center',
+    backgroundColor: colors.lavender,
+    borderRadius: radius.md,
+    height: 44,
+    justifyContent: 'center',
+    width: 44,
+  },
+  title: {
+    ...typography.heading,
+    color: colors.deepViolet,
+  },
+  body: {
+    ...typography.body,
+    color: colors.muted,
+  },
+});

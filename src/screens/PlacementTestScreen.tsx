@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { ArrowLeft, ArrowRight, CheckCircle2 } from 'lucide-react-native';
 
@@ -8,6 +8,7 @@ import { TopBar } from '../components/TopBar';
 import { colors, radius, spacing, typography } from '../data/theme';
 import type { RootNavigation } from '../navigation/AppNavigator';
 import { getPlacementQuestions, scorePlacementTest, type PlacementAnswerMap } from '../services/placementService';
+import { trackLocalEvent } from '../services/localEventLog';
 import type { LearningPlanInput } from '../types/learningPlan';
 
 export type PlacementTestRoute = {
@@ -31,6 +32,10 @@ export function PlacementTestScreen({ navigation, route }: PlacementTestScreenPr
   const selectedChoiceId = answers[question.id];
   const progress = ((currentIndex + 1) / questions.length) * 100;
   const progressWidth = (progress + '%') as `${number}%`;
+
+  useEffect(() => {
+    trackLocalEvent({ type: 'placement_started', screen: 'PlacementTest' });
+  }, []);
 
   const choose = (choiceId: string) => {
     setAnswers((current) => ({
