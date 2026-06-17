@@ -91,6 +91,7 @@ export const createDefaultLearningPlan = (profile?: OnboardingProfile): Learning
 
 export const defaultUserState: UserState = {
   hasOnboarded: false,
+  hasCompletedOnboarding: false,
   xp: 0,
   todayXp: 0,
   streak: 0,
@@ -126,10 +127,39 @@ const isLearningPlanLike = (plan: unknown): plan is LearningPlan => {
   );
 };
 
-const migrateUserState = (state: UserState): UserState => {
+export const getHasCompletedOnboarding = (state: UserState): boolean =>
+  Boolean(state.hasCompletedOnboarding || state.hasOnboarded || state.profile);
+
+export const shouldShowOnboarding = (state: UserState): boolean =>
+  !getHasCompletedOnboarding(state);
+
+type RepairResult = {
+  state: UserState;
+  wasRepaired: boolean;
+  reasons: string[];
+};
+
+const getProfileLevelFromPlan = (level?: StartLevelId): OnboardingProfile['level'] => {
+  if (level === 'A2' || level === 'B1') {
+    return 'a2';
+  }
+
+  if (level === 'A1' || level === 'some') {
+    return 'a1';
+  }
+
+  return 'a0';
+};
+
+export const repairUserStateIfNeeded = (state: UserState): RepairResult => {
+  const reasons: string[] = [];
+  const inferredCompleted = getHasCompletedOnboarding(state);
   const profile = state.profile;
   const hadInvalidPlan = Boolean(state.learningPlan) && !isLearningPlanLike(state.learningPlan);
+  const needsPlanRepair = inferredCompleted && !isLearningPlanLike(state.learningPlan);
+
   if (hadInvalidPlan) {
+    reasons.push('invalid_learning_plan');
     trackLocalEvent({
       type: 'storage_migration_error',
       screen: 'Storage',
@@ -137,6 +167,19 @@ const migrateUserState = (state: UserState): UserState => {
       severity: 'warning',
     });
   }
+
+  if (needsPlanRepair) {
+    if (!state.learningPlan) {
+      reasons.push('missing_learning_plan');
+    }
+    trackLocalEvent({
+      type: 'plan_repaired',
+      screen: 'Storage',
+      action: 'default_plan_created',
+      severity: 'warning',
+    });
+  }
+
   const baseLearningPlan = isLearningPlanLike(state.learningPlan)
     ? state.learningPlan
     : createDefaultLearningPlan(profile);
@@ -145,22 +188,67 @@ const migrateUserState = (state: UserState): UserState => {
     ? { ...baseLearningPlan, placementResult }
     : baseLearningPlan;
 
-  return {
-    ...state,
-    profile: profile
+  if (state.hasCompletedOnboarding !== inferredCompleted) {
+    reasons.push('completion_flag_repaired');
+  }
+
+  if (state.hasOnboarded !== inferredCompleted) {
+    reasons.push('legacy_onboarding_flag_repaired');
+  }
+
+  if (inferredCompleted && !state.onboardingCompletedAt) {
+    reasons.push('completion_timestamp_repaired');
+  }
+
+  const normalizedProfile: OnboardingProfile | undefined = profile
+    ? {
+        ...profile,
+        goalId: profile.goalId ?? learningPlan.userGoal,
+        startLevel: profile.startLevel ?? learningPlan.startLevel,
+        targetLevel: profile.targetLevel ?? learningPlan.targetLevel,
+        prioritySkill: profile.prioritySkill ?? 'speaking',
+        studyStyle: profile.studyStyle ?? 'balanced',
+        dailyGoalMinutes: normalizeDailyMinutes(profile.dailyGoalMinutes),
+        dailyGoalXp: profile.dailyGoalXp ?? getDailyGoalXp(normalizeDailyMinutes(profile.dailyGoalMinutes)),
+        goal: profile.goal || getGoalLabel(learningPlan.userGoal),
+      }
+    : inferredCompleted
       ? {
-          ...profile,
-          goalId: profile.goalId ?? learningPlan.userGoal,
-          startLevel: profile.startLevel ?? learningPlan.startLevel,
-          targetLevel: profile.targetLevel ?? learningPlan.targetLevel,
-          prioritySkill: profile.prioritySkill ?? 'speaking',
-          studyStyle: profile.studyStyle ?? 'balanced',
-          dailyGoalXp: profile.dailyGoalXp ?? getDailyGoalXp(normalizeDailyMinutes(profile.dailyGoalMinutes)),
-          goal: profile.goal || getGoalLabel(learningPlan.userGoal),
+          name: 'WortWeg öğrencisi',
+          goal: getGoalLabel(learningPlan.userGoal),
+          goalId: learningPlan.userGoal,
+          dailyGoalMinutes: learningPlan.dailyMinutes,
+          dailyGoalXp: getDailyGoalXp(learningPlan.dailyMinutes),
+          level: getProfileLevelFromPlan(learningPlan.startLevel),
+          reason: getGoalLabel(learningPlan.userGoal),
+          startLevel: learningPlan.startLevel,
+          targetLevel: learningPlan.targetLevel,
+          examDate: learningPlan.examDate,
+          prioritySkill: 'speaking',
+          studyStyle: 'balanced',
         }
-      : profile,
+      : profile;
+
+  if (inferredCompleted && !profile) {
+    reasons.push('profile_repaired');
+  }
+
+  const nextState: UserState = {
+    ...state,
+    hasOnboarded: inferredCompleted,
+    hasCompletedOnboarding: inferredCompleted,
+    onboardingCompletedAt: inferredCompleted
+      ? state.onboardingCompletedAt ?? new Date().toISOString()
+      : undefined,
+    profile: normalizedProfile,
     learningPlan,
     placementResult,
+  };
+
+  return {
+    state: nextState,
+    wasRepaired: reasons.length > 0,
+    reasons,
   };
 };
 
@@ -172,9 +260,11 @@ export const loadUserState = async (): Promise<UserState> => {
   }
 
   try {
+    const rawParsedState = JSON.parse(rawState) as Partial<UserState>;
     const parsedState = {
       ...defaultUserState,
-      ...JSON.parse(rawState),
+      ...rawParsedState,
+      learningPlan: rawParsedState.learningPlan,
     };
 
     const reviewCards = Array.isArray(parsedState.reviewCards)
@@ -188,8 +278,10 @@ export const loadUserState = async (): Promise<UserState> => {
         )
       : [];
 
-    return migrateUserState({
+    const normalizedState: UserState = {
       ...parsedState,
+      hasOnboarded: Boolean(parsedState.hasOnboarded),
+      hasCompletedOnboarding: Boolean(parsedState.hasCompletedOnboarding),
       completedLessons: Array.isArray(parsedState.completedLessons) ? parsedState.completedLessons : [],
       lessonProgress: parsedState.lessonProgress && typeof parsedState.lessonProgress === 'object' ? parsedState.lessonProgress : {},
       mistakes: Array.isArray(parsedState.mistakes) ? parsedState.mistakes : [],
@@ -200,10 +292,17 @@ export const loadUserState = async (): Promise<UserState> => {
           : 0,
       reviewCards,
       examHistory: Array.isArray(parsedState.examHistory) ? parsedState.examHistory : [],
-    });
+    };
+    const repaired = repairUserStateIfNeeded(normalizedState);
+
+    if (repaired.wasRepaired) {
+      await AsyncStorage.setItem(STORAGE_KEYS.userState, JSON.stringify(repaired.state));
+    }
+
+    return repaired.state;
   } catch {
     trackLocalEvent({
-      type: 'storage_migration_error',
+      type: 'boot_storage_error',
       screen: 'Storage',
       action: 'parse_failed',
       severity: 'error',

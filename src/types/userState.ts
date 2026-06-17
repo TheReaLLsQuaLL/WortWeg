@@ -57,6 +57,8 @@ export type LessonProgress = {
 
 export type UserState = {
   hasOnboarded: boolean;
+  hasCompletedOnboarding: boolean;
+  onboardingCompletedAt?: string;
   profile?: OnboardingProfile;
   learningPlan?: LearningPlan;
   placementResult?: PlacementResult;

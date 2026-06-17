@@ -29,6 +29,7 @@ import {
   loadUserState,
   saveUserState,
   resetUserState,
+  shouldShowOnboarding,
 } from '../lib/storage';
 import type { CurriculumLevelId } from '../types/curriculum';
 import type { LearningPlanInput } from '../types/learningPlan';
@@ -112,10 +113,66 @@ function MainTabs({ navigation, userState, onUpdateState, onResetApp, initialTab
 
 export function AppNavigator() {
   const [userState, setUserState] = useState<UserState | null>(null);
-  const [openPlanAfterOnboarding, setOpenPlanAfterOnboarding] = useState(false);
+  const [pendingHomeReset, setPendingHomeReset] = useState(false);
 
   useEffect(() => {
-    loadUserState().then(setUserState);
+    let mounted = true;
+
+    loadUserState()
+      .then((loadedState) => {
+        if (!mounted) {
+          return;
+        }
+
+        const showOnboarding = shouldShowOnboarding(loadedState);
+        const routeName = showOnboarding ? 'Onboarding' : 'Main';
+
+        if (__DEV__) {
+          console.log('[WortWeg boot]', {
+            hasCompletedOnboarding: loadedState.hasCompletedOnboarding,
+            hasOnboarded: loadedState.hasOnboarded,
+            hasLearningPlan: Boolean(loadedState.learningPlan),
+            routeName,
+          });
+        }
+
+        trackLocalEvent({
+          type: 'app_boot_decision',
+          screen: 'AppNavigator',
+          metadata: {
+            routeName,
+            level: loadedState.learningPlan?.currentLevel,
+            moduleId: loadedState.learningPlan?.currentModuleId,
+          },
+        });
+
+        if (!showOnboarding) {
+          trackLocalEvent({
+            type: 'onboarding_skipped_if_applicable',
+            screen: 'AppNavigator',
+            metadata: { routeName: 'Main' },
+          });
+        }
+
+        setUserState(loadedState);
+      })
+      .catch(() => {
+        if (!mounted) {
+          return;
+        }
+
+        trackLocalEvent({
+          type: 'boot_storage_error',
+          screen: 'AppNavigator',
+          action: 'load_failed',
+          severity: 'error',
+        });
+        setUserState(defaultUserState);
+      });
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const commitUserState = useCallback<CommitUserState>(
@@ -131,9 +188,12 @@ export function AppNavigator() {
 
   const completeOnboarding = useCallback(
     async ({ learningPlan, placementResult, profile }: OnboardingCompletion) => {
+      const completedAt = new Date().toISOString();
       const nextState: UserState = {
         ...defaultUserState,
         hasOnboarded: true,
+        hasCompletedOnboarding: true,
+        onboardingCompletedAt: completedAt,
         profile,
         learningPlan,
         placementResult,
@@ -145,32 +205,42 @@ export function AppNavigator() {
         screen: 'Onboarding',
         metadata: { level: learningPlan.currentLevel, moduleId: learningPlan.currentModuleId },
       });
-      setOpenPlanAfterOnboarding(true);
       await saveUserState(nextState);
+      setPendingHomeReset(true);
     },
     [],
   );
 
   const resetAppState = useCallback(async () => {
     await resetUserState();
-    setOpenPlanAfterOnboarding(false);
+    setPendingHomeReset(false);
     setUserState(defaultUserState);
   }, []);
 
+  const showOnboarding = userState ? shouldShowOnboarding(userState) : true;
+
   useEffect(() => {
-    if (!openPlanAfterOnboarding || !userState?.hasOnboarded) {
+    if (!pendingHomeReset || !userState || showOnboarding) {
       return;
     }
 
     const timeout = setTimeout(() => {
       if (navigationRef.isReady()) {
-        navigationRef.navigate('PlanOverview');
-        setOpenPlanAfterOnboarding(false);
+        navigationRef.resetRoot({
+          index: 0,
+          routes: [{ name: 'Main', params: { initialTab: 'home' } }],
+        });
+        trackLocalEvent({
+          type: 'route_reset_to_home',
+          screen: 'AppNavigator',
+          metadata: { routeName: 'Main' },
+        });
+        setPendingHomeReset(false);
       }
     }, 0);
 
     return () => clearTimeout(timeout);
-  }, [openPlanAfterOnboarding, userState?.hasOnboarded]);
+  }, [pendingHomeReset, showOnboarding, userState]);
 
   if (!userState) {
     return (
@@ -194,7 +264,7 @@ export function AppNavigator() {
       }
     >
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {!userState.hasOnboarded ? (
+        {showOnboarding ? (
           <>
             <Stack.Screen name="Onboarding">
               {({ navigation }) => (

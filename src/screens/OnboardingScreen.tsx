@@ -17,7 +17,6 @@ import {
   ArrowRight,
   BookOpen,
   BriefcaseBusiness,
-  CalendarDays,
   Check,
   GraduationCap,
   HeartHandshake,
@@ -31,7 +30,6 @@ import {
 import { AnimatedCard } from '../components/AnimatedCard';
 import { AppButton } from '../components/AppButton';
 import { StepDots } from '../components/StepDots';
-import { WolliBubble } from '../components/WolliBubble';
 import { Chip } from '../components/Chip';
 import { Mascot } from '../components/Mascot';
 import {
@@ -72,10 +70,20 @@ const goalIcons: Record<UserGoalId, ComponentType<IconProps>> = {
   curiosity: HelpCircle,
 };
 
-const goalCards: GoalCard[] = goalOptions.map((option) => ({
-  ...option,
-  icon: goalIcons[option.id],
-}));
+const shortGoalLabels: Partial<Record<UserGoalId, string>> = {
+  daily_life: 'Günlük',
+  work: 'İş',
+  family: 'Aile',
+  university: 'Okul',
+};
+
+const goalCards: GoalCard[] = goalOptions
+  .filter((option) => option.id !== 'curiosity')
+  .map((option) => ({
+    ...option,
+    label: shortGoalLabels[option.id] ?? option.label,
+    icon: goalIcons[option.id],
+  }));
 
 const setupStepCount = 9;
 
@@ -106,6 +114,7 @@ export function OnboardingScreen({ navigation, onComplete }: OnboardingScreenPro
   const [targetLevel, setTargetLevel] = useState<LearningPlanInput['targetLevel']>('A1');
   const [dailyMinutes, setDailyMinutes] = useState<LearningPlanInput['dailyMinutes']>(10);
   const [examDate, setExamDate] = useState('');
+  const [showExamDate, setShowExamDate] = useState(false);
   const [prioritySkill, setPrioritySkill] = useState<LearningPlanInput['prioritySkill']>('speaking');
   const [wantsPlacement, setWantsPlacement] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -121,11 +130,11 @@ export function OnboardingScreen({ navigation, onComplete }: OnboardingScreenPro
       selfSelectedLevel: startLevel,
       targetLevel,
       dailyMinutes,
-      examDate,
+      examDate: showExamDate ? examDate : '',
       prioritySkill,
       studyStyle,
     }),
-    [dailyMinutes, examDate, prioritySkill, startLevel, studyStyle, targetLevel, userGoal],
+    [dailyMinutes, examDate, prioritySkill, showExamDate, startLevel, studyStyle, targetLevel, userGoal],
   );
   const planPreview = useMemo(() => createLearningPlan(setupInput), [setupInput]);
   const selectedGoal = goalCards.find((item) => item.id === userGoal) ?? goalCards[1]!;
@@ -185,8 +194,6 @@ export function OnboardingScreen({ navigation, onComplete }: OnboardingScreenPro
 
   const finishSetup = async () => {
     setSaving(true);
-    setStep(9);
-    await wait(650);
 
     if (wantsPlacement) {
       navigation.navigate('PlacementTest', {
@@ -195,6 +202,9 @@ export function OnboardingScreen({ navigation, onComplete }: OnboardingScreenPro
       setSaving(false);
       return;
     }
+
+    setStep(9);
+    await wait(650);
 
     const learningPlan = createLearningPlan(setupInput);
     await onComplete(buildOnboardingCompletion({
@@ -223,12 +233,11 @@ export function OnboardingScreen({ navigation, onComplete }: OnboardingScreenPro
       return (
         <StepCard
           eyebrow="WortWeg"
-          helper="Wolli birkaç soruyla sana sade bir Almanca yolu hazırlayacak."
-          title="Almancanı birlikte planlayalım."
+          helper="Wolli sana kısa bir yol haritası hazırlayacak."
+          title="Almancanı planlayalım"
         >
-          <WolliBubble text="Kısa dersler, tekrar ve konuşma pratiği aynı yolda birleşecek." />
-          <ValueIllustration title="A0'dan A1'e" lines={['Kısa ders', 'Akıllı tekrar', 'Konuşma pratiği']} />
-          <AppButton icon={ArrowRight} onPress={goNext} title="Başlayalım" />
+          <ValueIllustration title="Kısa yol" lines={['Ders', 'Tekrar', 'Konuşma']} />
+          <AppButton icon={ArrowRight} onPress={goNext} title="Başla" />
         </StepCard>
       );
     }
@@ -237,7 +246,7 @@ export function OnboardingScreen({ navigation, onComplete }: OnboardingScreenPro
       return (
         <StepCard
           eyebrow="1. Hedef"
-          helper="Hedefin rota, tekrar ve pratik türünü belirler."
+          helper="Bir hedef seç."
           title="Neden Almanca öğreniyorsun?"
         >
           <View style={styles.goalGrid}>
@@ -259,11 +268,11 @@ export function OnboardingScreen({ navigation, onComplete }: OnboardingScreenPro
       return (
         <StepCard
           eyebrow="Wolli notu"
-          helper="Hedefine göre dersleri, tekrarları ve konuşma pratiklerini ayarlayacağız."
-          title="Rota kişisel olacak."
+          helper="Ders ve tekrar sırası buna göre değişir."
+          title="Hedefine göre rota"
         >
-          <ValueIllustration title={selectedGoal.label} lines={['Ders sırası', 'Günlük tekrar', 'Pratik önerisi']} />
-          <AppButton icon={ArrowRight} onPress={goNext} title="Güzel, devam" />
+          <ValueIllustration title={selectedGoal.label} lines={['Ders', 'Tekrar', 'Pratik']} />
+          <AppButton icon={ArrowRight} onPress={goNext} title="Devam" />
         </StepCard>
       );
     }
@@ -272,12 +281,18 @@ export function OnboardingScreen({ navigation, onComplete }: OnboardingScreenPro
       return (
         <StepCard
           eyebrow="2. Seviye"
-          helper="Bilmiyorsan sorun değil. Bir sonraki adımda kısa kontrol isteyebilirsin."
-          title="Şu anki seviyen ne?"
+          helper="Emin değilsen kontrol yapabiliriz."
+          title="Nereden başlıyorsun?"
         >
           <ChipGroup>
             {startLevelOptions.map((item) => (
-              <Chip key={item.id} label={item.label} onPress={() => setStartLevel(item.id)} selected={startLevel === item.id} tone="plain" />
+              <Chip
+                key={item.id}
+                label={item.id === 'zero' ? 'Sıfır' : item.id === 'some' ? 'Biraz' : item.label}
+                onPress={() => setStartLevel(item.id)}
+                selected={startLevel === item.id}
+                tone="plain"
+              />
             ))}
           </ChipGroup>
           <AppButton icon={ArrowRight} onPress={goNext} title="Devam" />
@@ -289,11 +304,11 @@ export function OnboardingScreen({ navigation, onComplete }: OnboardingScreenPro
       return (
         <StepCard
           eyebrow="Seviye kontrolü"
-          helper="Çok kolay ya da çok zor derslerle başlamaman için."
-          title="2 dakikalık kontrol ister misin?"
+          helper="Çok kolay ya da zor başlamamak için."
+          title="Seviye kontrolü yapalım mı?"
         >
-          <ValueIllustration title="Başlangıcı netleştir" lines={['12 kısa soru', 'Yerel puanlama', 'API kullanılmaz']} />
-          <AppButton icon={Check} onPress={() => choosePlacement(true)} title="Evet, kontrol edelim" />
+          <ValueIllustration title="2 dakika" lines={['12 kısa soru', 'Hızlı sonuç']} />
+          <AppButton icon={Check} onPress={() => choosePlacement(true)} title="Kontrol et" />
           <AppButton onPress={() => choosePlacement(false)} title="Atla" variant="secondary" />
         </StepCard>
       );
@@ -303,8 +318,8 @@ export function OnboardingScreen({ navigation, onComplete }: OnboardingScreenPro
       return (
         <StepCard
           eyebrow="3. Günlük süre"
-          helper="Kısa ve düzenli çalışma, uzun ama seyrek çalışmadan daha değerlidir."
-          title="Günde kaç dakika ayırabilirsin?"
+          helper="Kısa çalışma yeter."
+          title="Günde kaç dakika?"
         >
           <ChipGroup>
             {dailyMinuteOptions.map((item) => (
@@ -320,8 +335,8 @@ export function OnboardingScreen({ navigation, onComplete }: OnboardingScreenPro
       return (
         <StepCard
           eyebrow="Günlük plan"
-          helper="Planın günlük sürene göre küçük parçalara bölünecek."
-          title="Gerçek hayatına uyacak."
+          helper="Planın küçük parçalara bölünecek."
+          title="Günlük planın hazır"
         >
           <SchedulePreview minutes={dailyMinutes} />
           <AppButton icon={ArrowRight} onPress={goNext} title="Devam" />
@@ -333,8 +348,8 @@ export function OnboardingScreen({ navigation, onComplete }: OnboardingScreenPro
       return (
         <StepCard
           eyebrow="4. Odak"
-          helper="Bugünkü önerilerde bu beceriye biraz daha yer açacağız."
-          title="En çok ne gelişsin?"
+          helper="Bugünkü öneriler buna göre şekillenir."
+          title="Neye ağırlık verelim?"
         >
           <ChipGroup>
             {prioritySkillOptions.map((item) => (
@@ -350,30 +365,34 @@ export function OnboardingScreen({ navigation, onComplete }: OnboardingScreenPro
       return (
         <StepCard
           eyebrow="5. Hedef seviye"
-          helper="Sınav tarihin yoksa boş bırak. Sonradan değiştirebilirsin."
-          title="Nereye varmak istiyorsun?"
+          helper="Sınav tarihin varsa ekleyebilirsin."
+          title="Hedef seviyen?"
         >
           <ChipGroup>
             {targetLevelOptions.map((item) => (
               <Chip key={item.id} label={item.label} onPress={() => setTargetLevel(item.id)} selected={targetLevel === item.id} tone="yellow" />
             ))}
           </ChipGroup>
-          <View style={styles.fieldGroup}>
-            <Text style={styles.label}>Sınav tarihi</Text>
-            <TextInput
-              autoCapitalize="none"
-              onChangeText={setExamDate}
-              placeholder="Opsiyonel · örn. 2026-09-20"
-              placeholderTextColor={colors.muted}
-              style={styles.input}
-              value={examDate}
-            />
-          </View>
+          {showExamDate ? (
+            <View style={styles.fieldGroup}>
+              <Text style={styles.label}>Sınav tarihi</Text>
+              <TextInput
+                autoCapitalize="none"
+                onChangeText={setExamDate}
+                placeholder="Örn. 2026-09-20"
+                placeholderTextColor={colors.muted}
+                style={styles.input}
+                value={examDate}
+              />
+            </View>
+          ) : (
+            <AppButton onPress={() => setShowExamDate(true)} title="Sınav tarihim var" variant="secondary" />
+          )}
           <View style={styles.previewCard}>
-            <Text style={styles.previewTitle}>{planPreview.titleTr}</Text>
-            <Text style={styles.previewText}>{planPreview.currentLevel} → {planPreview.targetLevel} · {planPreview.dailyMinutes} dk/gün</Text>
+            <Text style={styles.previewTitle}>Yol haritan hazır</Text>
+            <Text style={styles.previewText}>{planPreview.titleTr} · {planPreview.currentLevel} → {planPreview.targetLevel}</Text>
           </View>
-          <AppButton icon={Sparkles} loading={saving} onPress={finishSetup} title="Yol haritamı hazırla" />
+          <AppButton icon={Sparkles} loading={saving} onPress={finishSetup} title={wantsPlacement ? 'Teste geç' : 'Ana sayfaya geç'} />
         </StepCard>
       );
     }
@@ -382,7 +401,7 @@ export function OnboardingScreen({ navigation, onComplete }: OnboardingScreenPro
       <StepCard
         eyebrow="Wolli çalışıyor"
         helper={wantsPlacement ? 'Önce kısa seviye kontrolünü açıyoruz.' : 'Planın hazır olunca yol haritana geçeceksin.'}
-        title="Yol haritan hazırlanıyor..."
+        title="Yol haritan hazırlanıyor"
       >
         <View style={styles.loadingDots}>
           <View style={styles.dot} />

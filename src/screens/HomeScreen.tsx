@@ -90,8 +90,8 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
     <Screen backgroundColor={colors.deepViolet}>
       <TopBar
         streak={userState.streak}
-        subtitle={'Bugün ' + Math.min(userState.todayXp, dailyGoalXp) + '/' + dailyGoalXp + ' XP'}
-        title={'Merhaba, ' + (userState.profile?.name ?? 'öğrenci')}
+        subtitle={(plan?.currentLevel ?? 'A0') + ' · Bugün ' + Math.min(userState.todayXp, dailyGoalXp) + '/' + dailyGoalXp + ' XP'}
+        title="Bugün"
         xp={userState.xp}
       />
       <AppScrollView contentContainerStyle={styles.content} style={styles.scroll}>
@@ -102,7 +102,7 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
               <Sparkles color={colors.yellow} size={24} strokeWidth={2.6} />
             </View>
             <View style={styles.flexCopy}>
-              <ProgressPill label="Bugün" tone="yellow" />
+              <ProgressPill label="Bugünkü adım" tone="yellow" />
               <Text style={styles.todayTitle}>{primaryTitle}</Text>
               <Text style={styles.todayMeta}>{primaryMeta}</Text>
             </View>
@@ -135,7 +135,7 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
           <QuickAction icon={RotateCcw} label="Kelime" onPress={() => navigation.navigate('Main', { initialTab: 'vocab' })} />
           <QuickAction icon={NotebookTabs} label="Hatalarım" onPress={() => navigation.navigate('Main', { initialTab: 'profile' })} />
           <QuickAction icon={MessageCircle} label="Wolli" onPress={() => navigation.navigate('Main', { initialTab: 'chat' })} />
-          <QuickAction icon={Mic} label="Sesli" onPress={() => navigation.navigate('SpeakingPractice', {})} />
+          <QuickAction icon={Mic} label="Ses" onPress={() => navigation.navigate('SpeakingPractice', {})} />
         </View>
         </AnimatedCard>
 

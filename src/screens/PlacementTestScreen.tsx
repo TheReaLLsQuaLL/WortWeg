@@ -97,14 +97,15 @@ export function PlacementTestScreen({ navigation, route }: PlacementTestScreenPr
         </View>
 
         <View style={styles.navRow}>
-          <AppButton
-            icon={ArrowLeft}
-            onPress={() => setCurrentIndex((index) => Math.max(0, index - 1))}
-            title="Geri"
-            variant="secondary"
-            disabled={currentIndex === 0}
-            style={styles.navButton}
-          />
+          {currentIndex > 0 ? (
+            <AppButton
+              icon={ArrowLeft}
+              onPress={() => setCurrentIndex((index) => Math.max(0, index - 1))}
+              title="Geri"
+              variant="secondary"
+              style={styles.navButton}
+            />
+          ) : null}
           <AppButton
             icon={ArrowRight}
             onPress={next}

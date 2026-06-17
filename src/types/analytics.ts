@@ -2,11 +2,15 @@ export type LocalEventSeverity = 'info' | 'warning' | 'error';
 
 export type LocalEventType =
   | 'app_opened'
+  | 'app_boot_decision'
   | 'onboarding_started'
   | 'onboarding_completed'
+  | 'onboarding_skipped_if_applicable'
   | 'placement_started'
   | 'placement_completed'
   | 'plan_created'
+  | 'plan_repaired'
+  | 'route_reset_to_home'
   | 'home_viewed'
   | 'lesson_started'
   | 'exercise_answered'
@@ -24,6 +28,7 @@ export type LocalEventType =
   | 'feedback_opened'
   | 'dev_reset_used'
   | 'navigation_error'
+  | 'boot_storage_error'
   | 'storage_migration_error';
 
 export type LocalEventMetadata = Partial<{

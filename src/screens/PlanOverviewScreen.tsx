@@ -1,17 +1,16 @@
-import { useState, type ComponentType } from 'react';
+import { useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
-import { BookOpen, ChevronDown, ChevronUp, ClipboardList, Map, Mic, PenLine, RotateCcw, Settings2 } from 'lucide-react-native';
+import { BookOpen, ChevronDown, ChevronUp, Map, Settings2 } from 'lucide-react-native';
 
 import { AppButton } from '../components/AppButton';
 import { AppScrollView, Screen } from '../components/layout';
 import { TopBar } from '../components/TopBar';
 import { getTrackById } from '../data/curriculum';
-import { getNextPlayableLesson, getPlayableLessonByModuleId } from '../data/lessons';
+import { getNextPlayableLesson } from '../data/lessons';
 import { colors, radius, spacing, typography } from '../data/theme';
 import { getDueReviewCards } from '../lib/srs';
 import type { CommitUserState, RootNavigation } from '../navigation/AppNavigator';
 import { getTodayRecommendedActions } from '../services/planService';
-import type { RecommendedAction } from '../types/learningPlan';
 import type { UserState } from '../types/userState';
 
 type PlanOverviewScreenProps = {
@@ -19,8 +18,6 @@ type PlanOverviewScreenProps = {
   userState: UserState;
   onUpdateState: CommitUserState;
 };
-
-type IconProps = { color?: string; size?: number; strokeWidth?: number };
 
 const skillLabels = {
   reading: 'Okuma',
@@ -30,16 +27,6 @@ const skillLabels = {
   grammar: 'Gramer',
   vocabulary: 'Kelime',
   pronunciation: 'Telaffuz',
-};
-
-const actionIcons: Record<RecommendedAction['type'], ComponentType<IconProps>> = {
-  lesson: BookOpen,
-  srs: RotateCcw,
-  speaking: Mic,
-  listening: BookOpen,
-  writing: PenLine,
-  exam: ClipboardList,
-  review: RotateCcw,
 };
 
 const getStartLevelLabel = (level: string) => {
@@ -72,41 +59,8 @@ export function PlanOverviewScreen({ navigation, userState }: PlanOverviewScreen
     .sort((a, b) => b[1] - a[1])
     .slice(0, 4);
 
-  const openAction = (action?: RecommendedAction) => {
-    if (!action) {
-      return;
-    }
-
-    if (action.type === 'speaking') {
-      navigation.navigate('SpeakingPractice', {});
-      return;
-    }
-
-    if (action.type === 'exam') {
-      navigation.navigate('Main', { initialTab: 'exam' });
-      return;
-    }
-
-    if (action.type === 'srs' || action.type === 'review') {
-      navigation.navigate('Main', { initialTab: 'vocab' });
-      return;
-    }
-
-    if (action.type === 'lesson') {
-      const lesson = action.targetId
-        ? getPlayableLessonByModuleId(action.targetId)
-        : nextLesson;
-
-      if (!lesson) {
-        Alert.alert('Yakında', 'Bu modül yakında oynanabilir olacak.');
-        return;
-      }
-
-      navigation.navigate('LessonIntro', { lessonId: lesson.id });
-      return;
-    }
-
-    navigation.navigate('CurriculumMap');
+  const goHome = () => {
+    navigation.navigate('Main', { initialTab: 'home' });
   };
 
   const startFirstLesson = () => {
@@ -127,13 +81,18 @@ export function PlanOverviewScreen({ navigation, userState }: PlanOverviewScreen
           <Text style={styles.heroTitle}>{plan.titleTr}</Text>
           <Text style={styles.heroText}>{getStartLevelLabel(plan.startLevel)} → {plan.targetLevel} · {plan.dailyMinutes} dk/gün</Text>
           {plan.placementUsed ? <Text style={styles.heroNote}>Seviye kontrolüne göre önerildi.</Text> : null}
-          <AppButton icon={BookOpen} onPress={startFirstLesson} title="İlk derse başla" />
+          <AppButton icon={Map} onPress={goHome} title="Ana sayfaya geç" />
+          <AppButton icon={BookOpen} onPress={startFirstLesson} title="İlk derse başla" variant="secondary" />
         </View>
 
         {nextAction ? (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Bugünkü öneri</Text>
-            <ActionRow action={nextAction} onPress={() => openAction(nextAction)} />
+            <Text style={styles.sectionTitle}>Bugünkü ilk adım</Text>
+            <View style={styles.nextActionBox}>
+              <Text style={styles.actionTitle}>{nextAction.titleTr}</Text>
+              <Text style={styles.muted} numberOfLines={2}>{nextAction.descriptionTr}</Text>
+              <Text style={styles.minutes}>{nextAction.estimatedMinutes} dk</Text>
+            </View>
           </View>
         ) : null}
 
@@ -168,32 +127,14 @@ export function PlanOverviewScreen({ navigation, userState }: PlanOverviewScreen
                 <Text style={styles.muted}>Hafta {milestone.estimatedWeek}</Text>
               </View>
             ))}
+            <View style={styles.actionsRow}>
+              <AppButton icon={Map} onPress={() => navigation.navigate('CurriculumMap')} title="Müfredat" variant="secondary" style={styles.actionButton} />
+              <AppButton icon={Settings2} onPress={() => navigation.navigate('PlanSetup', { mode: 'edit' })} title="Düzenle" variant="secondary" style={styles.actionButton} />
+            </View>
           </View>
         ) : null}
-
-        <View style={styles.actionsRow}>
-          <AppButton icon={Map} onPress={() => navigation.navigate('CurriculumMap')} title="Müfredat" variant="secondary" style={styles.actionButton} />
-          <AppButton icon={Settings2} onPress={() => navigation.navigate('PlanSetup', { mode: 'edit' })} title="Düzenle" variant="secondary" style={styles.actionButton} />
-        </View>
       </AppScrollView>
     </Screen>
-  );
-}
-
-function ActionRow({ action, onPress }: { action: RecommendedAction; onPress: () => void }) {
-  const Icon = actionIcons[action.type];
-
-  return (
-    <Pressable onPress={onPress} style={({ pressed }) => [styles.actionRow, pressed && styles.pressed]}>
-      <View style={styles.actionIcon}>
-        <Icon color={colors.royalPurple} size={20} strokeWidth={2.5} />
-      </View>
-      <View style={styles.actionCopy}>
-        <Text style={styles.actionTitle}>{action.titleTr}</Text>
-        <Text style={styles.muted} numberOfLines={2}>{action.descriptionTr}</Text>
-      </View>
-      <Text style={styles.minutes}>{action.estimatedMinutes} dk</Text>
-    </Pressable>
   );
 }
 
@@ -257,6 +198,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.md,
     minHeight: 72,
+    padding: spacing.md,
+  },
+  nextActionBox: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    gap: spacing.xs,
     padding: spacing.md,
   },
   actionIcon: {

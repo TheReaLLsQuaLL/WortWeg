@@ -10,7 +10,6 @@ import { TopBar } from '../components/TopBar';
 import { getPlayableLessonsForPlan } from '../data/lessons';
 import { colors, radius, spacing, typography } from '../data/theme';
 import { getKnownReviewCardCount, getReviewCoverage } from '../lib/srs';
-import { defaultUserState } from '../lib/storage';
 import type { CommitUserState, RootNavigation } from '../navigation/AppNavigator';
 import { trackLocalEvent } from '../services/localEventLog';
 import type { UserState } from '../types/userState';
@@ -57,23 +56,6 @@ export function ProfileScreen({ navigation, userState, onUpdateState, onResetApp
       mistakes: state.mistakes.filter((mistake) => mistake.id !== mistakeId),
     }));
     setActiveMistakeId(null);
-  };
-
-  const reset = () => {
-    Alert.alert(
-      'Verileri sıfırla',
-      'Onboarding, XP, tekrar kartları ve hatalar silinecek.',
-      [
-        { text: 'Vazgeç', style: 'cancel' },
-        {
-          text: 'Sıfırla',
-          style: 'destructive',
-          onPress: () => {
-            void onUpdateState(() => defaultUserState);
-          },
-        },
-      ],
-    );
   };
 
   const openFeedbackDraft = async (eventLogText?: string) => {
@@ -285,13 +267,6 @@ export function ProfileScreen({ navigation, userState, onUpdateState, onResetApp
             variant="danger"
           />
         ) : null}
-
-        <AppButton
-          icon={RotateCcw}
-          onPress={reset}
-          title="Uygulama verisini sıfırla"
-          variant="danger"
-        />
       </AppScrollView>
     </Screen>
   );
