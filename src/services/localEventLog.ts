@@ -13,7 +13,13 @@ const allowedMetadataKeys = new Set<keyof LocalEventMetadata>([
   'result',
   'durationMs',
   'routeName',
+  'routeChosen',
   'fallbackReason',
+  'repairedPlan',
+  'hasCompletedOnboarding',
+  'hasOnboarded',
+  'hasProfile',
+  'hasLearningPlan',
 ]);
 
 const makeEventId = () =>
@@ -41,6 +47,11 @@ const sanitizeMetadata = (metadata?: LocalEventMetadata): LocalEventMetadata | u
 
     if (key === 'result' && (value === 'correct' || value === 'incorrect')) {
       safe.result = value;
+      continue;
+    }
+
+    if (typeof value === 'boolean') {
+      safe[key] = value as never;
       continue;
     }
 

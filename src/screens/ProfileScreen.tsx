@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Alert, Linking, StyleSheet, Text, View } from 'react-native';
+import { Alert, Linking, Modal, StyleSheet, Text, View } from 'react-native';
 import { Map, NotebookTabs, RotateCcw, Settings2 } from 'lucide-react-native';
 
 import { AppButton } from '../components/AppButton';
@@ -10,8 +10,9 @@ import { TopBar } from '../components/TopBar';
 import { getPlayableLessonsForPlan } from '../data/lessons';
 import { colors, radius, spacing, typography } from '../data/theme';
 import { getKnownReviewCardCount, getReviewCoverage } from '../lib/srs';
+import { shouldShowOnboarding } from '../lib/storage';
 import type { CommitUserState, RootNavigation } from '../navigation/AppNavigator';
-import { trackLocalEvent } from '../services/localEventLog';
+import { getLocalEventLog, trackLocalEvent } from '../services/localEventLog';
 import type { UserState } from '../types/userState';
 
 type ProfileScreenProps = {
@@ -23,6 +24,8 @@ type ProfileScreenProps = {
 
 export function ProfileScreen({ navigation, userState, onUpdateState, onResetApp }: ProfileScreenProps) {
   const [activeMistakeId, setActiveMistakeId] = useState<string | null>(null);
+  const [debugModalVisible, setDebugModalVisible] = useState(false);
+  const [debugText, setDebugText] = useState('');
   const level = Math.floor(userState.xp / 50) + 1;
   const xpInCurrentLevel = userState.xp % 50;
   const xpToNextLevel = xpInCurrentLevel === 0 ? 50 : 50 - xpInCurrentLevel;
@@ -111,6 +114,26 @@ export function ProfileScreen({ navigation, userState, onUpdateState, onResetApp
         },
       ],
     );
+  };
+
+  const openOnboardingDebug = async () => {
+    const routeDecision = shouldShowOnboarding(userState) ? 'Onboarding' : 'Main/Home';
+    const events = await getLocalEventLog();
+    const lastBootEvent = [...events].reverse().find((event) => event.type === 'app_boot_decision');
+    const lastBootLine = lastBootEvent
+      ? lastBootEvent.timestamp + ' · ' + JSON.stringify(lastBootEvent.metadata ?? {})
+      : 'Henüz app_boot_decision yok';
+
+    setDebugText([
+      'hasCompletedOnboarding: ' + String(userState.hasCompletedOnboarding),
+      'hasOnboarded: ' + String(userState.hasOnboarded),
+      'onboardingCompletedAt: ' + (userState.onboardingCompletedAt ?? '-'),
+      'hasProfile: ' + String(Boolean(userState.profile)),
+      'hasLearningPlan: ' + String(Boolean(userState.learningPlan)),
+      'currentStartRouteDecision: ' + routeDecision,
+      'lastBootEvent: ' + lastBootLine,
+    ].join('\n'));
+    setDebugModalVisible(true);
   };
 
   return (
@@ -248,6 +271,23 @@ export function ProfileScreen({ navigation, userState, onUpdateState, onResetApp
           </View>
         </View>
 
+        {__DEV__ ? (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>DEV onboarding durumu</Text>
+            <Text style={styles.body}>hasCompletedOnboarding: {String(userState.hasCompletedOnboarding)}</Text>
+            <Text style={styles.body}>hasOnboarded: {String(userState.hasOnboarded)}</Text>
+            <Text style={styles.body}>onboardingCompletedAt: {userState.onboardingCompletedAt ?? '-'}</Text>
+            <Text style={styles.body}>hasProfile: {String(Boolean(userState.profile))}</Text>
+            <Text style={styles.body}>hasLearningPlan: {String(Boolean(userState.learningPlan))}</Text>
+            <Text style={styles.body}>route: {shouldShowOnboarding(userState) ? 'Onboarding' : 'Main/Home'}</Text>
+            <AppButton
+              onPress={() => void openOnboardingDebug()}
+              title="Debug: Onboarding durumunu göster"
+              variant="secondary"
+            />
+          </View>
+        ) : null}
+
         <DevEventLogPanel onFeedbackPress={(eventLogText) => void openFeedbackDraft(eventLogText)} />
 
         <View style={styles.section}>
@@ -258,6 +298,23 @@ export function ProfileScreen({ navigation, userState, onUpdateState, onResetApp
           </Text>
           {/* TODO: premium subscription with RevenueCat should be wired here. */}
         </View>
+
+        {__DEV__ ? (
+          <Modal
+            animationType="fade"
+            onRequestClose={() => setDebugModalVisible(false)}
+            transparent
+            visible={debugModalVisible}
+          >
+            <View style={styles.modalBackdrop}>
+              <View style={styles.debugModal}>
+                <Text style={styles.sectionTitle}>Onboarding debug</Text>
+                <Text style={styles.debugText}>{debugText}</Text>
+                <AppButton onPress={() => setDebugModalVisible(false)} title="Kapat" variant="secondary" />
+              </View>
+            </View>
+          </Modal>
+        ) : null}
 
         {__DEV__ ? (
           <AppButton
@@ -385,5 +442,25 @@ const styles = StyleSheet.create({
   },
   badgeTextLocked: {
     color: colors.muted,
+  },
+  modalBackdrop: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(30,27,58,0.58)',
+    flex: 1,
+    justifyContent: 'center',
+    padding: spacing.lg,
+  },
+  debugModal: {
+    backgroundColor: colors.white,
+    borderRadius: radius.lg,
+    gap: spacing.md,
+    maxWidth: 520,
+    padding: spacing.lg,
+    width: '100%',
+  },
+  debugText: {
+    ...typography.small,
+    color: colors.deepViolet,
+    lineHeight: 20,
   },
 });

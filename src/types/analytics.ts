@@ -39,7 +39,13 @@ export type LocalEventMetadata = Partial<{
   result: 'correct' | 'incorrect';
   durationMs: number;
   routeName: string;
+  routeChosen: string;
   fallbackReason: string;
+  repairedPlan: boolean;
+  hasCompletedOnboarding: boolean;
+  hasOnboarded: boolean;
+  hasProfile: boolean;
+  hasLearningPlan: boolean;
 }>;
 
 export type LocalEvent = {

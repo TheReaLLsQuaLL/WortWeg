@@ -313,6 +313,23 @@ Reset before a fresh-user test:
 - In development builds, tap `Geliştirici: Uygulama verisini sıfırla`.
 - Confirm that onboarding appears again.
 
+Real-device persistence test:
+
+1. Open `Profil` and tap `Geliştirici: Uygulama verisini sıfırla`.
+2. Complete onboarding without placement.
+3. Confirm the app lands on Home.
+4. Kill Expo Go fully.
+5. Reopen the app from Expo Go.
+6. Confirm Home opens, not onboarding.
+7. Open `Profil` -> `Debug: Onboarding durumunu göster` and confirm `hasCompletedOnboarding: true`, `hasLearningPlan: true`, and route `Main/Home`.
+8. Developer reset again.
+9. Complete onboarding with placement.
+10. Accept the recommended level.
+11. Confirm Home opens.
+12. Kill and reopen Expo Go.
+13. Confirm Home opens again.
+14. Export the local alpha event log and check for `app_boot_decision` and `route_reset_to_home`.
+
 Flows to test:
 
 - onboarding and optional placement test
@@ -340,7 +357,7 @@ Privacy rules for the local log:
 - no external analytics SDK is used
 - no events are sent to a server
 - no contacts, location, microphone content, audio files, audio URI, device fingerprint, API keys, AI prompts/responses, chat messages, placement free text, or lesson answer text are logged
-- safe metadata is limited to labels such as `lessonId`, `level`, `moduleId`, `exerciseType`, `result`, `durationMs`, `routeName`, and `fallbackReason`
+- safe metadata is limited to labels such as `lessonId`, `level`, `moduleId`, `exerciseType`, `result`, `durationMs`, `routeName`, `routeChosen`, `fallbackReason`, and onboarding boot booleans
 
 Feedback to report:
 

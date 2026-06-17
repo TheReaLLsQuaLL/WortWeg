@@ -139,6 +139,34 @@ type RepairResult = {
   reasons: string[];
 };
 
+export type StorageRepairInfo = {
+  wasRepaired: boolean;
+  reasons: string[];
+  repairedPlan: boolean;
+  repairedProfile: boolean;
+  repairedOnboardingFlag: boolean;
+};
+
+let lastStorageRepairInfo: StorageRepairInfo = {
+  wasRepaired: false,
+  reasons: [],
+  repairedPlan: false,
+  repairedProfile: false,
+  repairedOnboardingFlag: false,
+};
+
+const setLastStorageRepairInfo = (reasons: string[]) => {
+  lastStorageRepairInfo = {
+    wasRepaired: reasons.length > 0,
+    reasons,
+    repairedPlan: reasons.includes('invalid_learning_plan') || reasons.includes('missing_learning_plan'),
+    repairedProfile: reasons.includes('profile_repaired'),
+    repairedOnboardingFlag: reasons.includes('completion_flag_repaired') || reasons.includes('legacy_onboarding_flag_repaired'),
+  };
+};
+
+export const getLastStorageRepairInfo = (): StorageRepairInfo => lastStorageRepairInfo;
+
 const getProfileLevelFromPlan = (level?: StartLevelId): OnboardingProfile['level'] => {
   if (level === 'A2' || level === 'B1') {
     return 'a2';
@@ -256,6 +284,7 @@ export const loadUserState = async (): Promise<UserState> => {
   const rawState = await AsyncStorage.getItem(STORAGE_KEYS.userState);
 
   if (!rawState) {
+    setLastStorageRepairInfo([]);
     return defaultUserState;
   }
 
@@ -294,6 +323,7 @@ export const loadUserState = async (): Promise<UserState> => {
       examHistory: Array.isArray(parsedState.examHistory) ? parsedState.examHistory : [],
     };
     const repaired = repairUserStateIfNeeded(normalizedState);
+    setLastStorageRepairInfo(repaired.reasons);
 
     if (repaired.wasRepaired) {
       await AsyncStorage.setItem(STORAGE_KEYS.userState, JSON.stringify(repaired.state));
@@ -301,6 +331,7 @@ export const loadUserState = async (): Promise<UserState> => {
 
     return repaired.state;
   } catch {
+    setLastStorageRepairInfo(['parse_failed']);
     trackLocalEvent({
       type: 'boot_storage_error',
       screen: 'Storage',

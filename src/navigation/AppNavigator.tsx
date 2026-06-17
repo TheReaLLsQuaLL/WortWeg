@@ -30,6 +30,7 @@ import {
   saveUserState,
   resetUserState,
   shouldShowOnboarding,
+  getLastStorageRepairInfo,
 } from '../lib/storage';
 import type { CurriculumLevelId } from '../types/curriculum';
 import type { LearningPlanInput } from '../types/learningPlan';
@@ -126,13 +127,17 @@ export function AppNavigator() {
 
         const showOnboarding = shouldShowOnboarding(loadedState);
         const routeName = showOnboarding ? 'Onboarding' : 'Main';
+        const repairInfo = getLastStorageRepairInfo();
 
         if (__DEV__) {
           console.log('[WortWeg boot]', {
             hasCompletedOnboarding: loadedState.hasCompletedOnboarding,
             hasOnboarded: loadedState.hasOnboarded,
+            hasProfile: Boolean(loadedState.profile),
             hasLearningPlan: Boolean(loadedState.learningPlan),
-            routeName,
+            repairedPlan: repairInfo.repairedPlan,
+            repairReasons: repairInfo.reasons,
+            routeChosen: routeName,
           });
         }
 
@@ -141,6 +146,12 @@ export function AppNavigator() {
           screen: 'AppNavigator',
           metadata: {
             routeName,
+            routeChosen: routeName,
+            hasCompletedOnboarding: loadedState.hasCompletedOnboarding,
+            hasOnboarded: loadedState.hasOnboarded,
+            hasProfile: Boolean(loadedState.profile),
+            hasLearningPlan: Boolean(loadedState.learningPlan),
+            repairedPlan: repairInfo.repairedPlan,
             level: loadedState.learningPlan?.currentLevel,
             moduleId: loadedState.learningPlan?.currentModuleId,
           },
@@ -150,7 +161,7 @@ export function AppNavigator() {
           trackLocalEvent({
             type: 'onboarding_skipped_if_applicable',
             screen: 'AppNavigator',
-            metadata: { routeName: 'Main' },
+            metadata: { routeName: 'Main', routeChosen: 'Main' },
           });
         }
 
@@ -206,6 +217,32 @@ export function AppNavigator() {
         metadata: { level: learningPlan.currentLevel, moduleId: learningPlan.currentModuleId },
       });
       await saveUserState(nextState);
+
+      if (__DEV__) {
+        try {
+          const readBack = await loadUserState();
+          const readBackOk = Boolean(readBack.hasCompletedOnboarding && readBack.learningPlan);
+
+          console.log('[WortWeg onboarding save]', {
+            markOnboardingCompletedSaved: true,
+            readBackHasCompletedOnboarding: readBack.hasCompletedOnboarding,
+            readBackHasLearningPlan: Boolean(readBack.learningPlan),
+          });
+
+          if (!readBackOk) {
+            console.warn('[WortWeg onboarding save] read-back missing completion flag or plan');
+          }
+        } catch {
+          console.warn('[WortWeg onboarding save] read-back failed');
+          trackLocalEvent({
+            type: 'boot_storage_error',
+            screen: 'AppNavigator',
+            action: 'onboarding_readback_failed',
+            severity: 'error',
+          });
+        }
+      }
+
       setPendingHomeReset(true);
     },
     [],
