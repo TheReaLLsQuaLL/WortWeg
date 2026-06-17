@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
 import {
   createNativeStackNavigator,
   type NativeStackNavigationProp,
@@ -58,6 +58,7 @@ export type CommitUserState = (
 ) => Promise<UserState>;
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+const navigationRef = createNavigationContainerRef<RootStackParamList>();
 
 type MainTabsProps = {
   navigation: RootNavigation;
@@ -110,6 +111,7 @@ function MainTabs({ navigation, userState, onUpdateState, onResetApp, initialTab
 
 export function AppNavigator() {
   const [userState, setUserState] = useState<UserState | null>(null);
+  const [openPlanAfterOnboarding, setOpenPlanAfterOnboarding] = useState(false);
 
   useEffect(() => {
     loadUserState().then(setUserState);
@@ -136,6 +138,7 @@ export function AppNavigator() {
         placementResult,
       };
       setUserState(nextState);
+      setOpenPlanAfterOnboarding(true);
       await saveUserState(nextState);
     },
     [],
@@ -143,8 +146,24 @@ export function AppNavigator() {
 
   const resetAppState = useCallback(async () => {
     await resetUserState();
+    setOpenPlanAfterOnboarding(false);
     setUserState(defaultUserState);
   }, []);
+
+  useEffect(() => {
+    if (!openPlanAfterOnboarding || !userState?.hasOnboarded) {
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      if (navigationRef.isReady()) {
+        navigationRef.navigate('PlanOverview');
+        setOpenPlanAfterOnboarding(false);
+      }
+    }, 0);
+
+    return () => clearTimeout(timeout);
+  }, [openPlanAfterOnboarding, userState?.hasOnboarded]);
 
   if (!userState) {
     return (
@@ -155,7 +174,7 @@ export function AppNavigator() {
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {!userState.hasOnboarded ? (
           <>

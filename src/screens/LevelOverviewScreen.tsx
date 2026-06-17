@@ -31,7 +31,7 @@ export function LevelOverviewScreen({ navigation, route }: LevelOverviewScreenPr
     const playableLesson = getPlayableLessonByModuleId(moduleId);
 
     if (!playableLesson) {
-      Alert.alert('Yakında', 'Bu modül yakında oynanabilir olacak.');
+      Alert.alert('Yakında', 'Yakında oynanabilir olacak.');
       return;
     }
 
@@ -58,12 +58,12 @@ export function LevelOverviewScreen({ navigation, route }: LevelOverviewScreenPr
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Can-do hedefleri</Text>
+          <Text style={styles.sectionTitle}>Hedefler</Text>
           {level.canDoTr.map((item) => <Text key={item} style={styles.body}>• {item}</Text>)}
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Beceri kapsamı</Text>
+          <Text style={styles.sectionTitle}>Detay</Text>
           {Object.entries(level.skillGoals).map(([skill, goal]) => (
             <View key={skill} style={styles.skillRow}>
               <Text style={styles.skillName}>{skillLabels[skill as keyof typeof skillLabels]}</Text>
@@ -101,7 +101,7 @@ export function LevelOverviewScreen({ navigation, route }: LevelOverviewScreenPr
                   </View>
                 </View>
                 <Text style={styles.body}>{module.goalTr}</Text>
-                {!playableLesson ? <Text style={styles.comingSoon}>Bu modül yakında oynanabilir olacak.</Text> : null}
+                {!playableLesson ? <Text style={styles.comingSoon}>Yakında oynanabilir olacak.</Text> : null}
                 <Text style={styles.warning}>{module.turkishLearnerWarnings[0]}</Text>
                 <View style={styles.taskGrid}>
                   <TaskBlock title="Konuşma" items={module.speakingTasks} />

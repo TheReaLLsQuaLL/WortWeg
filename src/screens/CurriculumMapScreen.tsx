@@ -52,8 +52,8 @@ export function CurriculumMapScreen({ navigation, userState }: CurriculumMapScre
           <ArrowLeft color={colors.white} size={22} />
         </Pressable>
         <View style={styles.headerCopy}>
-          <Text style={styles.kicker}>CEFR yol haritası</Text>
-          <Text style={styles.headerTitle}>Müfredat haritası</Text>
+          <Text style={styles.kicker}>Seviyeler</Text>
+          <Text style={styles.headerTitle}>Yol haritası</Text>
         </View>
       </View>
 
@@ -108,7 +108,7 @@ export function CurriculumMapScreen({ navigation, userState }: CurriculumMapScre
 
               {!level.isPlaceholder && modules.length > 4 ? (
                 <Pressable onPress={() => navigation.navigate('LevelOverview', { levelId: level.id })} style={({ pressed }) => [styles.moreButton, pressed && styles.pressed]}>
-                  <Text style={styles.moreText}>Tüm {modules.length} modülü gör</Text>
+                  <Text style={styles.moreText}>Tüm {modules.length} modül</Text>
                 </Pressable>
               ) : null}
             </View>

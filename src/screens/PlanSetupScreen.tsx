@@ -82,7 +82,7 @@ export function PlanSetupScreen({ navigation, userState, onUpdateState }: PlanSe
           <ArrowLeft color={colors.white} size={22} />
         </Pressable>
         <View style={styles.headerCopy}>
-          <Text style={styles.kicker}>Wolli planını güncelliyor</Text>
+          <Text style={styles.kicker}>Plan ayarları</Text>
           <Text style={styles.headerTitle}>Planı düzenle</Text>
         </View>
       </View>
@@ -94,12 +94,12 @@ export function PlanSetupScreen({ navigation, userState, onUpdateState }: PlanSe
               <Chip key={item.id} label={item.label} onPress={() => setUserGoal(item.id)} selected={userGoal === item.id} tone="purple" />
             ))}
           </Question>
-          <Question title="Başlangıç seviyen">
+          <Question title="Başlangıç">
             {startLevelOptions.map((item) => (
               <Chip key={item.id} label={item.label} onPress={() => setStartLevel(item.id)} selected={startLevel === item.id} tone="plain" />
             ))}
           </Question>
-          <Question title="Hedef seviyen">
+          <Question title="Hedef seviye">
             {targetLevelOptions.map((item) => (
               <Chip key={item.id} label={item.label} onPress={() => setTargetLevel(item.id)} selected={targetLevel === item.id} tone="yellow" />
             ))}
@@ -113,12 +113,12 @@ export function PlanSetupScreen({ navigation, userState, onUpdateState }: PlanSe
           <TextInput
             autoCapitalize="none"
             onChangeText={setExamDate}
-            placeholder="Yoksa boş bırak · örn. 2026-09-20"
+            placeholder="Opsiyonel · örn. 2026-09-20"
             placeholderTextColor={colors.muted}
             style={styles.input}
             value={examDate}
           />
-          <Question title="Öncelikli beceri">
+          <Question title="Odak beceri">
             {prioritySkillOptions.map((item) => (
               <Chip key={item.id} label={item.label} onPress={() => setPrioritySkill(item.id)} selected={prioritySkill === item.id} tone="purple" />
             ))}

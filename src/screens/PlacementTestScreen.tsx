@@ -55,7 +55,7 @@ export function PlacementTestScreen({ navigation, route }: PlacementTestScreenPr
 
   return (
     <Screen backgroundColor={colors.deepViolet}>
-      <TopBar subtitle="2 dakikalık yerel test" title="Seviye kontrolü" />
+      <TopBar subtitle="Kısa yerel test" title="Seviye kontrolü" />
       <AppScrollView contentContainerStyle={styles.content} style={styles.scroll}>
         <View style={styles.progressShell}>
           <View style={[styles.progressFill, { width: progressWidth }]} />
@@ -103,7 +103,7 @@ export function PlacementTestScreen({ navigation, route }: PlacementTestScreenPr
           <AppButton
             icon={ArrowRight}
             onPress={next}
-            title={currentIndex === questions.length - 1 ? 'Sonucu göster' : 'Devam'}
+            title={currentIndex === questions.length - 1 ? 'Sonuç' : 'Devam'}
             disabled={!selectedChoiceId}
             style={styles.navButton}
           />

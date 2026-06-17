@@ -1,17 +1,14 @@
-import { CheckCircle2, ClipboardList, Lock, Map, Mic, PlayCircle, RotateCcw, Sparkles } from 'lucide-react-native';
+import { BookOpen, MessageCircle, Mic, NotebookTabs, RotateCcw, Sparkles } from 'lucide-react-native';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { AppButton } from '../components/AppButton';
 import { AppScrollView, Screen } from '../components/layout';
-import { ProgressRing } from '../components/ProgressRing';
+import { RoadmapPath, type RoadmapPathItem } from '../components/RoadmapPath';
 import { TopBar } from '../components/TopBar';
-import { getTrackById } from '../data/curriculum';
-import { getNextPlayableLesson, getPlayableLessonByModuleId, getPlayableLessonsForPlan, isLessonUnlocked } from '../data/lessons';
+import { getNextPlayableLesson, getPlayableLessonsForPlan, isLessonUnlocked } from '../data/lessons';
 import { colors, radius, spacing, typography } from '../data/theme';
 import { getDueReviewCards, getReviewCoverage } from '../lib/srs';
 import type { RootNavigation } from '../navigation/AppNavigator';
-import { getTodayRecommendedActions } from '../services/planService';
-import type { RecommendedAction } from '../types/learningPlan';
 import type { UserState } from '../types/userState';
 
 type HomeScreenProps = {
@@ -19,184 +16,131 @@ type HomeScreenProps = {
   userState: UserState;
 };
 
-const actionIcons = {
-  lesson: PlayCircle,
-  srs: RotateCcw,
-  speaking: Mic,
-  listening: PlayCircle,
-  writing: Sparkles,
-  exam: ClipboardList,
-  review: RotateCcw,
-};
-
 export function HomeScreen({ navigation, userState }: HomeScreenProps) {
-  const lessonPath = getPlayableLessonsForPlan(userState.learningPlan);
+  const plan = userState.learningPlan;
+  const lessonPath = getPlayableLessonsForPlan(plan);
   const completedCount = lessonPath.filter((lesson) => userState.completedLessons.includes(lesson.id)).length;
   const progress = lessonPath.length > 0 ? completedCount / lessonPath.length : 0;
   const dueCards = getDueReviewCards(userState.reviewCards);
   const dailyGoalXp = userState.profile?.dailyGoalXp ?? 20;
   const dailyProgress = Math.min(1, userState.todayXp / dailyGoalXp);
-  const a1Coverage = Math.min(1, progress * 0.7 + getReviewCoverage(userState.reviewCards) * 0.3);
-  const plan = userState.learningPlan;
-  const track = plan ? getTrackById(plan.selectedTrack) : undefined;
-  const planActions = plan ? getTodayRecommendedActions(plan, { dueReviewCount: dueCards.length }) : [];
+  const coverage = Math.min(1, progress * 0.7 + getReviewCoverage(userState.reviewCards) * 0.3);
+  const nextLesson = getNextPlayableLesson(userState.completedLessons, plan);
+  const activeLessonIndex = nextLesson
+    ? lessonPath.findIndex((lesson) => lesson.id === nextLesson.id)
+    : Math.max(0, lessonPath.length - 1);
+  const roadmapStart = Math.max(0, activeLessonIndex - 1);
+  const roadmapLessons = lessonPath.slice(roadmapStart, roadmapStart + 4);
+  const roadmapItems: RoadmapPathItem[] = roadmapLessons.map((lesson) => {
+    const completed = userState.completedLessons.includes(lesson.id);
+    const unlocked = isLessonUnlocked(lesson.id, userState.completedLessons, plan);
 
-  const nextPlayableLesson = getNextPlayableLesson(userState.completedLessons, plan);
+    return {
+      id: lesson.id,
+      title: lesson.title,
+      meta: lesson.cefr + ' · ' + lesson.estimatedMinutes + ' dk',
+      completed,
+      current: nextLesson?.id === lesson.id,
+      locked: !unlocked,
+      onPress: unlocked ? () => navigation.navigate('LessonIntro', { lessonId: lesson.id }) : undefined,
+    };
+  });
 
-  const openAction = (action: RecommendedAction) => {
-    if (action.type === 'speaking') {
-      navigation.navigate('SpeakingPractice', {});
+  if (!nextLesson && lessonPath.length > 0) {
+    roadmapItems.push({
+      id: 'coming-soon-a2',
+      title: 'A2 modülleri',
+      meta: 'Oynanabilir içerik yakında',
+      comingSoon: true,
+    });
+  }
+
+  const startPrimary = () => {
+    if (nextLesson) {
+      navigation.navigate('LessonIntro', { lessonId: nextLesson.id });
       return;
     }
 
-    if (action.type === 'exam') {
-      navigation.navigate('Main');
+    if (dueCards.length > 0) {
+      navigation.navigate('Main', { initialTab: 'vocab' });
       return;
     }
 
-    if (action.type === 'lesson') {
-      const targetLesson = action.targetId ? getPlayableLessonByModuleId(action.targetId) : nextPlayableLesson;
-
-      if (!targetLesson) {
-        Alert.alert('Yakında', 'Bu modül yakında oynanabilir olacak.');
-        return;
-      }
-
-      navigation.navigate('LessonIntro', { lessonId: targetLesson.id });
-      return;
-    }
-
-    navigation.navigate('PlanOverview');
+    Alert.alert('Yakında', 'Bu modül yakında oynanabilir olacak. Şimdilik konuşma veya kelime pratiği yapabilirsin.');
   };
+
+  const primaryTitle = nextLesson ? nextLesson.title : dueCards.length > 0 ? 'Kelime tekrarı' : 'Sesli cümle pratiği';
+  const primaryMeta = nextLesson
+    ? nextLesson.cefr + ' · ' + nextLesson.estimatedMinutes + ' dk'
+    : dueCards.length > 0
+      ? dueCards.length + ' kart hazır'
+      : 'A1 konuşma · mock değerlendirme';
+  const primaryButton = nextLesson ? 'Derse başla' : dueCards.length > 0 ? 'Tekrar et' : 'Sesli pratik aç';
 
   return (
     <Screen backgroundColor={colors.deepViolet}>
       <TopBar
         streak={userState.streak}
-        subtitle={plan ? plan.titleTr : String(userState.profile?.dailyGoalMinutes ?? 10) + ' dk günlük hedef'}
+        subtitle={'Bugün ' + Math.min(userState.todayXp, dailyGoalXp) + '/' + dailyGoalXp + ' XP'}
         title={'Merhaba, ' + (userState.profile?.name ?? 'öğrenci')}
         xp={userState.xp}
       />
       <AppScrollView contentContainerStyle={styles.content} style={styles.scroll}>
+        <View style={styles.todayCard}>
+          <View style={styles.todayHeader}>
+            <View style={styles.todayIcon}>
+              <Sparkles color={colors.yellow} size={24} strokeWidth={2.6} />
+            </View>
+            <View style={styles.flexCopy}>
+              <Text style={styles.kicker}>Bugün</Text>
+              <Text style={styles.todayTitle}>{primaryTitle}</Text>
+              <Text style={styles.todayMeta}>{primaryMeta}</Text>
+            </View>
+          </View>
+          <View style={styles.goalBar}>
+            <View style={[styles.goalFill, { flex: dailyProgress }]} />
+            <View style={{ flex: 1 - dailyProgress }} />
+          </View>
+          <AppButton icon={BookOpen} onPress={startPrimary} title={primaryButton} />
+        </View>
+
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <View>
+              <Text style={styles.sectionTitle}>Yolun</Text>
+              <Text style={styles.muted}>{completedCount}/{lessonPath.length} ders · %{Math.round(coverage * 100)}</Text>
+            </View>
+            <Pressable onPress={() => navigation.navigate('CurriculumMap')} style={({ pressed }) => [styles.textButton, pressed && styles.pressed]}>
+              <Text style={styles.textButtonLabel}>Harita</Text>
+            </Pressable>
+          </View>
+          <RoadmapPath items={roadmapItems} />
+        </View>
+
+        <View style={styles.quickActions}>
+          <QuickAction icon={RotateCcw} label="Kelime" onPress={() => navigation.navigate('Main', { initialTab: 'vocab' })} />
+          <QuickAction icon={NotebookTabs} label="Hatalarım" onPress={() => navigation.navigate('Main', { initialTab: 'profile' })} />
+          <QuickAction icon={MessageCircle} label="Wolli" onPress={() => navigation.navigate('Main', { initialTab: 'chat' })} />
+          <QuickAction icon={Mic} label="Sesli" onPress={() => navigation.navigate('SpeakingPractice', {})} />
+        </View>
+
         {plan ? (
-          <View style={styles.planCard}>
-            <View style={styles.planHeader}>
-              <View style={styles.planIcon}>
-                <Sparkles color={colors.yellow} size={22} />
-              </View>
-              <View style={styles.lessonCopy}>
-                <Text style={styles.planKicker}>Aktif plan</Text>
-                <Text style={styles.planTitle}>{plan.titleTr}</Text>
-                <Text style={styles.planText}>{plan.currentLevel} → {plan.targetLevel} · {plan.dailyMinutes} dk/gün · {track?.titleTr}</Text>
-              </View>
-            </View>
-            <View style={styles.planActions}>
-              <AppButton icon={Sparkles} onPress={() => navigation.navigate('PlanOverview')} title="Planı aç" variant="secondary" style={styles.planButton} />
-              <AppButton icon={Map} onPress={() => navigation.navigate('CurriculumMap')} title="Harita" variant="secondary" style={styles.planButton} />
-            </View>
-          </View>
+          <Pressable onPress={() => navigation.navigate('PlanOverview')} style={({ pressed }) => [styles.planStrip, pressed && styles.pressed]}>
+            <Text style={styles.planTitle}>{plan.titleTr}</Text>
+            <Text style={styles.planText}>{plan.currentLevel} → {plan.targetLevel} · {plan.dailyMinutes} dk/gün</Text>
+          </Pressable>
         ) : null}
-
-        {planActions.length > 0 ? (
-          <View style={styles.todaySection}>
-            <Text style={styles.sectionTitle}>Bugün</Text>
-            {planActions.map((action) => {
-              const Icon = actionIcons[action.type];
-              return (
-                <Pressable key={action.id} onPress={() => openAction(action)} style={({ pressed }) => [styles.actionCard, pressed && styles.pressed]}>
-                  <View style={styles.actionIcon}>
-                    <Icon color={colors.royalPurple} size={20} />
-                  </View>
-                  <View style={styles.lessonCopy}>
-                    <Text style={styles.actionTitle}>{action.titleTr}</Text>
-                    <Text style={styles.muted} numberOfLines={2}>{action.descriptionTr}</Text>
-                  </View>
-                  <Text style={styles.minutes}>{action.estimatedMinutes} dk</Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        ) : null}
-
-        <View style={styles.summary}>
-          <View style={styles.summaryCopy}>
-            <Text style={styles.sectionTitle}>Aktif öğrenme yolu</Text>
-            <Text style={styles.muted}>
-              {completedCount}/{lessonPath.length} ders tamamlandı. Yolculuk %{Math.round(a1Coverage * 100)}.
-            </Text>
-            <View style={styles.goalBar}>
-              <View style={[styles.goalFill, { flex: dailyProgress }]} />
-              <View style={{ flex: 1 - dailyProgress }} />
-            </View>
-            <Text style={styles.progressText}>
-              Bugün {Math.min(userState.todayXp, dailyGoalXp)}/{dailyGoalXp} XP · {dueCards.length} tekrar
-            </Text>
-          </View>
-          <ProgressRing progress={progress} />
-        </View>
-
-        <Pressable
-          onPress={() => navigation.navigate('SpeakingPractice', {})}
-          style={({ pressed }) => [styles.speakingCard, pressed && styles.pressed]}
-        >
-          <View style={styles.speakingIcon}>
-            <Mic color={colors.white} size={24} strokeWidth={2.6} />
-          </View>
-          <View style={styles.lessonCopy}>
-            <Text style={styles.speakingUnit}>A1 konuşma</Text>
-            <Text style={styles.speakingTitle}>Sesli cümle pratiği</Text>
-            <Text style={styles.speakingMuted} numberOfLines={2}>
-              Almanca cümleyi dinle, sesini kaydet, tekrar dinle ve mock telaffuz puanı gör.
-            </Text>
-          </View>
-          <Text style={styles.speakingBadge}>Yeni</Text>
-        </Pressable>
-
-        <View style={styles.path}>
-          {lessonPath.map((lesson) => {
-            const completed = userState.completedLessons.includes(lesson.id);
-            const unlocked = isLessonUnlocked(lesson.id, userState.completedLessons, plan);
-            const lessonProgress = userState.lessonProgress[lesson.id];
-            const Icon = completed ? CheckCircle2 : unlocked ? PlayCircle : Lock;
-
-            return (
-              <Pressable
-                disabled={!unlocked}
-                key={lesson.id}
-                onPress={() => navigation.navigate('LessonIntro', { lessonId: lesson.id })}
-                style={({ pressed }) => [
-                  styles.lessonCard,
-                  completed && styles.completedCard,
-                  !unlocked && styles.lockedCard,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <View style={styles.lessonIcon}>
-                  <Icon
-                    color={completed ? colors.green : unlocked ? colors.royalPurple : colors.muted}
-                    size={24}
-                    strokeWidth={2.5}
-                  />
-                </View>
-                <View style={styles.lessonCopy}>
-                  <Text style={styles.lessonUnit}>Ünite {lesson.unit}</Text>
-                  <Text style={styles.lessonTitle}>{lesson.title}</Text>
-                  <Text style={styles.muted} numberOfLines={2}>
-                    {lesson.subtitle}
-                  </Text>
-                  {lessonProgress ? (
-                    <Text style={styles.progressText}>
-                      {lessonProgress.correctAnswers}/{lessonProgress.totalAnswers} doğru
-                    </Text>
-                  ) : null}
-                </View>
-                <Text style={styles.minutes}>{lesson.estimatedMinutes} dk</Text>
-              </Pressable>
-            );
-          })}
-        </View>
       </AppScrollView>
     </Screen>
+  );
+}
+
+function QuickAction({ icon: Icon, label, onPress }: { icon: typeof RotateCcw; label: string; onPress: () => void }) {
+  return (
+    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.quickAction, pressed && styles.pressed]}>
+      <Icon color={colors.royalPurple} size={20} strokeWidth={2.6} />
+      <Text style={styles.quickLabel}>{label}</Text>
+    </Pressable>
   );
 }
 
@@ -209,46 +153,53 @@ const styles = StyleSheet.create({
     gap: spacing.lg,
     padding: spacing.lg,
   },
-  planCard: {
+  todayCard: {
     backgroundColor: colors.deepViolet,
     borderRadius: radius.lg,
-    gap: spacing.md,
+    gap: spacing.lg,
     padding: spacing.lg,
   },
-  planHeader: {
+  todayHeader: {
     alignItems: 'center',
     flexDirection: 'row',
     gap: spacing.md,
   },
-  planIcon: {
+  todayIcon: {
     alignItems: 'center',
     backgroundColor: 'rgba(255,255,255,0.12)',
     borderRadius: radius.md,
-    height: 48,
+    height: 52,
     justifyContent: 'center',
-    width: 48,
+    width: 52,
   },
-  planKicker: {
+  flexCopy: {
+    flex: 1,
+    gap: spacing.xs,
+  },
+  kicker: {
     ...typography.small,
     color: colors.yellow,
-  },
-  planTitle: {
-    ...typography.body,
-    color: colors.white,
     fontWeight: '900',
   },
-  planText: {
+  todayTitle: {
+    ...typography.heading,
+    color: colors.white,
+  },
+  todayMeta: {
     ...typography.small,
     color: colors.lavender,
   },
-  planActions: {
+  goalBar: {
+    backgroundColor: 'rgba(255,255,255,0.14)',
+    borderRadius: radius.pill,
     flexDirection: 'row',
-    gap: spacing.md,
+    height: 8,
+    overflow: 'hidden',
   },
-  planButton: {
-    flex: 1,
+  goalFill: {
+    backgroundColor: colors.yellow,
   },
-  todaySection: {
+  section: {
     backgroundColor: colors.white,
     borderColor: colors.border,
     borderRadius: radius.lg,
@@ -256,41 +207,11 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     padding: spacing.lg,
   },
-  actionCard: {
+  sectionHeader: {
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
     flexDirection: 'row',
+    justifyContent: 'space-between',
     gap: spacing.md,
-    minHeight: 72,
-    padding: spacing.md,
-  },
-  actionIcon: {
-    alignItems: 'center',
-    backgroundColor: colors.lavender,
-    borderRadius: radius.sm,
-    height: 42,
-    justifyContent: 'center',
-    width: 42,
-  },
-  actionTitle: {
-    ...typography.body,
-    color: colors.deepViolet,
-    fontWeight: '900',
-  },
-  summary: {
-    alignItems: 'center',
-    backgroundColor: colors.white,
-    borderColor: colors.border,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: spacing.md,
-    padding: spacing.lg,
-  },
-  summaryCopy: {
-    flex: 1,
-    gap: spacing.xs,
   },
   sectionTitle: {
     ...typography.heading,
@@ -300,99 +221,59 @@ const styles = StyleSheet.create({
     ...typography.small,
     color: colors.muted,
   },
-  path: {
-    gap: spacing.md,
-  },
-  speakingCard: {
+  textButton: {
     alignItems: 'center',
-    backgroundColor: colors.deepViolet,
-    borderRadius: radius.lg,
-    flexDirection: 'row',
-    gap: spacing.md,
-    minHeight: 112,
-    padding: spacing.md,
-  },
-  speakingIcon: {
-    alignItems: 'center',
-    backgroundColor: colors.royalPurple,
-    borderRadius: radius.md,
-    height: 48,
+    backgroundColor: colors.lavender,
+    borderRadius: radius.sm,
+    minHeight: 40,
     justifyContent: 'center',
-    width: 48,
+    paddingHorizontal: spacing.md,
   },
-  speakingUnit: {
+  textButtonLabel: {
     ...typography.small,
-    color: colors.yellow,
-  },
-  speakingTitle: {
-    ...typography.body,
-    color: colors.white,
+    color: colors.deepViolet,
     fontWeight: '900',
   },
-  speakingMuted: {
-    ...typography.small,
-    color: colors.lavender,
+  quickActions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
   },
-  speakingBadge: {
-    ...typography.small,
-    color: colors.yellow,
-  },
-  lessonCard: {
+  quickAction: {
     alignItems: 'center',
     backgroundColor: colors.white,
     borderColor: colors.border,
-    borderRadius: radius.lg,
+    borderRadius: radius.md,
     borderWidth: 1,
-    flexDirection: 'row',
-    gap: spacing.md,
-    minHeight: 112,
+    flexBasis: '22%',
+    flexGrow: 1,
+    gap: spacing.xs,
+    minHeight: 76,
+    justifyContent: 'center',
+    padding: spacing.sm,
+  },
+  quickLabel: {
+    ...typography.small,
+    color: colors.deepViolet,
+    fontWeight: '900',
+    textAlign: 'center',
+  },
+  planStrip: {
+    backgroundColor: colors.white,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    gap: 2,
     padding: spacing.md,
   },
-  completedCard: {
-    borderColor: '#B7EBCF',
-  },
-  lockedCard: {
-    opacity: 0.58,
-  },
-  lessonIcon: {
-    alignItems: 'center',
-    backgroundColor: colors.lavender,
-    borderRadius: radius.md,
-    height: 48,
-    justifyContent: 'center',
-    width: 48,
-  },
-  lessonCopy: {
-    flex: 1,
-    gap: 2,
-  },
-  lessonUnit: {
-    ...typography.small,
-    color: colors.royalPurple,
-  },
-  lessonTitle: {
+  planTitle: {
     ...typography.body,
     color: colors.deepViolet,
     fontWeight: '900',
   },
-  progressText: {
+  planText: {
     ...typography.small,
-    color: colors.green,
-  },
-  goalBar: {
-    backgroundColor: colors.surfaceStrong,
-    borderRadius: radius.pill,
-    flexDirection: 'row',
-    height: 8,
-    marginTop: spacing.sm,
-    overflow: 'hidden',
-  },
-  goalFill: {
-    backgroundColor: colors.yellow,
-  },
-  minutes: {
-    ...typography.small,
-    color: colors.deepViolet,
+    color: colors.muted,
   },
   pressed: {
     opacity: 0.82,

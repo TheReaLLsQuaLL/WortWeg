@@ -83,7 +83,7 @@ export function LessonIntroScreen({ navigation, route }: LessonIntroScreenProps)
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Kısa gramer</Text>
+          <Text style={styles.sectionTitle}>Gramer</Text>
           {lesson.grammar.map((note) => (
             <View key={note.title} style={styles.note}>
               <Text style={styles.noteTitle}>{note.title}</Text>
@@ -116,7 +116,7 @@ export function LessonIntroScreen({ navigation, route }: LessonIntroScreenProps)
 
         {lesson.commonMistakeTr ? (
           <View style={styles.warningBox}>
-            <Text style={styles.sectionTitle}>Türkçe konuşanlar için dikkat</Text>
+            <Text style={styles.sectionTitle}>Dikkat</Text>
             <Text style={styles.body}>{lesson.commonMistakeTr}</Text>
           </View>
         ) : null}
@@ -148,13 +148,13 @@ export function LessonIntroScreen({ navigation, route }: LessonIntroScreenProps)
 
         {lesson.reviewSummaryTr ? (
           <View style={styles.reviewBox}>
-            <Text style={styles.sectionTitle}>Ders özeti</Text>
+            <Text style={styles.sectionTitle}>Özet</Text>
             <Text style={styles.body}>{lesson.reviewSummaryTr}</Text>
           </View>
         ) : null}
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Kelime kartları</Text>
+          <Text style={styles.sectionTitle}>Kelimeler</Text>
           {lesson.vocabulary.some((word) => word.article) ? (
             <View style={styles.articleLegend}>
               {ARTICLES.map((article) => (
@@ -198,7 +198,7 @@ export function LessonIntroScreen({ navigation, route }: LessonIntroScreenProps)
           onPress={() =>
             navigation.navigate('ExercisePlayer', { lessonId: lesson.id })
           }
-          title="Alıştırmaya başla"
+          title="Derse başla"
         />
       </View>
     </SafeAreaView>
