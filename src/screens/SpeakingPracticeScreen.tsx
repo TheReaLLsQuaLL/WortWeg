@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, PanResponder, Platform, Pressable, StyleSheet, Text, View, type GestureResponderEvent } from 'react-native';
 import type { RouteProp } from '@react-navigation/native';
-import { ArrowLeft, CheckCircle2, Mic, Play, RotateCcw } from 'lucide-react-native';
+import { ArrowLeft, CheckCircle2, Mic, Play, RotateCcw, Trash2 } from 'lucide-react-native';
 
 import { AppButton } from '../components/AppButton';
 import { AppScrollView, Screen } from '../components/layout';
@@ -24,6 +24,7 @@ import {
   type TranscriptionResult,
 } from '../services/speechService';
 import { trackLocalEvent } from '../services/localEventLog';
+import { normalizeGermanText } from '../lib/transcriptCompare';
 
 type SpeakingPracticeScreenProps = {
   navigation: RootNavigation;
@@ -34,14 +35,22 @@ type PracticeStatus =
   | 'idle'
   | 'requestingPermission'
   | 'recording'
+  | 'cancelArmed'
+  | 'cancelling'
   | 'stopping'
+  | 'recorded'
   | 'analyzing'
-  | 'scored'
+  | 'result'
+  | 'tooShort'
+  | 'noVoice'
   | 'error';
 
 type ActivePrompt = SpeakingPrompt & { id: string };
 
 const MIN_RECORDING_MS = 500;
+const CANCEL_DRAG_THRESHOLD = 84;
+const CANCEL_RESET_THRESHOLD = 42;
+const GENERIC_FALLBACK_TRANSCRIPTS = ['Ich heiße Toprak und ich wohne in Istanbul.'];
 
 const formatDuration = (durationMs: number) => {
   const totalSeconds = Math.max(0, Math.floor(durationMs / 1000));
@@ -89,6 +98,41 @@ const getResultColor = (result: PronunciationScore) => {
   return colors.red;
 };
 
+const isGenericFallbackTranscript = (transcript: string) => {
+  const normalizedTranscript = normalizeGermanText(transcript, { looseEszett: true });
+
+  return GENERIC_FALLBACK_TRANSCRIPTS.some(
+    (fallbackText) => normalizeGermanText(fallbackText, { looseEszett: true }) === normalizedTranscript,
+  );
+};
+
+const getTranscriptionIssue = (result: TranscriptionResult): 'none' | 'noVoice' | 'error' => {
+  const normalizedTranscript = normalizeGermanText(result.transcript || '', { looseEszett: true });
+  const fallbackMarker = [result.fallbackReason, result.modelUsed].filter(Boolean).join(' ').toLocaleLowerCase('en-US');
+
+  if (result.fallbackReason && !fallbackMarker.includes('empty-openai-transcript')) {
+    return 'error';
+  }
+
+  if (!normalizedTranscript) {
+    return 'noVoice';
+  }
+
+  if (result.fallback && fallbackMarker.includes('empty-openai-transcript')) {
+    return 'noVoice';
+  }
+
+  if (result.fallback && isGenericFallbackTranscript(result.transcript)) {
+    return 'noVoice';
+  }
+
+  if (result.fallback && (result.provider === 'mock' || fallbackMarker.includes('mock:'))) {
+    return 'error';
+  }
+
+  return 'none';
+};
+
 export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeScreenProps) {
   const initialPrompt = getSpeakingPromptById(route.params?.promptId);
   const initialIndex = Math.max(
@@ -103,6 +147,7 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
   const [transcriptionResult, setTranscriptionResult] = useState<TranscriptionResult | null>(null);
   const [pronunciationResult, setPronunciationResult] = useState<PronunciationScore | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [cancelMessage, setCancelMessage] = useState<string | null>(null);
   const [replaying, setReplaying] = useState(false);
   const [analysisIsSlow, setAnalysisIsSlow] = useState(false);
   const durationTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -111,6 +156,9 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
   const actionLockedRef = useRef(false);
   const releasePendingRef = useRef(false);
   const pressStartedAtRef = useRef(0);
+  const pressStartPageXRef = useRef(0);
+  const cancelArmedRef = useRef(false);
+  const cancelEventTrackedRef = useRef(false);
   const mountedRef = useRef(true);
   const statusRef = useRef<PracticeStatus>('idle');
   const recordPulseOpacity = useRef(new Animated.Value(0)).current;
@@ -140,9 +188,10 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
   const progressText = route.params?.expectedText
     ? 'Ders cümlesi'
     : String(promptIndex + 1) + '/' + speakingPromptsA1.length;
-  const canPressRecord = !['requestingPermission', 'recording', 'stopping', 'analyzing'].includes(status);
-  const canReplay = Boolean(audioUri) && !['recording', 'stopping', 'requestingPermission', 'analyzing'].includes(status);
-  const canMovePrompt = !route.params?.expectedText && !['recording', 'stopping', 'requestingPermission', 'analyzing'].includes(status);
+  const busyStatuses: PracticeStatus[] = ['requestingPermission', 'recording', 'cancelArmed', 'cancelling', 'stopping', 'analyzing'];
+  const canPressRecord = !busyStatuses.includes(status);
+  const canReplay = Boolean(audioUri) && !busyStatuses.includes(status);
+  const canMovePrompt = !route.params?.expectedText && !busyStatuses.includes(status);
 
   const clearDurationTimer = () => {
     if (durationTimerRef.current) {
@@ -182,7 +231,7 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
   }, [source]);
 
   useEffect(() => {
-    if (status !== 'recording') {
+    if (status !== 'recording' && status !== 'cancelArmed') {
       recordPulseOpacity.setValue(0);
       recordScale.setValue(1);
       return;
@@ -255,7 +304,10 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
     setTranscriptionResult(null);
     setPronunciationResult(null);
     setErrorMessage(null);
+    setCancelMessage(null);
     setReplaying(false);
+    cancelArmedRef.current = false;
+    cancelEventTrackedRef.current = false;
     setAnalysisIsSlow(false);
     clearReplayTimer();
     clearAnalysisTimer();
@@ -283,6 +335,44 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
         });
       }
 
+      const transcriptionIssue = getTranscriptionIssue(nextTranscriptionResult);
+
+      if (transcriptionIssue !== 'none') {
+        if (!mountedRef.current) {
+          return;
+        }
+
+        setAudioUri(null);
+        setTranscriptionResult(null);
+        setPronunciationResult(null);
+
+        if (transcriptionIssue === 'noVoice') {
+          setErrorMessage(null);
+          setSafeStatus('noVoice');
+          trackLocalEvent({
+            type: 'speaking_no_voice_detected',
+            screen: 'SpeakingPractice',
+            metadata: {
+              source,
+              durationMs: recording.durationMs,
+              platform: Platform.OS,
+            },
+            severity: 'warning',
+          });
+          return;
+        }
+
+        setErrorMessage('Konuşmanı analiz ederken sorun oldu. Tekrar deneyelim.');
+        setSafeStatus('error');
+        trackLocalEvent({
+          type: 'speech_analysis_failed',
+          screen: 'SpeakingPractice',
+          metadata: { source, durationMs: recording.durationMs, platform: Platform.OS },
+          severity: 'error',
+        });
+        return;
+      }
+
       const nextPronunciationResult = await scorePronunciation(
         recording.uri,
         prompt.expectedText,
@@ -295,7 +385,7 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
 
       setTranscriptionResult(nextTranscriptionResult);
       setPronunciationResult(nextPronunciationResult);
-      setSafeStatus('scored');
+      setSafeStatus('result');
       trackLocalEvent({
         type: 'speech_analysis_completed',
         screen: 'SpeakingPractice',
@@ -311,7 +401,7 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
       });
     } catch {
       setSafeStatus('error');
-      setErrorMessage('Analiz sırasında sorun oldu. Lütfen tekrar dene.');
+      setErrorMessage('Konuşmanı analiz ederken sorun oldu. Tekrar deneyelim.');
       trackLocalEvent({
         type: 'speech_analysis_failed',
         screen: 'SpeakingPractice',
@@ -321,14 +411,17 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
     }
   };
 
-  const beginPressRecording = async () => {
+  const beginPressRecording = async (event: GestureResponderEvent) => {
     if (!canPressRecord || actionLockedRef.current) {
       return;
     }
 
     actionLockedRef.current = true;
     releasePendingRef.current = false;
+    cancelArmedRef.current = false;
+    cancelEventTrackedRef.current = false;
     pressStartedAtRef.current = Date.now();
+    pressStartPageXRef.current = event.nativeEvent.pageX;
     clearDurationTimer();
     clearFeedback();
     setSafeStatus('requestingPermission');
@@ -396,6 +489,36 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
     }
   };
 
+  const handleRecordDrag = (dragX: number) => {
+    const currentStatus = statusRef.current;
+
+    if (currentStatus !== 'recording' && currentStatus !== 'cancelArmed') {
+      return;
+    }
+
+    if (dragX <= -CANCEL_DRAG_THRESHOLD && !cancelArmedRef.current) {
+      cancelArmedRef.current = true;
+      setSafeStatus('cancelArmed');
+
+      if (!cancelEventTrackedRef.current) {
+        cancelEventTrackedRef.current = true;
+        trackLocalEvent({
+          type: 'speaking_cancel_armed',
+          screen: 'SpeakingPractice',
+          metadata: { source, durationMs: Math.max(0, Date.now() - pressStartedAtRef.current), platform: Platform.OS },
+          severity: 'warning',
+        });
+      }
+
+      return;
+    }
+
+    if (dragX > -CANCEL_RESET_THRESHOLD && cancelArmedRef.current) {
+      cancelArmedRef.current = false;
+      setSafeStatus('recording');
+    }
+  };
+
   const finishPressRecording = async () => {
     const currentStatus = statusRef.current;
 
@@ -404,13 +527,14 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
       return;
     }
 
-    if (currentStatus !== 'recording') {
+    if (currentStatus !== 'recording' && currentStatus !== 'cancelArmed') {
       return;
     }
 
+    const shouldCancel = currentStatus === 'cancelArmed' || cancelArmedRef.current;
     actionLockedRef.current = true;
     clearDurationTimer();
-    setSafeStatus('stopping');
+    setSafeStatus(shouldCancel ? 'cancelling' : 'stopping');
     setErrorMessage(null);
     const heldDurationMs = Math.max(0, Date.now() - pressStartedAtRef.current);
     trackLocalEvent({
@@ -432,11 +556,27 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
         return;
       }
 
+      if (shouldCancel) {
+        setDurationMs(0);
+        setAudioUri(null);
+        setTranscriptionResult(null);
+        setPronunciationResult(null);
+        setCancelMessage('Kayıt iptal edildi.');
+        setSafeStatus('idle');
+        trackLocalEvent({
+          type: 'speaking_cancelled',
+          screen: 'SpeakingPractice',
+          metadata: { source, durationMs: finalDurationMs, platform: Platform.OS },
+          severity: 'warning',
+        });
+        return;
+      }
+
       if (finalDurationMs < MIN_RECORDING_MS) {
         setDurationMs(0);
         setAudioUri(null);
         setErrorMessage('Biraz daha uzun söylemeyi dene.');
-        setSafeStatus('error');
+        setSafeStatus('tooShort');
         trackLocalEvent({
           type: 'speaking_too_short',
           screen: 'SpeakingPractice',
@@ -448,6 +588,7 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
 
       setAudioUri(recording.uri);
       setDurationMs(finalDurationMs);
+      setSafeStatus('recorded');
       await analyzeRecording({ ...recording, durationMs: finalDurationMs });
     } catch {
       clearDurationTimer();
@@ -461,6 +602,8 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
       });
       setErrorMessage('Kayıt durdurulurken bir sorun oluştu. Lütfen tekrar dene.');
     } finally {
+      cancelArmedRef.current = false;
+      cancelEventTrackedRef.current = false;
       actionLockedRef.current = false;
     }
   };
@@ -495,13 +638,15 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
   };
 
   const retryCurrentPrompt = () => {
-    if (['recording', 'stopping', 'requestingPermission', 'analyzing'].includes(status)) {
+    if (busyStatuses.includes(status)) {
       return;
     }
 
     clearDurationTimer();
     clearFeedback();
     releasePendingRef.current = false;
+    cancelArmedRef.current = false;
+    cancelEventTrackedRef.current = false;
     setSafeStatus('idle');
   };
 
@@ -513,9 +658,33 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
     clearDurationTimer();
     clearFeedback();
     releasePendingRef.current = false;
+    cancelArmedRef.current = false;
+    cancelEventTrackedRef.current = false;
     setSafeStatus('idle');
     setPromptIndex((index) => (index + 1) % speakingPromptsA1.length);
   };
+
+  const recordPanResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => canPressRecord && !actionLockedRef.current,
+        onMoveShouldSetPanResponder: () => statusRef.current === 'recording' || statusRef.current === 'cancelArmed',
+        onPanResponderGrant: (event) => {
+          void beginPressRecording(event);
+        },
+        onPanResponderMove: (_event, gestureState) => {
+          handleRecordDrag(gestureState.dx);
+        },
+        onPanResponderRelease: () => {
+          void finishPressRecording();
+        },
+        onPanResponderTerminate: () => {
+          void finishPressRecording();
+        },
+        onPanResponderTerminationRequest: () => false,
+      }),
+    [canPressRecord, prompt.expectedText, prompt.id, source],
+  );
 
   const recordingTitle = (() => {
     if (status === 'requestingPermission') {
@@ -526,6 +695,14 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
       return 'Konuşuyorsun…';
     }
 
+    if (status === 'cancelArmed') {
+      return 'Bırakınca iptal';
+    }
+
+    if (status === 'cancelling') {
+      return 'İptal ediliyor…';
+    }
+
     if (status === 'stopping') {
       return 'Kaydı alıyorum…';
     }
@@ -534,16 +711,36 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
       return 'Dinliyorum…';
     }
 
+    if (status === 'tooShort') {
+      return 'Biraz daha uzun';
+    }
+
+    if (status === 'noVoice') {
+      return 'Sesini duyamadık';
+    }
+
     return 'Basılı tut ve söyle';
   })();
 
   const recordingHelper = (() => {
     if (status === 'recording') {
-      return 'Bırakınca analiz başlayacak.';
+      return 'İptal etmek için sola kaydır';
+    }
+
+    if (status === 'cancelArmed') {
+      return 'Bırakınca kayıt iptal edilecek.';
+    }
+
+    if (status === 'cancelling') {
+      return 'Kayıt gönderilmeyecek.';
     }
 
     if (status === 'analyzing') {
       return analysisIsSlow ? 'Biraz uzun sürdü, devam ediyoruz.' : 'Cümleni karşılaştırıyoruz.';
+    }
+
+    if (status === 'noVoice') {
+      return 'Mikrofona biraz daha yakın konuşup tekrar dene.';
     }
 
     return 'Cümleyi sakin ve net oku.';
@@ -578,38 +775,52 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
           <Text style={styles.tip}>{prompt.tipTr}</Text>
         </View>
 
-        <View style={[styles.recorderCard, status === 'recording' && styles.recordingCard]}>
+        <View style={[
+          styles.recorderCard,
+          (status === 'recording' || status === 'cancelArmed') && styles.recordingCard,
+          status === 'cancelArmed' && styles.cancelArmedCard,
+        ]}>
           <Text style={styles.duration}>{formatDuration(durationMs)}</Text>
           <Text style={styles.recordTitle}>{recordingTitle}</Text>
           <Text style={styles.body}>{recordingHelper}</Text>
 
-          {status === 'analyzing' ? (
+          {status === 'noVoice' ? (
+            <NoVoiceState onRetry={retryCurrentPrompt} />
+          ) : status === 'analyzing' ? (
             <AnalysisWave bars={waveBars} />
           ) : (
             <View style={styles.recordActions}>
-              {status === 'recording' ? (
-                <Animated.View pointerEvents="none" style={[styles.recordPulse, { opacity: recordPulseOpacity }]} />
+              {status === 'recording' || status === 'cancelArmed' ? (
+                <Animated.View pointerEvents="none" style={[styles.recordPulse, status === 'cancelArmed' && styles.cancelPulse, { opacity: recordPulseOpacity }]} />
               ) : null}
               <Animated.View style={{ transform: [{ scale: recordScale }] }}>
-                <Pressable
+                <View
+                  {...recordPanResponder.panHandlers}
                   accessibilityRole="button"
-                  disabled={!canPressRecord && status !== 'recording'}
-                  onPressIn={beginPressRecording}
-                  onPressOut={finishPressRecording}
-                  style={({ pressed }) => [
+                  accessible
+                  style={[
                     styles.recordButton,
-                    status === 'recording' && styles.recordButtonActive,
-                    (!canPressRecord && status !== 'recording') && styles.disabledButton,
-                    pressed && styles.pressed,
+                    (status === 'recording' || status === 'cancelArmed') && styles.recordButtonActive,
+                    status === 'cancelArmed' && styles.recordButtonCancel,
+                    (!canPressRecord && status !== 'recording' && status !== 'cancelArmed') && styles.disabledButton,
                   ]}
                 >
                   <Mic color={colors.white} size={42} strokeWidth={2.8} />
-                </Pressable>
+                </View>
               </Animated.View>
             </View>
           )}
 
-          <Text style={styles.permissionText}>{getPermissionText(permission)}</Text>
+          {status === 'recording' || status === 'cancelArmed' ? (
+            <View style={[styles.cancelHint, status === 'cancelArmed' && styles.cancelHintArmed]}>
+              <Trash2 color={status === 'cancelArmed' ? colors.white : colors.red} size={18} />
+              <Text style={[styles.cancelHintText, status === 'cancelArmed' && styles.cancelHintTextArmed]}>
+                {status === 'cancelArmed' ? 'Bırakınca iptal' : 'İptal etmek için sola kaydır'}
+              </Text>
+            </View>
+          ) : null}
+          {status !== 'noVoice' ? <Text style={styles.permissionText}>{getPermissionText(permission)}</Text> : null}
+          {cancelMessage ? <Text style={styles.cancelMessage}>{cancelMessage}</Text> : null}
           {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
         </View>
 
@@ -628,6 +839,19 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
         ) : null}
       </AppScrollView>
     </Screen>
+  );
+}
+
+function NoVoiceState({ onRetry }: { onRetry: () => void }) {
+  return (
+    <View style={styles.noVoiceBox}>
+      <View style={styles.noVoiceIcon}>
+        <Text style={styles.noVoiceIconText}>W</Text>
+      </View>
+      <Text style={styles.noVoiceTitle}>Sesini duyamadık</Text>
+      <Text style={styles.noVoiceBody}>Mikrofona biraz daha yakın konuşup tekrar dene.</Text>
+      <AppButton icon={RotateCcw} onPress={onRetry} title="Tekrar dene" />
+    </View>
   );
 }
 
@@ -844,6 +1068,10 @@ const styles = StyleSheet.create({
   recordingCard: {
     borderColor: colors.red,
   },
+  cancelArmedCard: {
+    backgroundColor: '#FFF0F0',
+    borderColor: colors.red,
+  },
   duration: {
     color: colors.deepViolet,
     fontSize: 38,
@@ -874,6 +1102,9 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: 166,
   },
+  cancelPulse: {
+    backgroundColor: '#C62828',
+  },
   recordButton: {
     alignItems: 'center',
     backgroundColor: colors.royalPurple,
@@ -890,18 +1121,78 @@ const styles = StyleSheet.create({
   recordButtonActive: {
     backgroundColor: colors.red,
   },
+  recordButtonCancel: {
+    backgroundColor: '#C62828',
+    transform: [{ scale: 0.96 }],
+  },
   disabledButton: {
     opacity: 0.5,
+  },
+  cancelHint: {
+    alignItems: 'center',
+    backgroundColor: '#FFE7E7',
+    borderRadius: radius.pill,
+    flexDirection: 'row',
+    gap: spacing.xs,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  cancelHintArmed: {
+    backgroundColor: colors.red,
+  },
+  cancelHintText: {
+    ...typography.small,
+    color: colors.red,
+    fontWeight: '900',
+  },
+  cancelHintTextArmed: {
+    color: colors.white,
   },
   permissionText: {
     ...typography.small,
     color: colors.muted,
     textAlign: 'center',
   },
+  cancelMessage: {
+    ...typography.body,
+    color: colors.deepViolet,
+    fontWeight: '900',
+    textAlign: 'center',
+  },
   errorText: {
     ...typography.body,
     color: colors.red,
     fontWeight: '800',
+    textAlign: 'center',
+  },
+  noVoiceBox: {
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingTop: spacing.md,
+    width: '100%',
+  },
+  noVoiceIcon: {
+    alignItems: 'center',
+    backgroundColor: colors.lavender,
+    borderRadius: radius.pill,
+    height: 64,
+    justifyContent: 'center',
+    width: 64,
+  },
+  noVoiceIconText: {
+    color: colors.royalPurple,
+    fontSize: 28,
+    fontWeight: '900',
+    letterSpacing: 0,
+  },
+  noVoiceTitle: {
+    ...typography.heading,
+    color: colors.deepViolet,
+    textAlign: 'center',
+  },
+  noVoiceBody: {
+    ...typography.body,
+    color: colors.muted,
     textAlign: 'center',
   },
   waveWrap: {
