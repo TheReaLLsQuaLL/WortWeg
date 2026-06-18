@@ -269,6 +269,12 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
     }
   };
 
+  const setSafeErrorMessage = (message: string | null) => {
+    if (mountedRef.current) {
+      setErrorMessage(message);
+    }
+  };
+
   useEffect(() => {
     trackLocalEvent({
       type: 'speaking_opened',
@@ -350,7 +356,7 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
     setDurationMs(0);
     setTranscriptionResult(null);
     setPronunciationResult(null);
-    setErrorMessage(null);
+    setSafeErrorMessage(null);
     setCancelMessage(null);
     setReplaying(false);
     cancelArmedRef.current = false;
@@ -434,7 +440,7 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
         setPronunciationResult(null);
 
         if (transcriptionIssue === 'noVoice') {
-          setErrorMessage(null);
+          setSafeErrorMessage(null);
           logSpeechUiDebug('analysis state resolved', { state: 'noVoice', platform: Platform.OS });
           updateSpeechDebug({ lastStage: 'resolved:noVoice' });
           setSafeStatus('noVoice');
@@ -454,7 +460,7 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
         const friendlyError = nextTranscriptionResult.fallbackReason === 'backend-unreachable'
           ? 'Analiz sunucusuna ulaşılamadı. Aynı Wi-Fi’da olduğundan emin ol ve tekrar dene.'
           : 'Analiz tamamlanamadı. Bağlantıyı kontrol edip tekrar deneyelim.';
-        setErrorMessage(friendlyError);
+        setSafeErrorMessage(friendlyError);
         logSpeechUiDebug('analysis state resolved', { state: 'error', platform: Platform.OS, reason: nextTranscriptionResult.fallbackReason });
         updateSpeechDebug({ lastStage: 'resolved:error', lastError: nextTranscriptionResult.fallbackReason ?? 'analysis failed' });
         setSafeStatus('error');
@@ -500,7 +506,7 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
       logSpeechUiDebug('analysis state resolved', { state: 'error', platform: Platform.OS, lastError: message });
       updateSpeechDebug({ lastStage: 'resolved:error', lastError: message });
       setSafeStatus('error');
-      setErrorMessage('Analiz tamamlanamadı. Bağlantıyı kontrol edip tekrar deneyelim.');
+      setSafeErrorMessage('Analiz tamamlanamadı. Bağlantıyı kontrol edip tekrar deneyelim.');
       trackLocalEvent({
         type: 'speech_analysis_failed',
         screen: 'SpeakingPractice',
@@ -542,7 +548,7 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
       setPermission(nextPermission);
 
       if (!nextPermission.granted) {
-        setErrorMessage(
+        setSafeErrorMessage(
           nextPermission.canAskAgain
             ? 'Mikrofon izni olmadan kayıt alamıyoruz. Lütfen izin ver.'
             : 'Mikrofon izni kapalı. Telefon ayarlarından WortWeg için mikrofon iznini aç.',
@@ -582,7 +588,7 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
         metadata: { source, platform: Platform.OS },
         severity: 'error',
       });
-      setErrorMessage('Mikrofon izni veya kayıt başlatma sırasında sorun oldu. Lütfen tekrar dene.');
+      setSafeErrorMessage('Mikrofon izni veya kayıt başlatma sırasında sorun oldu. Lütfen tekrar dene.');
     } finally {
       actionLockedRef.current = false;
 
@@ -647,7 +653,7 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
     actionLockedRef.current = true;
     clearDurationTimer();
     setSafeStatus(shouldCancel ? 'cancelling' : 'stopping');
-    setErrorMessage(null);
+    setSafeErrorMessage(null);
     const heldDurationMs = Math.max(0, Date.now() - pressStartedAtRef.current);
     trackLocalEvent({
       type: 'speaking_press_released',
@@ -697,7 +703,7 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
       if (finalDurationMs < MIN_RECORDING_MS) {
         setDurationMs(0);
         setAudioUri(null);
-        setErrorMessage('Biraz daha uzun söylemeyi dene.');
+        setSafeErrorMessage('Biraz daha uzun söylemeyi dene.');
         logSpeechUiDebug('analysis state resolved', { state: 'tooShort', platform: Platform.OS, durationMs: finalDurationMs });
         updateSpeechDebug({ lastStage: 'resolved:tooShort' });
         setSafeStatus('tooShort');
@@ -724,7 +730,7 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
         metadata: { source, platform: Platform.OS },
         severity: 'error',
       });
-      setErrorMessage('Kayıt durdurulurken bir sorun oluştu. Lütfen tekrar dene.');
+      setSafeErrorMessage('Kayıt durdurulurken bir sorun oluştu. Lütfen tekrar dene.');
     } finally {
       cancelArmedRef.current = false;
       cancelEventTrackedRef.current = false;
@@ -740,7 +746,7 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
     try {
       clearReplayTimer();
       setReplaying(true);
-      setErrorMessage(null);
+      setSafeErrorMessage(null);
       await replayRecording(audioUri);
       replayTimerRef.current = setTimeout(() => {
         if (mountedRef.current) {
@@ -757,7 +763,7 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
         metadata: { source, platform: Platform.OS },
         severity: 'error',
       });
-      setErrorMessage('Kaydı oynatırken bir sorun oluştu.');
+      setSafeErrorMessage('Kaydı oynatırken bir sorun oluştu.');
     }
   };
 

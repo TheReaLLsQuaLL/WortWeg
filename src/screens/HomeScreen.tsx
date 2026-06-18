@@ -1,6 +1,6 @@
 import { BookOpen, MessageCircle, Mic, NotebookTabs, RotateCcw, Sparkles } from 'lucide-react-native';
 import { useEffect } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { AnimatedCard } from '../components/AnimatedCard';
 import { AppButton } from '../components/AppButton';
@@ -75,7 +75,7 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
       return;
     }
 
-    Alert.alert('Yakında', 'Bu modül yakında oynanabilir olacak. Şimdilik konuşma veya kelime pratiği yapabilirsin.');
+    navigation.navigate('SpeakingPractice', { source: 'home_primary' });
   };
 
   const primaryTitle = nextLesson ? nextLesson.title : dueCards.length > 0 ? 'Kelime tekrarı' : 'Sesli cümle pratiği';

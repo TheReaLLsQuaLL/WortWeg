@@ -47,6 +47,14 @@ Bu liste 3-5 kişilik özel alpha testi içindir. Kısa tut: akış bozuluyor mu
 - A0.1 dersi, yanlış cevap açıklaması ve ders bitiş butonları çalışıyor.
 - Sesli pratikte basılı tut, bırak, dinle ve transcript çalışıyor.
 
+## Bilinen Alpha Kurtarma Adımları
+
+- Ses analizi çalışmazsa telefondan http://192.168.1.8:3001/health adresini açmayı dene. Açılmıyorsa telefon ve bilgisayar aynı Wi-Fi ağında olmayabilir.
+- Uygulama yeniden açıldığında onboarding tekrar gelirse Profil -> Geliştirici sıfırlama yap, akışı tekrar tamamla ve bunu geri bildirimde belirt.
+- Analiz ekranı takılı kalırsa tekrar dene ve mümkünse DEV ortamındaki Speech debug panelinin ekran görüntüsünü gönder.
+- Backend IP değiştiyse .env içindeki EXPO_PUBLIC_AI_BACKEND_URL değerini yeni LAN IP ile güncelle ve Expo uygulamasını temiz önbellekle yeniden başlat.
+- Ses analizinde hata görürsen backend terminalinde /speech/transcribe isteği görünüyor mu kontrol et.
+
 ## Geri Bildirim Gönder
 
 - Ne yapmak istiyordun?
