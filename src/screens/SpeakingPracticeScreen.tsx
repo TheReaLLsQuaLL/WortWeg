@@ -325,6 +325,16 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
     }
   };
 
+  const retryCurrentPrompt = () => {
+    if (!canMovePrompt) {
+      return;
+    }
+
+    clearDurationTimer();
+    clearFeedback();
+    setSafeStatus('idle');
+  };
+
   const nextPrompt = () => {
     if (!canMovePrompt) {
       return;
@@ -495,6 +505,52 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
             </View>
 
             <View style={styles.resultSection}>
+              <View style={styles.comparisonHeaderRow}>
+                <View>
+                  <Text style={styles.sectionTitle}>Hedefe yakınlık</Text>
+                  <Text style={styles.body}>{pronunciationResult.comparison.shortFeedbackTr}</Text>
+                </View>
+                <Text style={styles.similarityScore}>{pronunciationResult.comparison.similarityScore}</Text>
+              </View>
+              <View style={styles.wordGroup}>
+                <Text style={styles.wordGroupTitle}>Eşleşen</Text>
+                <View style={styles.wordChipRow}>
+                  {pronunciationResult.comparison.matchedWords.length > 0 ? pronunciationResult.comparison.matchedWords.map((word, index) => (
+                    <View key={'matched-' + word + '-' + index} style={[styles.wordChip, styles.matchedChip]}>
+                      <Text style={styles.wordChipText}>{word}</Text>
+                    </View>
+                  )) : (
+                    <Text style={styles.emptyChipText}>Henüz yok</Text>
+                  )}
+                </View>
+              </View>
+              <View style={styles.wordGroup}>
+                <Text style={styles.wordGroupTitle}>Eksik</Text>
+                <View style={styles.wordChipRow}>
+                  {pronunciationResult.comparison.missingWords.length > 0 ? pronunciationResult.comparison.missingWords.map((word, index) => (
+                    <View key={'missing-' + word + '-' + index} style={[styles.wordChip, styles.missingChip]}>
+                      <Text style={styles.wordChipText}>{word}</Text>
+                    </View>
+                  )) : (
+                    <Text style={styles.emptyChipText}>Eksik kelime yok</Text>
+                  )}
+                </View>
+              </View>
+              <View style={styles.wordGroup}>
+                <Text style={styles.wordGroupTitle}>Ekstra</Text>
+                <View style={styles.wordChipRow}>
+                  {pronunciationResult.comparison.extraWords.length > 0 ? pronunciationResult.comparison.extraWords.map((word, index) => (
+                    <View key={'extra-' + word + '-' + index} style={[styles.wordChip, styles.extraChip]}>
+                      <Text style={styles.wordChipText}>{word}</Text>
+                    </View>
+                  )) : (
+                    <Text style={styles.emptyChipText}>Ekstra kelime yok</Text>
+                  )}
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.resultSection}>
               <View style={styles.pronunciationHeaderRow}>
                 <Text style={styles.sectionTitle}>Telaffuz geri bildirimi</Text>
                 {__DEV__ && pronunciationResult.isMock ? (
@@ -535,6 +591,13 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
                 </View>
               ))}
             </View>
+
+            <AppButton
+              icon={RotateCcw}
+              onPress={retryCurrentPrompt}
+              title="Tekrar dene"
+              variant="secondary"
+            />
           </View>
         ) : null}
       </AppScrollView>
@@ -755,6 +818,55 @@ const styles = StyleSheet.create({
     ...typography.small,
     color: colors.royalPurple,
     fontWeight: '900',
+  },
+  comparisonHeaderRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.md,
+    justifyContent: 'space-between',
+  },
+  similarityScore: {
+    color: colors.royalPurple,
+    fontSize: 42,
+    fontWeight: '900',
+    letterSpacing: 0,
+    lineHeight: 48,
+  },
+  wordGroup: {
+    gap: spacing.xs,
+  },
+  wordGroupTitle: {
+    ...typography.small,
+    color: colors.deepViolet,
+    fontWeight: '900',
+  },
+  wordChipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.xs,
+  },
+  wordChip: {
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+  matchedChip: {
+    backgroundColor: '#DFF8EA',
+  },
+  missingChip: {
+    backgroundColor: '#FFE7E7',
+  },
+  extraChip: {
+    backgroundColor: '#FFF2C8',
+  },
+  wordChipText: {
+    ...typography.small,
+    color: colors.deepViolet,
+    fontWeight: '900',
+  },
+  emptyChipText: {
+    ...typography.small,
+    color: colors.muted,
   },
   pronunciationHeaderRow: {
     alignItems: 'center',

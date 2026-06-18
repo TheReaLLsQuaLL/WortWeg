@@ -19,6 +19,7 @@ const allowedMetadataKeys = new Set<keyof LocalEventMetadata>([
   'modelUsed',
   'fileSizeBucket',
   'fallback',
+  'similarityBucket',
   'repairedPlan',
   'hasCompletedOnboarding',
   'hasOnboarded',

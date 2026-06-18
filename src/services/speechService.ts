@@ -8,6 +8,7 @@ import {
 } from 'expo-audio';
 import { Platform } from 'react-native';
 
+import { compareTranscripts, type TranscriptComparison } from '../lib/transcriptCompare';
 import { trackLocalEvent } from './localEventLog';
 
 export type MicrophonePermissionResult = {
@@ -42,6 +43,7 @@ export type PronunciationScore = {
   pronunciationScore: number;
   isMock: boolean;
   provider: 'mock';
+  comparison: TranscriptComparison;
   accuracyScore: number;
   fluencyScore: number;
   completenessScore: number;
@@ -490,6 +492,10 @@ export const transcribeGerman = async (
       durationMs: body.durationMs,
     };
 
+    const comparisonForEvent = expectedText?.trim()
+      ? compareTranscripts(expectedText, body.transcript)
+      : undefined;
+
     trackLocalEvent({
       type: body.fallback ? 'speech_transcription_fallback' : 'speech_transcription_completed',
       screen: 'SpeakingPractice',
@@ -498,6 +504,7 @@ export const transcribeGerman = async (
         modelUsed: body.modelUsed,
         fallback: body.fallback,
         durationMs: responseTimeMs,
+        similarityBucket: comparisonForEvent?.similarityBucket,
       },
       severity: body.fallback ? 'warning' : 'info',
     });
@@ -548,11 +555,14 @@ export const scorePronunciation = async (
   // TODO: pronunciation scoring should call Azure Pronunciation Assessment via backend.
   await wait(850);
 
+  const comparison = compareTranscripts(expectedText, transcript ?? '');
+
   if (!audioUri || !expectedText) {
     return {
       pronunciationScore: 0,
       isMock: true,
       provider: 'mock',
+      comparison,
       accuracyScore: 0,
       fluencyScore: 0,
       completenessScore: 0,
@@ -561,33 +571,57 @@ export const scorePronunciation = async (
     };
   }
 
-  const normalizedExpected = expectedText.trim().toLocaleLowerCase('de-DE');
-  const normalizedTranscript = transcript?.trim().toLocaleLowerCase('de-DE') ?? '';
-  const transcriptMatchesExpected = Boolean(normalizedTranscript) && normalizedTranscript === normalizedExpected;
-  const transcriptLooksClose = Boolean(normalizedTranscript) && (
-    normalizedExpected.includes(normalizedTranscript) || normalizedTranscript.includes(normalizedExpected)
-  );
+  const hasMissingWords = comparison.missingWords.length > 0;
+  const hasExtraWords = comparison.extraWords.length > 0;
+  const isHighSimilarity = comparison.similarityScore >= 80;
+  const isLowSimilarity = comparison.similarityScore < 50;
+  const feedbackTr = isHighSimilarity
+    ? 'Cümlen hedefe çok yakın. Şimdi daha akıcı söylemeyi dene.'
+    : hasMissingWords
+      ? 'Bazı kelimeler eksik duyuldu: ' + comparison.missingWords.slice(0, 4).join(', ') + '.'
+      : hasExtraWords
+        ? 'Ekstra kelimeler duyuldu: ' + comparison.extraWords.slice(0, 4).join(', ') + '.'
+        : 'Cümle hedef cümleden farklı duyuldu. Yavaşça tekrar dene.';
+  const pronunciationScore = isHighSimilarity
+    ? 88
+    : isLowSimilarity
+      ? 58
+      : 74;
+  const wordFeedback: WordPronunciationFeedback[] = [];
 
-  const feedbackTr = transcriptMatchesExpected || transcriptLooksClose
-    ? 'Transcript hedef cümleyle uyumlu görünüyor. Telaffuz skoru şimdilik mock; gerçek ses analizi daha sonra eklenecek.'
-    : normalizedTranscript
-      ? 'Transcript hedef cümleden biraz farklı görünüyor. Telaffuz skoru şimdilik mock; cümleyi yavaş ve net tekrar oku.'
-      : 'Transcript alınamadı. Telaffuz skoru şimdilik mock; kaydı tekrar deneyebilirsin.';
+  if (hasMissingWords) {
+    wordFeedback.push({
+      word: 'Eksik',
+      issue: comparison.missingWords.slice(0, 4).join(', '),
+      suggestionTr: 'Bu kelimeleri cümlede net söylemeye çalış.',
+    });
+  }
+
+  if (hasExtraWords) {
+    wordFeedback.push({
+      word: 'Ekstra',
+      issue: comparison.extraWords.slice(0, 4).join(', '),
+      suggestionTr: 'Hedef cümleyi kısa ve aynı sırayla tekrar oku.',
+    });
+  }
+
+  if (wordFeedback.length === 0) {
+    wordFeedback.push({
+      word: 'Akıcılık',
+      issue: 'Bu bölüm gerçek telaffuz analizi değil, hedef-transcript karşılaştırmasına dayalı mock geri bildirimdir.',
+      suggestionTr: 'Cümleyi bir kez daha daha doğal hızda söyle.',
+    });
+  }
 
   return {
-    pronunciationScore: transcriptMatchesExpected || transcriptLooksClose ? 88 : 82,
+    pronunciationScore,
     isMock: true,
     provider: 'mock',
-    accuracyScore: transcriptMatchesExpected || transcriptLooksClose ? 90 : 84,
-    fluencyScore: 76,
-    completenessScore: transcriptMatchesExpected || transcriptLooksClose ? 92 : 86,
+    comparison,
+    accuracyScore: Math.max(40, comparison.similarityScore),
+    fluencyScore: isHighSimilarity ? 82 : 70,
+    completenessScore: hasMissingWords ? Math.max(45, 100 - comparison.missingWords.length * 18) : 92,
     feedbackTr,
-    wordFeedback: [
-      {
-        word: 'heiße',
-        issue: 'Bu bölüm gerçek telaffuz analizi değil, mock geri bildirimdir.',
-        suggestionTr: "ß sesini 's' gibi net söyle.",
-      },
-    ],
+    wordFeedback,
   };
 };

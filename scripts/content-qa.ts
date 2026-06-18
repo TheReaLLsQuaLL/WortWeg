@@ -1,5 +1,6 @@
 import { playableLessons } from '../src/data/lessons';
 import { ARTICLES } from '../src/data/constants';
+import { compareTranscripts } from '../src/lib/transcriptCompare';
 
 const errors: string[] = [];
 const lessonIds = new Set<string>();
@@ -7,6 +8,7 @@ const exerciseIds = new Set<string>();
 const wordIds = new Set<string>();
 let multipleChoiceCount = 0;
 let correctChoiceFirstCount = 0;
+let transcriptCompareChecks = 0;
 
 const assertUnique = (set: Set<string>, id: string, label: string) => {
   if (set.has(id)) {
@@ -16,6 +18,26 @@ const assertUnique = (set: Set<string>, id: string, label: string) => {
 
   set.add(id);
 };
+
+const assertTranscriptComparison = (condition: boolean, label: string) => {
+  transcriptCompareChecks += 1;
+
+  if (!condition) {
+    errors.push('Transcript comparison check failed: ' + label);
+  }
+};
+
+const exactComparison = compareTranscripts('Ich heiße Toprak.', 'Ich heiße Toprak.');
+assertTranscriptComparison(exactComparison.similarityScore >= 95 && exactComparison.normalizedMatch, 'identical sentence high score');
+
+const missingComparison = compareTranscripts('Ich heiße Toprak.', 'Ich heiße.');
+assertTranscriptComparison(missingComparison.missingWords.includes('toprak'), 'missing word detected');
+
+const punctuationComparison = compareTranscripts('Ich trinke gern Kaffee!', 'ich trinke gern kaffee');
+assertTranscriptComparison(punctuationComparison.normalizedMatch && punctuationComparison.similarityScore === 100, 'punctuation and case ignored');
+
+const umlautComparison = compareTranscripts('Ich möchte grünen Tee.', 'ich möchte grünen tee');
+assertTranscriptComparison(umlautComparison.normalizedMatch && umlautComparison.matchedWords.includes('grünen'), 'umlauts preserved safely');
 
 for (const lesson of playableLessons) {
   assertUnique(lessonIds, lesson.id, 'lesson');
@@ -147,5 +169,6 @@ console.log(JSON.stringify({
   vocabulary: wordIds.size,
   multipleChoiceLike: multipleChoiceCount,
   correctChoiceFirstInSource: correctChoiceFirstCount,
+  transcriptCompareChecks,
   note: 'Choice display order is shuffled at render/session by choiceUtils; scoring uses correctChoiceId.',
 }, null, 2));

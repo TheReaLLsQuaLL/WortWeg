@@ -49,6 +49,7 @@ export type LocalEventMetadata = Partial<{
   modelUsed: string;
   fileSizeBucket: string;
   fallback: boolean;
+  similarityBucket: 'high' | 'medium' | 'low';
   repairedPlan: boolean;
   hasCompletedOnboarding: boolean;
   hasOnboarded: boolean;
