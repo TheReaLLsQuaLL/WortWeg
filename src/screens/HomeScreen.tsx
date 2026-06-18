@@ -31,6 +31,7 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
   const completedCount = lessonPath.filter((lesson) => userState.completedLessons.includes(lesson.id)).length;
   const progress = lessonPath.length > 0 ? completedCount / lessonPath.length : 0;
   const dueCards = getDueReviewCards(userState.reviewCards);
+  const mistakeCount = userState.mistakes.length;
   const dailyGoalXp = userState.profile?.dailyGoalXp ?? 20;
   const dailyProgress = Math.min(1, userState.todayXp / dailyGoalXp);
   const coverage = Math.min(1, progress * 0.7 + getReviewCoverage(userState.reviewCards) * 0.3);
@@ -132,8 +133,8 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
 
         <AnimatedCard delayMs={120}>
         <View style={styles.quickActions}>
-          <QuickAction icon={RotateCcw} label="Kelime" onPress={() => navigation.navigate('Main', { initialTab: 'vocab' })} />
-          <QuickAction icon={NotebookTabs} label="Hatalarım" onPress={() => navigation.navigate('Main', { initialTab: 'profile' })} />
+          <QuickAction badgeCount={dueCards.length} icon={RotateCcw} label="Kelime" onPress={() => navigation.navigate('Main', { initialTab: 'vocab' })} />
+          <QuickAction badgeCount={mistakeCount} icon={NotebookTabs} label="Hatalarım" onPress={() => navigation.navigate('Main', { initialTab: 'profile' })} />
           <QuickAction icon={MessageCircle} label="Wolli" onPress={() => navigation.navigate('Main', { initialTab: 'chat' })} />
           <QuickAction icon={Mic} label="Ses" onPress={() => navigation.navigate('SpeakingPractice', {})} />
         </View>
@@ -150,11 +151,18 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
   );
 }
 
-function QuickAction({ icon: Icon, label, onPress }: { icon: typeof RotateCcw; label: string; onPress: () => void }) {
+function QuickAction({ badgeCount = 0, icon: Icon, label, onPress }: { badgeCount?: number; icon: typeof RotateCcw; label: string; onPress: () => void }) {
+  const badgeLabel = badgeCount > 99 ? '99+' : String(badgeCount);
+
   return (
     <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.quickAction, pressed && styles.pressed]}>
       <Icon color={colors.royalPurple} size={20} strokeWidth={2.6} />
       <Text style={styles.quickLabel}>{label}</Text>
+      {badgeCount > 0 ? (
+        <View style={styles.quickBadge}>
+          <Text style={styles.quickBadgeText}>{badgeLabel}</Text>
+        </View>
+      ) : null}
     </Pressable>
   );
 }
@@ -274,6 +282,19 @@ const styles = StyleSheet.create({
     color: colors.deepViolet,
     fontWeight: '900',
     textAlign: 'center',
+  },
+  quickBadge: {
+    alignItems: 'center',
+    backgroundColor: colors.yellow,
+    borderRadius: radius.pill,
+    minWidth: 24,
+    paddingHorizontal: spacing.xs,
+    paddingVertical: 2,
+  },
+  quickBadgeText: {
+    ...typography.small,
+    color: colors.deepViolet,
+    fontWeight: '900',
   },
   planStrip: {
     backgroundColor: colors.white,

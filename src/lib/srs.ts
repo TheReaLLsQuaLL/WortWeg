@@ -14,6 +14,8 @@ export const makeReviewCard = (word: VocabItem): ReviewCard => ({
   german: word.german,
   turkish: word.turkish,
   article: word.article,
+  exampleDe: word.exampleDe,
+  exampleTr: word.exampleTr,
   dueDate: getLocalDateKey(),
   intervalDays: 0,
   easeFactor: INITIAL_EASE,

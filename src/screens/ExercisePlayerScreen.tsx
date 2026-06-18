@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { RouteProp } from '@react-navigation/native';
-import { ArrowLeft, BookOpen, Check, CheckCircle2, Home, Mic, RotateCcw } from 'lucide-react-native';
+import { ArrowLeft, BookOpen, Check, CheckCircle2, Home, Mic, NotebookTabs } from 'lucide-react-native';
 
 import { AnimatedCard } from '../components/AnimatedCard';
 import { AppButton } from '../components/AppButton';
@@ -52,6 +52,7 @@ type LessonCompletion = {
   totalAnswers: number;
   xpEarned: number;
   newReviewCards: number;
+  mistakeCount: number;
   nextLessonId?: string;
   nextLessonTitle?: string;
 };
@@ -130,6 +131,7 @@ export function ExercisePlayerScreen({
     let correctAnswers = 0;
     let xpEarned = 0;
     let newReviewCards = 0;
+    let mistakeCount = 0;
 
     try {
       const nextState = await onUpdateState((state) => {
@@ -159,6 +161,7 @@ export function ExercisePlayerScreen({
               createdAt: attempt.answeredAt,
             };
           });
+        mistakeCount = mistakes.length;
         const reviewCards = createReviewCardsFromLesson(lesson, state.reviewCards);
         newReviewCards = Math.max(0, reviewCards.length - state.reviewCards.length);
 
@@ -194,6 +197,7 @@ export function ExercisePlayerScreen({
         totalAnswers: Math.max(1, finishedAttempts.length),
         xpEarned,
         newReviewCards,
+        mistakeCount,
         nextLessonId: nextLesson?.id,
         nextLessonTitle: nextLesson?.title,
       });
@@ -282,24 +286,52 @@ export function ExercisePlayerScreen({
   };
 
   if (lesson && completion) {
+    const hasMistakes = completion.mistakeCount > 0;
+    const hasNextLesson = Boolean(completion.nextLessonId);
+    const selectCompletionAction = (actionId: string, runAction: () => void) => {
+      trackLocalEvent({
+        type: 'lesson_completion_action_selected',
+        screen: 'ExercisePlayer',
+        action: actionId,
+        metadata: { actionId, lessonId: lesson.id, level: lesson.cefr },
+      });
+      runAction();
+    };
+    const goNextOrHome = () => {
+      if (completion.nextLessonId) {
+        navigation.navigate('LessonIntro', { lessonId: completion.nextLessonId });
+        return;
+      }
+
+      navigation.navigate('Main', { initialTab: 'home' });
+    };
+
     return (
       <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
         <View style={styles.completionHeader}>
           <CheckCircle2 color={colors.green} size={42} strokeWidth={2.6} />
           <AnimatedCard>
-          <Text style={styles.completionTitle}>Ders tamamlandı</Text>
-          <Text style={styles.completionSubtitle}>{lesson.title}</Text>
+            <Text style={styles.completionTitle}>Ders tamamlandı</Text>
+            <Text style={styles.completionSubtitle}>{lesson.title}</Text>
           </AnimatedCard>
         </View>
 
         <ScrollView contentContainerStyle={styles.completionContent}>
           <View style={styles.completionCard}>
-            <Text style={styles.completionCardTitle}>Harika, kayıt edildi.</Text>
+            <Text style={styles.completionCardTitle}>Sıradaki en iyi adım</Text>
             <View style={styles.completionPills}>
               <ProgressPill label={completion.correctAnswers + '/' + completion.totalAnswers + ' doğru'} tone="green" />
               <ProgressPill label={'+' + completion.xpEarned + ' XP'} tone="yellow" />
-              <ProgressPill label={completion.newReviewCards + ' kart'} tone="purple" />
+              <ProgressPill label={completion.newReviewCards + ' kelime'} tone="purple" />
             </View>
+            {hasMistakes ? (
+              <Text style={styles.completionText}>{completion.mistakeCount} hata defterine eklendi. Önce kısa bir tekrar iyi olur.</Text>
+            ) : (
+              <Text style={styles.completionText}>Hata yok. Sıradaki derse geçebilirsin.</Text>
+            )}
+            {completion.newReviewCards > 0 ? (
+              <Text style={styles.completionText}>{completion.newReviewCards} kelime tekrar listene eklendi.</Text>
+            ) : null}
             {completion.nextLessonTitle ? (
               <Text style={styles.completionText}>Sıradaki ders: {completion.nextLessonTitle}</Text>
             ) : (
@@ -307,40 +339,47 @@ export function ExercisePlayerScreen({
             )}
           </View>
 
-          {completion.nextLessonId ? (
+          {hasMistakes ? (
             <AppButton
-              icon={BookOpen}
-              onPress={() => navigation.navigate('LessonIntro', { lessonId: completion.nextLessonId! })}
-              title="Sıradaki ders"
+              icon={NotebookTabs}
+              onPress={() => selectCompletionAction('mistakes_review', () => navigation.navigate('Main', { initialTab: 'profile' }))}
+              title="Hatalarını tekrar et"
             />
-          ) : null}
-          {lesson.speakingPrompt ? (
+          ) : (
             <AppButton
-              icon={Mic}
-              onPress={() => navigation.navigate('SpeakingPractice', {
-                source: 'lesson_completion',
-                promptId: lesson.id + '-speaking',
-                topicTitle: lesson.speakingPrompt?.titleTr,
-                expectedText: lesson.speakingPrompt?.promptDe,
-                meaningTr: lesson.speakingPrompt?.promptTr,
-                tipTr: 'Dersi bitirdin. Şimdi cümleyi sesli dene.',
-              })}
-              title="Bu cümleyi sesli dene"
-              variant="secondary"
+              icon={hasNextLesson ? BookOpen : Home}
+              onPress={() => selectCompletionAction(hasNextLesson ? 'next_lesson' : 'home', goNextOrHome)}
+              title={hasNextLesson ? 'Sıradaki ders' : 'Ana sayfaya dön'}
             />
-          ) : null}
-          <AppButton
-            icon={RotateCcw}
-            onPress={() => navigation.navigate('Main', { initialTab: 'vocab' })}
-            title="Kelime tekrarı"
-            variant="secondary"
-          />
-          <AppButton
-            icon={Home}
-            onPress={() => navigation.navigate('Main', { initialTab: 'home' })}
-            title="Ana sayfaya dön"
-            variant="secondary"
-          />
+          )}
+
+          <View style={styles.secondaryActions}>
+            {lesson.speakingPrompt ? (
+              <AppButton
+                icon={Mic}
+                onPress={() => selectCompletionAction('speaking_prompt', () => navigation.navigate('SpeakingPractice', {
+                  source: 'lesson_completion',
+                  promptId: lesson.id + '-speaking',
+                  topicTitle: lesson.speakingPrompt?.titleTr,
+                  expectedText: lesson.speakingPrompt?.promptDe,
+                  meaningTr: lesson.speakingPrompt?.promptTr,
+                  tipTr: 'Dersi bitirdin. Şimdi cümleyi sesli dene.',
+                }))}
+                title="Bu cümleyi sesli dene"
+                variant="secondary"
+                style={styles.secondaryButton}
+              />
+            ) : null}
+            {hasMistakes ? (
+              <AppButton
+                icon={hasNextLesson ? BookOpen : Home}
+                onPress={() => selectCompletionAction(hasNextLesson ? 'next_lesson' : 'home', goNextOrHome)}
+                title={hasNextLesson ? 'Sıradaki ders' : 'Ana sayfa'}
+                variant="secondary"
+                style={styles.secondaryButton}
+              />
+            ) : null}
+          </View>
         </ScrollView>
       </SafeAreaView>
     );
@@ -749,6 +788,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing.sm,
+  },
+  secondaryActions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  secondaryButton: {
+    flexBasis: '47%',
+    flexGrow: 1,
   },
   center: {
     backgroundColor: colors.surface,

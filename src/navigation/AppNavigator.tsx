@@ -93,7 +93,7 @@ function MainTabs({ navigation, userState, onUpdateState, onResetApp, initialTab
           <HomeScreen navigation={navigation} userState={userState} />
         ) : null}
         {activeTab === 'vocab' ? (
-          <VocabScreen userState={userState} onUpdateState={onUpdateState} />
+          <VocabScreen navigation={navigation} userState={userState} onUpdateState={onUpdateState} />
         ) : null}
         {activeTab === 'chat' ? (
           <ChatScreen userState={userState} onUpdateState={onUpdateState} />

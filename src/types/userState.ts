@@ -25,6 +25,8 @@ export type ReviewCard = {
   german: string;
   turkish: string;
   article?: Article;
+  exampleDe?: string;
+  exampleTr?: string;
   dueDate: string;
   intervalDays: number;
   easeFactor: number;

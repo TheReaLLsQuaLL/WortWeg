@@ -34,6 +34,8 @@ const allowedMetadataKeys = new Set<keyof LocalEventMetadata>([
   'audioExtension',
   'audioMimeType',
   'source',
+  'actionId',
+  'count',
 ]);
 
 const makeEventId = () =>
@@ -56,6 +58,11 @@ const sanitizeMetadata = (metadata?: LocalEventMetadata): LocalEventMetadata | u
 
     if (key === 'durationMs' && typeof value === 'number' && Number.isFinite(value)) {
       safe.durationMs = Math.max(0, Math.round(value));
+      continue;
+    }
+
+    if (key === 'count' && typeof value === 'number' && Number.isFinite(value)) {
+      safe.count = Math.max(0, Math.round(value));
       continue;
     }
 

@@ -19,9 +19,12 @@ export type LocalEventType =
   | 'lesson_started'
   | 'exercise_answered'
   | 'lesson_completed'
+  | 'lesson_completion_action_selected'
   | 'srs_opened'
+  | 'srs_card_reviewed'
   | 'srs_completed'
   | 'mistakes_opened'
+  | 'mistakes_item_reviewed'
   | 'curriculum_opened'
   | 'ai_chat_opened'
   | 'ai_chat_backend_fallback'
@@ -77,6 +80,8 @@ export type LocalEventMetadata = Partial<{
   audioExtension: string;
   audioMimeType: string;
   source: string;
+  actionId: string;
+  count: number;
 }>;
 
 export type LocalEvent = {

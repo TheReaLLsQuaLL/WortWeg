@@ -8,13 +8,13 @@ import { EmptyState } from '../components/EmptyState';
 import { AppScrollView, Screen } from '../components/layout';
 import { TopBar } from '../components/TopBar';
 import { ALPHA_BUILD_DATE, APP_NAME, APP_VERSION } from '../data/constants';
-import { getPlayableLessonsForPlan } from '../data/lessons';
+import { getLessonById, getPlayableLessonsForPlan } from '../data/lessons';
 import { colors, radius, spacing, typography } from '../data/theme';
 import { getKnownReviewCardCount, getReviewCoverage } from '../lib/srs';
 import { shouldShowOnboarding } from '../lib/storage';
 import type { CommitUserState, RootNavigation } from '../navigation/AppNavigator';
 import { getLocalEventLog, trackLocalEvent } from '../services/localEventLog';
-import type { UserState } from '../types/userState';
+import type { Mistake, UserState } from '../types/userState';
 
 type ProfileScreenProps = {
   navigation: RootNavigation;
@@ -84,6 +84,17 @@ export function ProfileScreen({ navigation, userState, onUpdateState, onResetApp
     ) * 100,
   );
   const recentMistakes = userState.mistakes.slice(-8).reverse();
+  const mistakeGroups = recentMistakes.reduce<Array<{ lessonId: string; title: string; items: Mistake[] }>>((groups, mistake) => {
+    const lessonTitle = getLessonById(mistake.lessonId)?.title ?? 'Ders';
+    const existingGroup = groups.find((group) => group.lessonId === mistake.lessonId);
+
+    if (existingGroup) {
+      existingGroup.items.push(mistake);
+      return groups;
+    }
+
+    return [...groups, { lessonId: mistake.lessonId, title: lessonTitle, items: [mistake] }];
+  }, []);
   const backendUrl = getBackendUrl();
   const backendHost = getBackendHost(backendUrl);
   const currentLevel = userState.learningPlan?.currentLevel ?? userState.profile?.startLevel ?? 'A0';
@@ -152,11 +163,29 @@ export function ProfileScreen({ navigation, userState, onUpdateState, onResetApp
   }, [backendUrl]);
 
   const clearMistake = async (mistakeId: string) => {
+    const mistake = userState.mistakes.find((item) => item.id === mistakeId);
+
     await onUpdateState((state) => ({
       ...state,
-      mistakes: state.mistakes.filter((mistake) => mistake.id !== mistakeId),
+      mistakes: state.mistakes.filter((item) => item.id !== mistakeId),
     }));
     setActiveMistakeId(null);
+    trackLocalEvent({
+      type: 'mistakes_item_reviewed',
+      screen: 'Profile',
+      action: 'understood',
+      metadata: { actionId: 'understood', lessonId: mistake?.lessonId },
+    });
+  };
+
+  const retryMistakeLesson = (mistake: Mistake) => {
+    trackLocalEvent({
+      type: 'mistakes_item_reviewed',
+      screen: 'Profile',
+      action: 'retry_lesson',
+      metadata: { actionId: 'retry_lesson', lessonId: mistake.lessonId },
+    });
+    navigation.navigate('LessonIntro', { lessonId: mistake.lessonId });
   };
 
   const openTesterInfo = () => {
@@ -364,42 +393,59 @@ export function ProfileScreen({ navigation, userState, onUpdateState, onResetApp
         ) : null}
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Hatalar defteri</Text>
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionTitle}>Hatalar defteri</Text>
+            {recentMistakes.length > 0 ? <Text style={styles.countPill}>{userState.mistakes.length}</Text> : null}
+          </View>
           {recentMistakes.length === 0 ? (
             <EmptyState
-              body="Yanlış cevapların burada kısa notlarla birikecek. Şimdilik temiz görünüyorsun."
+              body="Henüz hata yok. Harika gidiyorsun."
               framed={false}
               icon={NotebookTabs}
-              title="Henüz hata yok"
+              title="Temiz defter"
             />
           ) : (
-            recentMistakes.map((mistake) => {
-              const open = activeMistakeId === mistake.id;
+            mistakeGroups.map((group) => (
+              <View key={group.lessonId} style={styles.mistakeGroup}>
+                <Text style={styles.mistakeGroupTitle}>{group.title}</Text>
+                {group.items.map((mistake) => {
+                  const open = activeMistakeId === mistake.id;
 
-              return (
-              <View key={mistake.id} style={styles.mistakeCard}>
-                <Text style={styles.mistakePrompt}>{mistake.prompt}</Text>
-                <Text style={styles.body}>Cevabın: {mistake.userAnswer}</Text>
-                {open ? (
-                  <>
-                    <Text style={styles.body}>Doğru: {mistake.expectedAnswer}</Text>
-                    <Text style={styles.body}>{mistake.feedbackTr}</Text>
-                    <AppButton
-                      onPress={() => clearMistake(mistake.id)}
-                      title="Bu hatayı öğrendim"
-                      variant="secondary"
-                    />
-                  </>
-                ) : (
-                  <AppButton
-                    onPress={() => setActiveMistakeId(mistake.id)}
-                    title="Cevabı göster"
-                    variant="secondary"
-                  />
-                )}
+                  return (
+                    <View key={mistake.id} style={styles.mistakeCard}>
+                      <Text style={styles.mistakePrompt}>{mistake.prompt}</Text>
+                      <Text style={styles.body}>Cevabın: {mistake.userAnswer}</Text>
+                      {open ? (
+                        <>
+                          <Text style={styles.body}>Doğru: {mistake.expectedAnswer}</Text>
+                          <Text style={styles.body}>{mistake.feedbackTr}</Text>
+                          <View style={styles.buttonRow}>
+                            <AppButton
+                              onPress={() => retryMistakeLesson(mistake)}
+                              title="Tekrar çöz"
+                              variant="secondary"
+                              style={styles.rowButton}
+                            />
+                            <AppButton
+                              onPress={() => clearMistake(mistake.id)}
+                              title="Anladım"
+                              variant="secondary"
+                              style={styles.rowButton}
+                            />
+                          </View>
+                        </>
+                      ) : (
+                        <AppButton
+                          onPress={() => setActiveMistakeId(mistake.id)}
+                          title="Cevabı göster"
+                          variant="secondary"
+                        />
+                      )}
+                    </View>
+                  );
+                })}
               </View>
-              );
-            })
+            ))
           )}
         </View>
 
@@ -565,6 +611,23 @@ const styles = StyleSheet.create({
     color: colors.deepViolet,
     fontWeight: '900',
   },
+  sectionHeaderRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.sm,
+    justifyContent: 'space-between',
+  },
+  countPill: {
+    ...typography.small,
+    backgroundColor: colors.yellow,
+    borderRadius: radius.pill,
+    color: colors.deepViolet,
+    fontWeight: '900',
+    minWidth: 28,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
+    textAlign: 'center',
+  },
   body: {
     ...typography.body,
     color: colors.muted,
@@ -609,6 +672,14 @@ const styles = StyleSheet.create({
   },
   rowButton: {
     flex: 1,
+  },
+  mistakeGroup: {
+    gap: spacing.sm,
+  },
+  mistakeGroupTitle: {
+    ...typography.small,
+    color: colors.royalPurple,
+    fontWeight: '900',
   },
   mistakeCard: {
     backgroundColor: colors.surface,
