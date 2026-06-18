@@ -448,31 +448,25 @@ Alpha test checklist:
    - Pratik geri bildirimi is clear.
 9. Open Profile, export the alpha event log, and send feedback.
 
+Before testing speech on iPhone:
+
+- Open http://192.168.1.8:3001/health in iPhone Safari.
+- If it does not open, fix same Wi-Fi, firewall, or the Mac LAN IP before testing speech.
+- Confirm .env uses EXPO_PUBLIC_AI_BACKEND_URL=http://YOUR_MAC_LAN_IP:3001 and restart Expo with --clear after changing it.
+
 Platform checks:
 
-- iOS:
-  - Onboarding progress header does not overlap the notch or Dynamic Island.
-  - Only one onboarding progress indicator appears.
-  - Bottom button stays above the home indicator.
-  - Option cards fit or scroll on small iPhones.
-  - Microphone permission appears, press-and-hold recording works, release starts analysis, replay works, and STT transcript appears.
-  - Speaking result does not show developer words like mock, provider, fallback, or model name.
-  - Ask for screenshots of onboarding welcome, onboarding question, plan-ready, recording, analysis loading, and speaking result screens.
-- Android:
-  - Status and system navigation bars do not overlap the UI.
-  - Bottom tabs stay above Android navigation buttons.
-  - Onboarding reaches Home and kill/reopen stays on Home.
-  - A0.1 lesson and lesson-completion buttons work.
-  - Press-and-hold record/release/replay works and STT transcript appears.
+- iOS: onboarding has one progress indicator, top/bottom safe areas are clear, press-and-hold speech records, release starts analysis, replay works, and transcript appears.
+- Android: status/nav bars do not overlap UI, onboarding reaches Home, kill/reopen stays on Home, A0.1 works, and speech record/release/replay/transcript works.
 
-Feedback to send:
+How to report bugs:
 
-- What were you trying to do?
-- What went wrong or felt unclear?
-- Which screen were you on?
-- Device model and OS version.
-- Screenshot if helpful, but never include API keys or terminal windows with secrets.
-- Optional copied alpha event log from Profile.
+- Phone model and OS version.
+- Exact step where it failed.
+- What you expected and what happened.
+- Screenshot or short video if helpful.
+- Exported alpha event log from Profile.
+- Do not send API keys, .env screenshots, terminal secrets, audio files, or private text.
 
 Privacy expectations:
 

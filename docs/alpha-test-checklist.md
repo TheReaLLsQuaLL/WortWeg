@@ -29,6 +29,12 @@ Bu liste 3-5 kişilik özel alpha testi içindir. Kısa tut: akış bozuluyor mu
 17. Sonuçta şunları kontrol et: Beklenen cümle, Söylediğin cümle, Hedefe yakınlık, Pratik geri bildirimi.
 18. Profil'den alpha test günlüğünü dışa aktar.
 
+## iPhone Ses Testinden Önce
+
+- iPhone Safari ile http://192.168.1.8:3001/health adresini aç.
+- Açılmıyorsa aynı Wi-Fi, firewall veya Mac LAN IP ayarı sorunludur. Önce bunu düzelt.
+- Backend IP değiştiyse .env içindeki EXPO_PUBLIC_AI_BACKEND_URL değerini güncelle ve Expo uygulamasını temiz önbellekle yeniden başlat.
+
 ## iOS Kontrolü
 
 - Üstteki ilerleme alanı Dynamic Island veya çentikle çakışmıyor.
@@ -57,13 +63,12 @@ Bu liste 3-5 kişilik özel alpha testi içindir. Kısa tut: akış bozuluyor mu
 
 ## Geri Bildirim Gönder
 
-- Ne yapmak istiyordun?
-- Ne oldu veya ne anlaşılmadı?
-- Hangi ekrandaydın?
-- Telefon modeli ve işletim sistemi ne?
-- Ekran görüntüsü ekleyebilirsin.
-- API anahtarı, .env, terminal sırrı veya kişisel bilgi paylaşma.
-- İstersen Profil'den kopyaladığın alpha test günlüğünü ekle.
+- Telefon modeli ve işletim sistemi.
+- Hangi adımda kaldın?
+- Ne bekliyordun, ne oldu?
+- Ekran görüntüsü veya kısa video.
+- Profil'den dışa aktarılan alpha test günlüğü.
+- API anahtarı, .env ekran görüntüsü, terminal sırrı veya kişisel bilgi paylaşma.
 
 ## Bilinen Sınırlar
 
