@@ -1,0 +1,47 @@
+# WortWeg Private Alpha Test Kontrol Listesi
+
+Bu liste 3-5 kişilik özel alpha testi içindir. Kısa tut: akış bozuluyor mu, metinler anlaşılır mı, telefon ekranında rahat mı?
+
+## Başlamadan
+
+- Telefon ve bilgisayar aynı Wi-Fi ağında olsun.
+- Geliştirici backend'i ve Expo'yu başlatmış olsun.
+- API anahtarlarını, terminaldeki gizli değerleri veya .env içeriğini paylaşma.
+
+## Test Et
+
+1. Uygulamayı sıfırla: Profil -> Geliştirici: Uygulama verisini sıfırla.
+2. Onboarding'i yerleştirme testi olmadan bitir.
+3. Home ekranına geldiğini kontrol et.
+4. Expo Go'yu tamamen kapatıp yeniden aç. Home gelmeli, onboarding değil.
+5. Tekrar sıfırla, bu kez seviye kontrolünü yap.
+6. Önerilen seviyeyi seç ve Home'a geldiğini kontrol et.
+7. Home'dan A0.1 dersini aç.
+8. Bir soruyu yanlış cevapla; açıklama anlaşılır mı kontrol et.
+9. Dersi bitir; XP ve ilerleme görünüyor mu kontrol et.
+10. Kelime tekrarını aç.
+11. Hatalarım bölümünü aç.
+12. Yol haritasında A0/A1 derslerini açmayı dene.
+13. A2/B1/B2 modüllerinde yakında mesajı görünüyor mu kontrol et.
+14. Wolli chat'e kısa bir A1 mesaj yaz.
+15. Sesli pratikte Almanca cümle kaydet, durdur, dinle.
+16. Sonuçta şunları kontrol et: Beklenen cümle, Söylediğin cümle, Hedefe yakınlık, Pratik geri bildirimi.
+17. Profil'den alpha test günlüğünü dışa aktar.
+
+## Geri Bildirim Gönder
+
+- Ne yapmak istiyordun?
+- Ne oldu veya ne anlaşılmadı?
+- Hangi ekrandaydın?
+- Telefon modeli ve işletim sistemi ne?
+- Ekran görüntüsü ekleyebilirsin.
+- API anahtarı, .env, terminal sırrı veya kişisel bilgi paylaşma.
+- İstersen Profil'den kopyaladığın alpha test günlüğünü ekle.
+
+## Bilinen Sınırlar
+
+- A0/A1 dersleri oynanabilir; A2/B1/B2 şimdilik yol haritası bilgisidir.
+- Ses yazıya çevirme backend ve OpenAI API kotasına bağlıdır.
+- Konuşma geri bildirimi gerçek fonetik telaffuz puanı değildir; hedef cümle ile transcript karşılaştırmasına dayanır.
+- Hesap, bulut senkronizasyonu ve Supabase henüz yok.
+- Test şu an Expo Go/dev ortamı içindir.

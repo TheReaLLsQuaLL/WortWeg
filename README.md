@@ -52,7 +52,7 @@ Android Expo Go notes:
 
 - The phone and computer must be on the same Wi-Fi network.
 - Test backend reachability from the computer first with `curl http://YOUR_MAC_LAN_IP:3001/health`.
-- If AI chat returns a mock reply, confirm `EXPO_PUBLIC_AI_BACKEND_URL` uses the LAN IP, then restart Expo with `npm start -- --clear`.
+- If AI chat returns a local fallback reply, confirm `EXPO_PUBLIC_AI_BACKEND_URL` uses the LAN IP, then restart Expo with `npm start -- --clear`.
 - Gemini keys stay only in `.env` on the backend side. The mobile app must never contain `GEMINI_API_KEY`.
 
 ## Install
@@ -109,8 +109,8 @@ npm run typecheck
 - Exam practice content is original and lives in `src/data/exam.a1.ts`.
 - Lesson completion awards XP, updates local-date streaks, adds SRS cards, and records mistakes.
 - SRS review uses `src/lib/srs.ts`.
-- AI chat, exam answer feedback, writing feedback, and speaking feedback call the local backend when configured, and fall back to mock responses when unavailable.
-- Speech recording/replay is local, German transcription can use the secure backend, and pronunciation scoring is still mocked in `src/services/speechService.ts`.
+- AI chat, exam answer feedback, writing feedback, and speaking feedback call the local backend when configured, and fall back to local Wolli responses when unavailable.
+- Speech recording/replay is local, German transcription can use the secure backend, and speaking feedback is transcript-comparison based until real phonetic scoring is added.
 
 ## AI Service Boundary
 
@@ -124,7 +124,7 @@ await fetch(`${process.env.EXPO_PUBLIC_AI_BACKEND_URL}/ai/teacher`, {
 // Timeout defaults to EXPO_PUBLIC_AI_TIMEOUT_MS=30000.
 ```
 
-Do not use `AI_BACKEND_URL` in mobile code. `AI_BACKEND_URL` is for server/internal tooling; Expo only exposes variables prefixed with `EXPO_PUBLIC_`. The server in `server/` reads `GEMINI_API_KEY`, calls Gemini, validates the response with Zod, and returns a stable JSON contract to the app. If the mobile backend URL is missing, fetch fails, or the response is invalid, the app falls back to mock feedback. If Gemini itself fails server-side, the server returns schema-valid mock feedback.
+Do not use `AI_BACKEND_URL` in mobile code. `AI_BACKEND_URL` is for server/internal tooling; Expo only exposes variables prefixed with `EXPO_PUBLIC_`. The server in `server/` reads `GEMINI_API_KEY`, calls Gemini, validates the response with Zod, and returns a stable JSON contract to the app. If the mobile backend URL is missing, fetch fails, or the response is invalid, the app falls back to local Wolli feedback. If Gemini itself fails server-side, the server returns schema-valid local fallback feedback.
 
 ### AI Endpoint
 
@@ -151,7 +151,7 @@ Routing is centralized in `server/modelRouter.ts`.
 - Cheap/helper model: `GEMINI_CHEAP_MODEL`, default `gemini-3.1-flash-lite`
 - `modelUsed` is stamped by backend code after JSON parsing. The AI response is never trusted for this field.
 - If the main model fails and cheap fallback succeeds, `modelUsed` is `gemini-3.1-flash-lite:fallback`.
-- Mock responses use `mock:<reason>:<model>`.
+- Local fallback responses use `mock:<reason>:<model>` internally for diagnostics.
 
 Main model modes:
 
@@ -197,7 +197,7 @@ WortWeg speaking practice now sends recorded audio through the secure backend fo
 mobile recording -> WortWeg backend -> OpenAI transcription -> backend response -> mobile transcript
 ```
 
-The mobile app never calls OpenAI directly and never contains `OPENAI_API_KEY`. Pronunciation scoring is still mocked in the app after the transcript returns. Uploaded audio is handled as a temporary backend file and is deleted after transcription/fallback.
+The mobile app never calls OpenAI directly and never contains `OPENAI_API_KEY`. After transcription, the app compares the transcript with the target sentence; real phonetic pronunciation scoring is not connected yet. Uploaded audio is handled as a temporary backend file and is deleted after transcription/fallback.
 
 Backend `.env` values:
 
@@ -244,15 +244,15 @@ Android Expo Go test:
 3. Open speaking practice.
 4. Record, stop, and replay a German sentence.
 5. Confirm transcript appears.
-6. Confirm pronunciation scores still appear as mock scores.
-7. Stop the backend and repeat to confirm local mock fallback works.
+6. Confirm transcript comparison feedback appears.
+7. Stop the backend and repeat to confirm local fallback behavior works.
 8. Export the alpha event log and confirm speech events do not include transcript text or audio URI.
 
 Fallback behavior:
 
-- Missing `OPENAI_API_KEY`: backend returns a mock transcript with `provider: "mock"` and `modelUsed: "mock:missing-openai-key"`.
-- OpenAI failure: backend returns a mock transcript with a `mock:<reason>:<model>` model marker.
-- Mobile upload failure or timeout: app falls back to the local mock transcript and logs safe speech fallback events.
+- Missing `OPENAI_API_KEY`: backend returns a local fallback transcript and marks it internally with `provider: "mock"` and `modelUsed: "mock:missing-openai-key"`.
+- OpenAI failure: backend returns a local fallback transcript with an internal `mock:<reason>:<model>` diagnostic marker.
+- Mobile upload failure or timeout: app falls back to a local transcript estimate and logs safe speech fallback events.
 
 STT quota troubleshooting:
 
@@ -267,9 +267,9 @@ Check:
 
 After fixing billing, create a fresh API key in the paid project, update `.env`, and restart the backend with `npm run server:dev`.
 
-## Troubleshooting Mock AI In Expo Go
+## Troubleshooting Local AI Fallback In Expo Go
 
-If the app returns the mock AI placeholder while backend curl works:
+If the app returns the local Wolli fallback while backend curl works:
 
 1. Confirm the backend is running:
 
@@ -308,7 +308,7 @@ AI_BACKEND_URL=http://localhost:3001
 npm start -- --clear
 ```
 
-5. Watch the Expo logs for `[WortWeg AI]`. In development, the app logs the backend URL, request mode, timeoutMs, response time, HTTP status, timeout errors, network errors, and whether mock fallback was used.
+5. Watch the Expo logs for `[WortWeg AI]`. In development, the app logs the backend URL, request mode, timeoutMs, response time, HTTP status, timeout errors, network errors, and whether local fallback was used.
 
 6. Test the AI endpoint from your Mac or another LAN device:
 
@@ -320,7 +320,7 @@ curl -s -X POST http://192.168.1.8:3001/ai/teacher \
 
 ## Speaking Practice Recording
 
-The speaking practice flow uses `expo-audio` for local recording and replay in Expo Go. German transcription uploads audio to the WortWeg backend when configured; pronunciation scoring remains mocked.
+The speaking practice flow uses `expo-audio` for local recording and replay in Expo Go. German transcription uploads audio to the WortWeg backend when configured; real phonetic pronunciation scoring is not connected yet.
 
 Current behavior:
 
@@ -329,8 +329,8 @@ Current behavior:
 - stops and stores the local recording URI
 - replays the local recording
 - uploads audio to `/speech/transcribe` for German transcript when backend is reachable
-- falls back to a local mock transcript when backend/OpenAI is unavailable
-- returns mocked pronunciation scores
+- falls back to a local transcript estimate when backend/OpenAI is unavailable
+- returns transcript-comparison feedback
 
 Test on Android Expo Go:
 
@@ -344,14 +344,14 @@ Then open WortWeg, tap `Sesli cümle pratiği` on Home, and verify:
 - record starts
 - stop creates an audio URI
 - replay plays the recording
-- backend transcript or DEV fallback transcript appears
-- mock pronunciation feedback appears
+- backend transcript or local fallback transcript appears
+- transcript-comparison feedback appears
 - bottom safe area remains clear
 
 Limitations:
 
-- transcription requires the local backend and server-side `OPENAI_API_KEY`; otherwise it falls back to a mock transcript
-- pronunciation scoring is mocked in `src/services/speechService.ts`
+- transcription requires the local backend and server-side `OPENAI_API_KEY`; otherwise it falls back to a local transcript estimate
+- real phonetic pronunciation scoring is not connected yet
 - no paid speech API keys are used in the mobile app
 
 Next step for speech: keep this backend provider abstraction and add Azure Pronunciation Assessment or another scoring provider server-side.
@@ -376,94 +376,96 @@ Local state is centralized in `src/lib/storage.ts`. When Supabase is added, keep
 - mistakes notebook
 - chat history if desired
 
-## Alpha Testing Checklist
+## Private Alpha Test
 
-Use Node `22.22.3` for the first private alpha pass. Keep the backend and Expo running in separate terminals.
+This private alpha is for 3-5 trusted testers using Expo Go on a real phone. Use Node `22.22.3` and keep backend/API keys local to the developer machine.
 
-Setup:
+Who should test:
+
+- Turkish speakers who are new to German or around A1.
+- One tester on Android Expo Go, if possible.
+- People willing to report confusing copy, broken flows, and screenshots without sharing secrets.
+
+Setup commands:
 
 ```bash
 nvm use
 npm install
 cp .env.example .env
-npm run server:dev
-npm start -- --clear
 ```
 
-For Expo Go on a real phone, set `EXPO_PUBLIC_AI_BACKEND_URL` in `.env` to your computer LAN IP, for example `http://192.168.1.8:3001`, then restart Expo with `--clear`.
+Configure `.env` locally:
 
-Reset before a fresh-user test:
+- Put backend-only keys in `.env`: `GEMINI_API_KEY` and `OPENAI_API_KEY`.
+- Set `EXPO_PUBLIC_AI_BACKEND_URL=http://YOUR_MAC_LAN_IP:3001` for Expo Go on a phone.
+- Do not put API keys in app source, screenshots, chat messages, or feedback reports.
+
+Start backend and Expo in separate terminals:
+
+```bash
+npm run server:dev
+PATH=/Users/squall/.nvm/versions/node/v22.22.3/bin:$PATH npx expo start --clear --port 8083
+```
+
+Quick backend checks:
+
+```bash
+curl http://localhost:3001/health
+curl http://YOUR_MAC_LAN_IP:3001/health
+```
+
+Reset app for a fresh-user test:
 
 - Open `Profil`.
-- In development builds, tap `Geliştirici: Uygulama verisini sıfırla`.
-- Confirm that onboarding appears again.
+- Tap `Geliştirici: Uygulama verisini sıfırla` in development builds.
+- Confirm onboarding appears again.
 
-Real-device persistence test:
+Alpha test checklist:
 
-1. Open `Profil` and tap `Geliştirici: Uygulama verisini sıfırla`.
-2. Complete onboarding without placement.
-3. Confirm the app lands on Home.
-4. Kill Expo Go fully.
-5. Reopen the app from Expo Go.
-6. Confirm Home opens, not onboarding.
-7. Open `Profil` -> `Debug: Onboarding durumunu göster` and confirm `hasCompletedOnboarding: true`, `hasLearningPlan: true`, and route `Main/Home`.
-8. Developer reset again.
-9. Complete onboarding with placement.
-10. Accept the recommended level.
-11. Confirm Home opens.
-12. Kill and reopen Expo Go.
-13. Confirm Home opens again.
-14. Export the local alpha event log and check for `app_boot_decision` and `route_reset_to_home`.
+1. Complete onboarding without placement and confirm Home opens.
+2. Kill and reopen Expo Go; confirm Home opens again, not onboarding.
+3. Reset, complete onboarding with placement, accept the recommendation, then confirm Home opens.
+4. Start A0.1 from Home, answer at least one question wrong, finish the lesson, and confirm XP/progress updates.
+5. Open Kelime review and Hatalarım.
+6. Open CurriculumMap and confirm A0/A1 lessons open while A2/B1/B2 show coming-soon behavior.
+7. Open AI chat and send a short A1 message.
+8. Open speaking practice, record a German sentence, stop, replay, and confirm:
+   - Beklenen cümle is visible.
+   - Söylediğin cümle shows the real transcript.
+   - Hedefe yakınlık shows comparison feedback.
+   - Pratik geri bildirimi is clear.
+9. Open Profile, export the alpha event log, and send feedback.
 
-Flows to test:
-
-- onboarding and optional placement test
-- plan creation and PlanOverview
-- Home recommendations
-- A0.1 lesson start, wrong answer feedback, completion, XP update
-- `Sıradaki ders`, `Kelime tekrarı`, and `Ana sayfaya dön` after lesson completion
-- SRS review and mistakes notebook
-- CurriculumMap A0/A1 playable lesson
-- CurriculumMap A2/B1/B2 coming-soon message
-- AI chat with backend online and with backend offline fallback
-- speaking practice record, stop, replay, mocked transcript/scoring
-- Profile reset, feedback draft, local alpha log export, and local alpha log clear
-
-Local alpha event log:
-
-- Open `Profil` -> `Alpha test günlüğü`.
-- Tap `Test günlüğünü kopyala` to show a selectable local log.
-- Tap `Geri bildirim gönder` to open a feedback draft that can include the copied local log.
-- Tap `Test günlüğünü temizle` to remove only the local event log.
-- The log stays on the device until the tester manually shares it.
-
-Privacy rules for the local log:
-
-- no external analytics SDK is used
-- no events are sent to a server
-- no contacts, location, microphone content, audio files, audio URI, transcript text, device fingerprint, API keys, AI prompts/responses, chat messages, placement free text, or lesson answer text are logged
-- safe metadata is limited to labels such as `lessonId`, `level`, `moduleId`, `exerciseType`, `result`, `durationMs`, `routeName`, `routeChosen`, `fallbackReason`, and onboarding boot booleans
-
-Feedback to report:
+Feedback to send:
 
 - What were you trying to do?
 - What went wrong or felt unclear?
-- Screenshot optional.
+- Which screen were you on?
 - Device model and OS version.
-- App screen name.
+- Screenshot if helpful, but never include API keys or terminal windows with secrets.
+- Optional copied alpha event log from Profile.
+
+Privacy expectations:
+
+- Local alpha logs stay on the device until manually shared.
+- Logs do not include transcript text, expected sentence text, audio URI, audio files, API keys, location, contacts, chat messages, or free-text lesson answers.
+- Safe metadata may include labels like route, lessonId, result, provider, fallback, durationMs, and similarityBucket.
 
 Known alpha limitations:
 
-- A2/B1/B2 modules are curriculum metadata only and show coming-soon behavior.
-- Speaking transcription uses the backend when configured; pronunciation scoring is still mocked.
-- No Supabase account sync yet; progress is local to the device.
-- Feedback opens a mail draft or template; there is no feedback backend yet.
-- Local alpha event logs are manually exportable only; there is no analytics backend.
+- A2/B1/B2 are curriculum metadata only; playable lessons currently focus on A0/A1.
+- Speaking transcript uses backend OpenAI STT and requires backend reachability plus OpenAI API quota.
+- Speaking feedback is transcript-comparison based, not real phonetic pronunciation scoring.
+- This is Expo Go/dev-build testing only for now.
+- No accounts, Supabase sync, or cloud progress backup yet.
+- Feedback opens a mail draft/template; there is no feedback backend yet.
 - AI chat needs the local backend and falls back to a local Wolli response if unavailable.
+
+See also: `docs/alpha-test-checklist.md` for a short tester-facing Turkish checklist.
 
 ## Product Notes
 
 - User-facing explanations and feedback are in Turkish.
 - German content is CEFR A1 first.
-- Exam text is described as “A1 sınav pratiği,” not as an official Goethe/telc/ÖSD product.
+- Exam text is described as “A1 sınav tarzı pratik,” not as an official Goethe/telc/ÖSD product.
 - All included lesson and exam content is original starter content.
