@@ -8,6 +8,7 @@ import {
 } from 'expo-audio';
 import { Platform } from 'react-native';
 
+import { inferAudioUploadInfo } from '../lib/audioUpload';
 import { compareTranscripts, type TranscriptComparison } from '../lib/transcriptCompare';
 import { trackLocalEvent } from './localEventLog';
 
@@ -89,35 +90,6 @@ const logSpeechDebug = (
   }
 
   console.log('[WortWeg Speech]', message, details ?? {});
-};
-
-const getAudioExtension = (audioUri: string) => {
-  const cleanUri = audioUri.split('?')[0] ?? audioUri;
-  const extension = cleanUri.split('.').pop()?.toLowerCase();
-
-  if (!extension || extension.length > 5) {
-    return 'm4a';
-  }
-
-  return extension;
-};
-
-const getAudioMimeType = (extension: string) => {
-  switch (extension) {
-    case 'mp3':
-    case 'mpeg':
-    case 'mpga':
-      return 'audio/mpeg';
-    case 'wav':
-      return 'audio/wav';
-    case 'webm':
-      return 'audio/webm';
-    case 'mp4':
-      return 'audio/mp4';
-    case 'm4a':
-    default:
-      return 'audio/m4a';
-  }
 };
 
 const makeMockTranscription = (audioUri: string, fallbackReason?: string): TranscriptionResult => ({
@@ -428,35 +400,54 @@ export const transcribeGerman = async (
     return makeMockTranscription('', 'missing-audio-uri');
   }
 
+  const uploadInfo = inferAudioUploadInfo(audioUri);
+
   if (!backendUrl) {
     trackLocalEvent({
       type: 'speech_transcription_fallback',
       screen: 'SpeakingPractice',
-      metadata: { provider: 'mock', modelUsed: 'mock:missing-backend-url', fallback: true },
+      metadata: {
+        provider: 'mock',
+        modelUsed: 'mock:missing-backend-url',
+        fallback: true,
+        platform: uploadInfo.platform,
+        audioExtension: uploadInfo.extension,
+        audioMimeType: uploadInfo.type,
+      },
       severity: 'warning',
     });
     return makeMockTranscription(audioUri, 'missing-backend-url');
   }
 
   const endpoint = backendUrl.replace(/\/+$/, '') + '/speech/transcribe';
-  const extension = getAudioExtension(audioUri);
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   trackLocalEvent({
     type: 'speech_transcription_started',
     screen: 'SpeakingPractice',
-    metadata: { provider: 'backend', fallback: false },
+    metadata: {
+      provider: 'backend',
+      fallback: false,
+      platform: uploadInfo.platform,
+      audioExtension: uploadInfo.extension,
+      audioMimeType: uploadInfo.type,
+    },
   });
 
-  logSpeechDebug('upload started', { endpoint, timeoutMs });
+  logSpeechDebug('upload started', {
+    timeoutMs,
+    platform: uploadInfo.platform,
+    audioExtension: uploadInfo.extension,
+    audioMimeType: uploadInfo.type,
+  });
 
   try {
     const formData = new FormData();
     formData.append('audio', {
       uri: audioUri,
-      name: 'wortweg-speaking.' + extension,
-      type: getAudioMimeType(extension),
+      name: uploadInfo.name,
+      type: uploadInfo.type,
     } as unknown as Blob);
     formData.append('language', 'de');
 
@@ -505,6 +496,9 @@ export const transcribeGerman = async (
         fallback: body.fallback,
         durationMs: responseTimeMs,
         similarityBucket: comparisonForEvent?.similarityBucket,
+        platform: uploadInfo.platform,
+        audioExtension: uploadInfo.extension,
+        audioMimeType: uploadInfo.type,
       },
       severity: body.fallback ? 'warning' : 'info',
     });
@@ -516,6 +510,8 @@ export const transcribeGerman = async (
       responseTimeMs,
       hasTranscript: Boolean(body.transcript),
       transcriptLength: body.transcript.length,
+      audioExtension: uploadInfo.extension,
+      audioMimeType: uploadInfo.type,
     });
 
     return transcriptResult;
@@ -529,17 +525,37 @@ export const transcribeGerman = async (
     trackLocalEvent({
       type: 'speech_transcription_error',
       screen: 'SpeakingPractice',
-      metadata: { provider: 'mock', modelUsed: 'mock:' + reason, fallback: true },
+      metadata: {
+        provider: 'mock',
+        modelUsed: 'mock:' + reason,
+        fallback: true,
+        platform: uploadInfo.platform,
+        audioExtension: uploadInfo.extension,
+        audioMimeType: uploadInfo.type,
+      },
       severity: getFallbackEventSeverity(reason),
     });
     trackLocalEvent({
       type: 'speech_transcription_fallback',
       screen: 'SpeakingPractice',
-      metadata: { provider: 'mock', modelUsed: 'mock:' + reason, fallback: true },
+      metadata: {
+        provider: 'mock',
+        modelUsed: 'mock:' + reason,
+        fallback: true,
+        platform: uploadInfo.platform,
+        audioExtension: uploadInfo.extension,
+        audioMimeType: uploadInfo.type,
+      },
       severity: getFallbackEventSeverity(reason),
     });
 
-    logSpeechDebug('upload fallback', { reason, timeoutMs });
+    logSpeechDebug('upload fallback', {
+      reason,
+      timeoutMs,
+      platform: uploadInfo.platform,
+      audioExtension: uploadInfo.extension,
+      audioMimeType: uploadInfo.type,
+    });
 
     return makeMockTranscription(audioUri, reason);
   } finally {

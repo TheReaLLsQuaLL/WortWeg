@@ -24,9 +24,28 @@ Bu liste 3-5 kişilik özel alpha testi içindir. Kısa tut: akış bozuluyor mu
 12. Yol haritasında A0/A1 derslerini açmayı dene.
 13. A2/B1/B2 modüllerinde yakında mesajı görünüyor mu kontrol et.
 14. Wolli chat'e kısa bir A1 mesaj yaz.
-15. Sesli pratikte Almanca cümle kaydet, durdur, dinle.
-16. Sonuçta şunları kontrol et: Beklenen cümle, Söylediğin cümle, Hedefe yakınlık, Pratik geri bildirimi.
-17. Profil'den alpha test günlüğünü dışa aktar.
+15. Sesli pratikte mikrofon butonuna basılı tut, Almanca cümleyi söyle, bırak ve dinle.
+16. Bırakınca analiz animasyonu başlıyor mu kontrol et.
+17. Sonuçta şunları kontrol et: Beklenen cümle, Söylediğin cümle, Hedefe yakınlık, Pratik geri bildirimi.
+18. Profil'den alpha test günlüğünü dışa aktar.
+
+## iOS Kontrolü
+
+- Üstteki ilerleme alanı Dynamic Island veya çentikle çakışmıyor.
+- Onboarding'de tek ilerleme göstergesi var; çift bar yok.
+- Alttaki ana buton home indicator üstünde kalıyor.
+- Kartlar küçük ekranda kesilmiyor, gerekirse kaydırılıyor.
+- Mikrofon izni çıkıyor; basılı tut, bırak, dinle ve transcript çalışıyor.
+- Bırakınca analiz animasyonu görünüyor.
+- Sonuç ekranında mock/provider/fallback/model gibi geliştirici metinleri görünmüyor.
+- Şu ekran görüntülerini iste: onboarding karşılama, onboarding soru ekranı, plan hazır, kayıt anı, analiz yükleniyor, konuşma sonucu.
+
+## Android Kontrolü
+
+- Status bar ve alttaki sistem navigasyonu UI ile çakışmıyor.
+- Onboarding Home'a gidiyor; uygulamayı kapatıp açınca yine Home geliyor.
+- A0.1 dersi, yanlış cevap açıklaması ve ders bitiş butonları çalışıyor.
+- Sesli pratikte basılı tut, bırak, dinle ve transcript çalışıyor.
 
 ## Geri Bildirim Gönder
 

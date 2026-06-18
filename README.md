@@ -429,12 +429,30 @@ Alpha test checklist:
 5. Open Kelime review and Hatalarım.
 6. Open CurriculumMap and confirm A0/A1 lessons open while A2/B1/B2 show coming-soon behavior.
 7. Open AI chat and send a short A1 message.
-8. Open speaking practice, record a German sentence, stop, replay, and confirm:
+8. Open speaking practice, press and hold the microphone, speak, release, replay, and confirm:
+   - Release starts the animated analysis state.
    - Beklenen cümle is visible.
    - Söylediğin cümle shows the real transcript.
-   - Hedefe yakınlık shows comparison feedback.
+   - Hedefe yakınlık shows one simple score.
    - Pratik geri bildirimi is clear.
 9. Open Profile, export the alpha event log, and send feedback.
+
+Platform checks:
+
+- iOS:
+  - Onboarding progress header does not overlap the notch or Dynamic Island.
+  - Only one onboarding progress indicator appears.
+  - Bottom button stays above the home indicator.
+  - Option cards fit or scroll on small iPhones.
+  - Microphone permission appears, press-and-hold recording works, release starts analysis, replay works, and STT transcript appears.
+  - Speaking result does not show developer words like mock, provider, fallback, or model name.
+  - Ask for screenshots of onboarding welcome, onboarding question, plan-ready, recording, analysis loading, and speaking result screens.
+- Android:
+  - Status and system navigation bars do not overlap the UI.
+  - Bottom tabs stay above Android navigation buttons.
+  - Onboarding reaches Home and kill/reopen stays on Home.
+  - A0.1 lesson and lesson-completion buttons work.
+  - Press-and-hold record/release/replay works and STT transcript appears.
 
 Feedback to send:
 
@@ -461,7 +479,7 @@ Known alpha limitations:
 - Feedback opens a mail draft/template; there is no feedback backend yet.
 - AI chat needs the local backend and falls back to a local Wolli response if unavailable.
 
-See also: `docs/alpha-test-checklist.md` for a short tester-facing Turkish checklist.
+See also: `docs/alpha-test-checklist.md` for a short tester-facing Turkish checklist and `docs/language-app-ux-research.md` for high-level UX research notes.
 
 ## Product Notes
 

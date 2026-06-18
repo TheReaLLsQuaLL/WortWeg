@@ -46,7 +46,14 @@ export type RootStackParamList = {
   Main: { initialTab?: TabKey } | undefined;
   LessonIntro: { lessonId: string };
   ExercisePlayer: { lessonId: string };
-  SpeakingPractice: { promptId?: string };
+  SpeakingPractice: {
+    promptId?: string;
+    source?: string;
+    topicTitle?: string;
+    expectedText?: string;
+    meaningTr?: string;
+    tipTr?: string;
+  } | undefined;
   PlanOverview: undefined;
   PlanSetup: { mode?: 'edit' } | undefined;
   CurriculumMap: undefined;

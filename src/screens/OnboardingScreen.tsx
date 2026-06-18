@@ -11,9 +11,8 @@ import {
   View,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
-  ArrowLeft,
   ArrowRight,
   BookOpen,
   BriefcaseBusiness,
@@ -24,14 +23,12 @@ import {
   Home,
   Plane,
   Sparkles,
-  TimerReset,
 } from 'lucide-react-native';
 
 import { AnimatedCard } from '../components/AnimatedCard';
 import { AppButton } from '../components/AppButton';
-import { StepDots } from '../components/StepDots';
-import { Chip } from '../components/Chip';
 import { Mascot } from '../components/Mascot';
+import { OnboardingProgressHeader } from '../components/OnboardingProgressHeader';
 import {
   dailyMinuteOptions,
   goalOptions,
@@ -41,10 +38,18 @@ import {
 } from '../data/planOptions';
 import { colors, radius, spacing, typography } from '../data/theme';
 import type { RootNavigation } from '../navigation/AppNavigator';
-import { createLearningPlan } from '../services/planService';
-import { trackLocalEvent } from '../services/localEventLog';
 import { buildOnboardingCompletion, type OnboardingCompletion } from '../services/onboardingService';
-import type { LearningPlanInput, StudyStyleId, UserGoalId } from '../types/learningPlan';
+import { trackLocalEvent } from '../services/localEventLog';
+import { createLearningPlan } from '../services/planService';
+import type {
+  DailyMinutes,
+  LearningPlanInput,
+  PrioritySkillId,
+  StartLevelId,
+  StudyStyleId,
+  TargetLevelId,
+  UserGoalId,
+} from '../types/learningPlan';
 
 export type OnboardingScreenProps = {
   navigation: RootNavigation;
@@ -56,9 +61,29 @@ type IconProps = { color?: string; size?: number; strokeWidth?: number };
 type GoalCard = {
   id: UserGoalId;
   label: string;
-  descriptionTr: string;
   icon: ComponentType<IconProps>;
 };
+
+type OnboardingStepId =
+  | 'welcome'
+  | 'goal'
+  | 'level'
+  | 'placement'
+  | 'daily_time'
+  | 'focus'
+  | 'target'
+  | 'ready';
+
+const onboardingSteps: OnboardingStepId[] = [
+  'welcome',
+  'goal',
+  'level',
+  'placement',
+  'daily_time',
+  'focus',
+  'target',
+  'ready',
+];
 
 const goalIcons: Record<UserGoalId, ComponentType<IconProps>> = {
   exam: BookOpen,
@@ -71,7 +96,7 @@ const goalIcons: Record<UserGoalId, ComponentType<IconProps>> = {
 };
 
 const shortGoalLabels: Partial<Record<UserGoalId, string>> = {
-  daily_life: 'Günlük',
+  daily_life: 'Günlük yaşam',
   work: 'İş',
   family: 'Aile',
   university: 'Okul',
@@ -80,17 +105,28 @@ const shortGoalLabels: Partial<Record<UserGoalId, string>> = {
 const goalCards: GoalCard[] = goalOptions
   .filter((option) => option.id !== 'curiosity')
   .map((option) => ({
-    ...option,
+    id: option.id,
     label: shortGoalLabels[option.id] ?? option.label,
     icon: goalIcons[option.id],
   }));
 
-const setupStepCount = 9;
+const levelEmoji: Record<StartLevelId, string> = {
+  zero: '0',
+  some: '…',
+  A0: 'A0',
+  A1: 'A1',
+  A2: 'A2',
+  B1: 'B1',
+};
 
-const wait = (ms: number) =>
-  new Promise<void>((resolve) => {
-    setTimeout(resolve, ms);
-  });
+const focusEmoji: Record<PrioritySkillId, string> = {
+  speaking: '🗣',
+  exam: '✓',
+  vocabulary: 'Aa',
+  grammar: '§',
+  listening: '♪',
+  writing: '✎',
+};
 
 const getStudyStyle = (
   userGoal: LearningPlanInput['userGoal'],
@@ -107,43 +143,73 @@ const getStudyStyle = (
   return 'balanced';
 };
 
+const getStartLevelLabel = (level: StartLevelId) => {
+  if (level === 'zero') {
+    return 'Sıfır';
+  }
+
+  if (level === 'some') {
+    return 'Biraz biliyorum';
+  }
+
+  return level;
+};
+
+const getSetupFallbacks = (input: {
+  userGoal: UserGoalId | null;
+  startLevel: StartLevelId | null;
+  targetLevel: TargetLevelId | null;
+  dailyMinutes: DailyMinutes | null;
+  prioritySkill: PrioritySkillId | null;
+}) => ({
+  userGoal: input.userGoal ?? 'daily_life',
+  startLevel: input.startLevel ?? 'zero',
+  targetLevel: input.targetLevel ?? 'A1',
+  dailyMinutes: input.dailyMinutes ?? 10,
+  prioritySkill: input.prioritySkill ?? 'speaking',
+});
+
+const wait = (ms: number) =>
+  new Promise<void>((resolve) => {
+    setTimeout(resolve, ms);
+  });
+
 export function OnboardingScreen({ navigation, onComplete }: OnboardingScreenProps) {
+  const insets = useSafeAreaInsets();
   const [step, setStep] = useState(0);
-  const [userGoal, setUserGoal] = useState<LearningPlanInput['userGoal']>('daily_life');
-  const [startLevel, setStartLevel] = useState<LearningPlanInput['startLevel']>('zero');
-  const [targetLevel, setTargetLevel] = useState<LearningPlanInput['targetLevel']>('A1');
-  const [dailyMinutes, setDailyMinutes] = useState<LearningPlanInput['dailyMinutes']>(10);
+  const [userGoal, setUserGoal] = useState<UserGoalId | null>(null);
+  const [startLevel, setStartLevel] = useState<StartLevelId | null>(null);
+  const [targetLevel, setTargetLevel] = useState<TargetLevelId | null>(null);
+  const [dailyMinutes, setDailyMinutes] = useState<DailyMinutes | null>(null);
   const [examDate, setExamDate] = useState('');
   const [showExamDate, setShowExamDate] = useState(false);
-  const [prioritySkill, setPrioritySkill] = useState<LearningPlanInput['prioritySkill']>('speaking');
-  const [wantsPlacement, setWantsPlacement] = useState(false);
+  const [prioritySkill, setPrioritySkill] = useState<PrioritySkillId | null>(null);
+  const [wantsPlacement, setWantsPlacement] = useState<boolean | null>(null);
   const [saving, setSaving] = useState(false);
   const fade = useRef(new Animated.Value(1)).current;
   const slide = useRef(new Animated.Value(0)).current;
   const bounce = useRef(new Animated.Value(0)).current;
 
-  const studyStyle = getStudyStyle(userGoal, prioritySkill);
+  const setupValues = getSetupFallbacks({ userGoal, startLevel, targetLevel, dailyMinutes, prioritySkill });
+  const studyStyle = getStudyStyle(setupValues.userGoal, setupValues.prioritySkill);
   const setupInput = useMemo<LearningPlanInput>(
     () => ({
-      userGoal,
-      startLevel,
-      selfSelectedLevel: startLevel,
-      targetLevel,
-      dailyMinutes,
-      examDate: showExamDate ? examDate : '',
-      prioritySkill,
+      userGoal: setupValues.userGoal,
+      startLevel: setupValues.startLevel,
+      selfSelectedLevel: setupValues.startLevel,
+      targetLevel: setupValues.targetLevel,
+      dailyMinutes: setupValues.dailyMinutes,
+      examDate: setupValues.userGoal === 'exam' && showExamDate ? examDate : '',
+      prioritySkill: setupValues.prioritySkill,
       studyStyle,
     }),
-    [dailyMinutes, examDate, prioritySkill, showExamDate, startLevel, studyStyle, targetLevel, userGoal],
+    [examDate, setupValues.dailyMinutes, setupValues.prioritySkill, setupValues.startLevel, setupValues.targetLevel, setupValues.userGoal, showExamDate, studyStyle],
   );
   const planPreview = useMemo(() => createLearningPlan(setupInput), [setupInput]);
-  const selectedGoal = goalCards.find((item) => item.id === userGoal) ?? goalCards[1]!;
+  const stepId = onboardingSteps[step] ?? 'welcome';
+  const progressStep = step + 1;
+  const isWelcomeMoment = stepId === 'welcome' || stepId === 'ready';
 
-  useEffect(() => {
-    trackLocalEvent({ type: 'onboarding_started', screen: 'Onboarding' });
-  }, []);
-  const progressStep = Math.min(step + 1, setupStepCount);
-  const progressWidth = (Math.round((progressStep / setupStepCount) * 100) + '%') as any;
   const mascotStyle = {
     transform: [
       {
@@ -156,33 +222,40 @@ export function OnboardingScreen({ navigation, onComplete }: OnboardingScreenPro
   };
 
   useEffect(() => {
+    trackLocalEvent({ type: 'onboarding_started', screen: 'Onboarding' });
+  }, []);
+
+  useEffect(() => {
+    trackLocalEvent({
+      type: 'onboarding_step_viewed',
+      screen: 'Onboarding',
+      metadata: { stepId },
+    });
+  }, [stepId]);
+
+  useEffect(() => {
     fade.setValue(0);
-    slide.setValue(16);
+    slide.setValue(14);
     Animated.parallel([
-      Animated.timing(fade, {
-        toValue: 1,
-        duration: 220,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slide, {
-        toValue: 0,
-        duration: 220,
-        useNativeDriver: true,
-      }),
+      Animated.timing(fade, { toValue: 1, duration: 220, useNativeDriver: true }),
+      Animated.timing(slide, { toValue: 0, duration: 220, useNativeDriver: true }),
     ]).start();
-    Animated.sequence([
-      Animated.timing(bounce, {
-        toValue: 1,
-        duration: 170,
-        useNativeDriver: true,
-      }),
-      Animated.timing(bounce, {
-        toValue: 0,
-        duration: 170,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [bounce, fade, slide, step]);
+
+    if (isWelcomeMoment) {
+      Animated.sequence([
+        Animated.timing(bounce, { toValue: 1, duration: 170, useNativeDriver: true }),
+        Animated.timing(bounce, { toValue: 0, duration: 170, useNativeDriver: true }),
+      ]).start();
+    }
+  }, [bounce, fade, isWelcomeMoment, slide, step]);
+
+  const trackOption = (selectedOptionId: string) => {
+    trackLocalEvent({
+      type: 'onboarding_option_selected',
+      screen: 'Onboarding',
+      metadata: { stepId, selectedOptionId },
+    });
+  };
 
   const goBack = () => {
     if (saving) {
@@ -192,332 +265,355 @@ export function OnboardingScreen({ navigation, onComplete }: OnboardingScreenPro
     setStep((current) => Math.max(0, current - 1));
   };
 
-  const finishSetup = async () => {
+  const startPlacementTest = () => {
+    navigation.navigate('PlacementTest', { setup: setupInput });
+  };
+
+  const completeWithoutPlacement = async () => {
     setSaving(true);
-
-    if (wantsPlacement) {
-      navigation.navigate('PlacementTest', {
-        setup: setupInput,
-      });
-      setSaving(false);
-      return;
-    }
-
-    setStep(9);
-    await wait(650);
-
+    await wait(250);
     const learningPlan = createLearningPlan(setupInput);
-    await onComplete(buildOnboardingCompletion({
-      input: setupInput,
-      learningPlan,
-    }));
+    await onComplete(buildOnboardingCompletion({ input: setupInput, learningPlan }));
     setSaving(false);
   };
 
   const goNext = () => {
-    if (step === 8) {
-      void finishSetup();
+    if (saving) {
       return;
     }
 
-    setStep((current) => Math.min(8, current + 1));
+    if (stepId === 'target') {
+      if (wantsPlacement) {
+        startPlacementTest();
+        return;
+      }
+
+      setStep(7);
+      return;
+    }
+
+    if (stepId === 'ready') {
+      void completeWithoutPlacement();
+      return;
+    }
+
+    setStep((current) => Math.min(onboardingSteps.length - 1, current + 1));
   };
 
-  const choosePlacement = (enabled: boolean) => {
-    setWantsPlacement(enabled);
-    setStep(5);
-  };
+  const primaryButton = (() => {
+    if (stepId === 'welcome') {
+      return { title: 'Başla', disabled: false, icon: ArrowRight };
+    }
+
+    if (stepId === 'goal') {
+      return { title: 'Devam', disabled: !userGoal, icon: ArrowRight };
+    }
+
+    if (stepId === 'level') {
+      return { title: 'Devam', disabled: !startLevel, icon: ArrowRight };
+    }
+
+    if (stepId === 'placement') {
+      return { title: 'Devam', disabled: wantsPlacement === null, icon: ArrowRight };
+    }
+
+    if (stepId === 'daily_time') {
+      return { title: 'Devam', disabled: !dailyMinutes, icon: ArrowRight };
+    }
+
+    if (stepId === 'focus') {
+      return { title: 'Devam', disabled: !prioritySkill, icon: ArrowRight };
+    }
+
+    if (stepId === 'target') {
+      return { title: wantsPlacement ? 'Seviye kontrolüne geç' : 'Planı hazırla', disabled: !targetLevel, icon: wantsPlacement ? Check : Sparkles };
+    }
+
+    return { title: 'Ana sayfaya geç', disabled: false, icon: Sparkles };
+  })();
 
   const renderStep = () => {
-    if (step === 0) {
+    if (stepId === 'welcome') {
       return (
-        <StepCard
-          eyebrow="WortWeg"
-          helper="Wolli sana kısa bir yol haritası hazırlayacak."
-          title="Almancanı planlayalım"
-        >
-          <ValueIllustration title="Kısa yol" lines={['Ders', 'Tekrar', 'Konuşma']} />
-          <AppButton icon={ArrowRight} onPress={goNext} title="Başla" />
-        </StepCard>
+        <StepPanel title="Almancanı birlikte planlayalım" helper="Wolli sana kısa bir yol haritası hazırlayacak.">
+          <ValueIllustration />
+        </StepPanel>
       );
     }
 
-    if (step === 1) {
+    if (stepId === 'goal') {
       return (
-        <StepCard
-          eyebrow="1. Hedef"
-          helper="Bir hedef seç."
-          title="Neden Almanca öğreniyorsun?"
-        >
-          <View style={styles.goalGrid}>
-            {goalCards.map((item) => (
-              <GoalOption
-                key={item.id}
-                item={item}
-                onPress={() => setUserGoal(item.id)}
-                selected={userGoal === item.id}
-              />
-            ))}
+        <StepPanel title="Neden Almanca öğreniyorsun?" helper="Planını buna göre ayarlayacağız.">
+          <View style={styles.optionGrid}>
+            {goalCards.map((item) => {
+              const Icon = item.icon;
+
+              return (
+                <OptionCard
+                  key={item.id}
+                  icon={<Icon color={userGoal === item.id ? colors.white : colors.royalPurple} size={20} strokeWidth={2.5} />}
+                  label={item.label}
+                  onPress={() => {
+                    setUserGoal(item.id);
+                    trackOption(item.id);
+                  }}
+                  selected={userGoal === item.id}
+                />
+              );
+            })}
           </View>
-          <AppButton icon={ArrowRight} onPress={goNext} title="Devam" />
-        </StepCard>
+        </StepPanel>
       );
     }
 
-    if (step === 2) {
+    if (stepId === 'level') {
       return (
-        <StepCard
-          eyebrow="Wolli notu"
-          helper="Ders ve tekrar sırası buna göre değişir."
-          title="Hedefine göre rota"
-        >
-          <ValueIllustration title={selectedGoal.label} lines={['Ders', 'Tekrar', 'Pratik']} />
-          <AppButton icon={ArrowRight} onPress={goNext} title="Devam" />
-        </StepCard>
-      );
-    }
-
-    if (step === 3) {
-      return (
-        <StepCard
-          eyebrow="2. Seviye"
-          helper="Emin değilsen kontrol yapabiliriz."
-          title="Nereden başlıyorsun?"
-        >
-          <ChipGroup>
+        <StepPanel title="Nereden başlıyorsun?" helper="Emin değilsen kısa kontrol yapabilirsin.">
+          <View style={styles.optionGrid}>
             {startLevelOptions.map((item) => (
-              <Chip
+              <OptionCard
                 key={item.id}
-                label={item.id === 'zero' ? 'Sıfır' : item.id === 'some' ? 'Biraz' : item.label}
-                onPress={() => setStartLevel(item.id)}
+                icon={<Text style={[styles.optionIconText, startLevel === item.id && styles.optionIconTextSelected]}>{levelEmoji[item.id]}</Text>}
+                label={getStartLevelLabel(item.id)}
+                onPress={() => {
+                  setStartLevel(item.id);
+                  trackOption(item.id);
+                }}
                 selected={startLevel === item.id}
-                tone="plain"
               />
             ))}
-          </ChipGroup>
-          <AppButton icon={ArrowRight} onPress={goNext} title="Devam" />
-        </StepCard>
-      );
-    }
-
-    if (step === 4) {
-      return (
-        <StepCard
-          eyebrow="Seviye kontrolü"
-          helper="Çok kolay ya da zor başlamamak için."
-          title="Seviye kontrolü yapalım mı?"
-        >
-          <ValueIllustration title="2 dakika" lines={['12 kısa soru', 'Hızlı sonuç']} />
-          <AppButton icon={Check} onPress={() => choosePlacement(true)} title="Kontrol et" />
-          <AppButton onPress={() => choosePlacement(false)} title="Atla" variant="secondary" />
-        </StepCard>
-      );
-    }
-
-    if (step === 5) {
-      return (
-        <StepCard
-          eyebrow="3. Günlük süre"
-          helper="Kısa çalışma yeter."
-          title="Günde kaç dakika?"
-        >
-          <ChipGroup>
-            {dailyMinuteOptions.map((item) => (
-              <Chip key={item.id} label={item.label} onPress={() => setDailyMinutes(item.id)} selected={dailyMinutes === item.id} tone="green" />
-            ))}
-          </ChipGroup>
-          <AppButton icon={ArrowRight} onPress={goNext} title="Devam" />
-        </StepCard>
-      );
-    }
-
-    if (step === 6) {
-      return (
-        <StepCard
-          eyebrow="Günlük plan"
-          helper="Planın küçük parçalara bölünecek."
-          title="Günlük planın hazır"
-        >
-          <SchedulePreview minutes={dailyMinutes} />
-          <AppButton icon={ArrowRight} onPress={goNext} title="Devam" />
-        </StepCard>
-      );
-    }
-
-    if (step === 7) {
-      return (
-        <StepCard
-          eyebrow="4. Odak"
-          helper="Bugünkü öneriler buna göre şekillenir."
-          title="Neye ağırlık verelim?"
-        >
-          <ChipGroup>
-            {prioritySkillOptions.map((item) => (
-              <Chip key={item.id} label={item.label} onPress={() => setPrioritySkill(item.id)} selected={prioritySkill === item.id} tone="purple" />
-            ))}
-          </ChipGroup>
-          <AppButton icon={ArrowRight} onPress={goNext} title="Devam" />
-        </StepCard>
-      );
-    }
-
-    if (step === 8) {
-      return (
-        <StepCard
-          eyebrow="5. Hedef seviye"
-          helper="Sınav tarihin varsa ekleyebilirsin."
-          title="Hedef seviyen?"
-        >
-          <ChipGroup>
-            {targetLevelOptions.map((item) => (
-              <Chip key={item.id} label={item.label} onPress={() => setTargetLevel(item.id)} selected={targetLevel === item.id} tone="yellow" />
-            ))}
-          </ChipGroup>
-          {showExamDate ? (
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>Sınav tarihi</Text>
-              <TextInput
-                autoCapitalize="none"
-                onChangeText={setExamDate}
-                placeholder="Örn. 2026-09-20"
-                placeholderTextColor={colors.muted}
-                style={styles.input}
-                value={examDate}
-              />
-            </View>
-          ) : (
-            <AppButton onPress={() => setShowExamDate(true)} title="Sınav tarihim var" variant="secondary" />
-          )}
-          <View style={styles.previewCard}>
-            <Text style={styles.previewTitle}>Yol haritan hazır</Text>
-            <Text style={styles.previewText}>{planPreview.titleTr} · {planPreview.currentLevel} → {planPreview.targetLevel}</Text>
           </View>
-          <AppButton icon={Sparkles} loading={saving} onPress={finishSetup} title={wantsPlacement ? 'Teste geç' : 'Ana sayfaya geç'} />
-        </StepCard>
+        </StepPanel>
+      );
+    }
+
+    if (stepId === 'placement') {
+      return (
+        <StepPanel title="2 dakikalık seviye kontrolü?" helper="Çok kolay ya da çok zor dersten başlamamak için.">
+          <View style={styles.optionStack}>
+            <OptionCard
+              icon={<Check color={wantsPlacement === true ? colors.white : colors.royalPurple} size={20} strokeWidth={2.5} />}
+              label="Kontrol et"
+              onPress={() => {
+                setWantsPlacement(true);
+                trackOption('placement_yes');
+              }}
+              selected={wantsPlacement === true}
+            />
+            <OptionCard
+              icon={<Text style={[styles.optionIconText, wantsPlacement === false && styles.optionIconTextSelected]}>↷</Text>}
+              label="Atla"
+              onPress={() => {
+                setWantsPlacement(false);
+                trackOption('placement_skip');
+              }}
+              selected={wantsPlacement === false}
+            />
+          </View>
+        </StepPanel>
+      );
+    }
+
+    if (stepId === 'daily_time') {
+      return (
+        <StepPanel title="Günde kaç dakika?" helper="Planın buna göre küçük parçalara bölünecek.">
+          <View style={styles.optionGrid}>
+            {dailyMinuteOptions.map((item) => (
+              <OptionCard
+                key={item.id}
+                icon={<Text style={[styles.optionIconText, dailyMinutes === item.id && styles.optionIconTextSelected]}>{item.id}</Text>}
+                label={item.label}
+                onPress={() => {
+                  setDailyMinutes(item.id);
+                  trackOption(String(item.id));
+                }}
+                selected={dailyMinutes === item.id}
+              />
+            ))}
+          </View>
+        </StepPanel>
+      );
+    }
+
+    if (stepId === 'focus') {
+      return (
+        <StepPanel title="Neye ağırlık verelim?" helper="İlk dersleri buna göre seçeceğiz.">
+          <View style={styles.optionGrid}>
+            {prioritySkillOptions.map((item) => (
+              <OptionCard
+                key={item.id}
+                icon={<Text style={[styles.optionIconText, prioritySkill === item.id && styles.optionIconTextSelected]}>{focusEmoji[item.id]}</Text>}
+                label={item.label}
+                onPress={() => {
+                  setPrioritySkill(item.id);
+                  trackOption(item.id);
+                }}
+                selected={prioritySkill === item.id}
+              />
+            ))}
+          </View>
+        </StepPanel>
+      );
+    }
+
+    if (stepId === 'target') {
+      return (
+        <StepPanel title="Hedef seviyen?" helper="İstersen bunu sonra değiştirebilirsin.">
+          <View style={styles.optionGrid}>
+            {targetLevelOptions.map((item) => (
+              <OptionCard
+                key={item.id}
+                icon={<Text style={[styles.optionIconText, targetLevel === item.id && styles.optionIconTextSelected]}>{item.label}</Text>}
+                label={item.label}
+                onPress={() => {
+                  setTargetLevel(item.id);
+                  trackOption(item.id);
+                }}
+                selected={targetLevel === item.id}
+              />
+            ))}
+          </View>
+
+          {userGoal === 'exam' ? (
+            <View style={styles.examDateArea}>
+              {showExamDate ? (
+                <View style={styles.fieldGroup}>
+                  <Text style={styles.label}>Sınav tarihi</Text>
+                  <TextInput
+                    autoCapitalize="none"
+                    onChangeText={setExamDate}
+                    placeholder="Örn. Eylül 2026"
+                    placeholderTextColor={colors.muted}
+                    returnKeyType="done"
+                    style={styles.input}
+                    value={examDate}
+                  />
+                </View>
+              ) : (
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => {
+                    setShowExamDate(true);
+                    trackOption('exam_date_optional');
+                  }}
+                  style={({ pressed }) => [styles.textLink, pressed && styles.pressed]}
+                >
+                  <Text style={styles.textLinkText}>Sınav tarihim var</Text>
+                </Pressable>
+              )}
+            </View>
+          ) : null}
+        </StepPanel>
       );
     }
 
     return (
-      <StepCard
-        eyebrow="Wolli çalışıyor"
-        helper={wantsPlacement ? 'Önce kısa seviye kontrolünü açıyoruz.' : 'Planın hazır olunca yol haritana geçeceksin.'}
-        title="Yol haritan hazırlanıyor"
-      >
-        <View style={styles.loadingDots}>
-          <View style={styles.dot} />
-          <View style={[styles.dot, styles.dotMuted]} />
-          <View style={[styles.dot, styles.dotMuted]} />
+      <StepPanel title="Yol haritan hazır" helper="Şimdi ilk adımına geçebilirsin.">
+        <View style={styles.readyCard}>
+          <View style={styles.readyRow}>
+            <Text style={styles.readyLabel}>Başlangıç</Text>
+            <Text style={styles.readyValue}>{planPreview.currentLevel}</Text>
+          </View>
+          <View style={styles.readyRow}>
+            <Text style={styles.readyLabel}>Hedef</Text>
+            <Text style={styles.readyValue}>{planPreview.targetLevel}</Text>
+          </View>
+          <View style={styles.readyRow}>
+            <Text style={styles.readyLabel}>Günlük</Text>
+            <Text style={styles.readyValue}>{setupValues.dailyMinutes} dk</Text>
+          </View>
         </View>
-      </StepCard>
+      </StepPanel>
     );
   };
 
   return (
     <LinearGradient colors={[colors.gradientStart, colors.deepViolet]} style={styles.gradient}>
-      <SafeAreaView style={styles.safeArea}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={0}
-          style={styles.keyboard}
-        >
-          <View style={styles.topRow}>
-            {step > 0 && step < 9 ? (
-              <Pressable accessibilityRole="button" onPress={goBack} style={styles.backButton}>
-                <ArrowLeft color={colors.white} size={20} />
-              </Pressable>
-            ) : <View style={styles.backPlaceholder} />}
-            <View style={styles.progressCopy}>
-              <Text style={styles.progressLabel}>{step < 9 ? progressStep + ' / ' + setupStepCount : 'Hazırlanıyor'}</Text>
-              <StepDots current={step < 9 ? progressStep : setupStepCount} total={setupStepCount} />
-              <View style={styles.progressTrack}>
-                <View style={[styles.progressFill, { width: step < 9 ? progressWidth : '100%' }]} />
-              </View>
-            </View>
-          </View>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={0}
+        style={styles.keyboard}
+      >
+        <OnboardingProgressHeader
+          canGoBack={step > 0 && !saving}
+          current={progressStep}
+          onBack={goBack}
+          total={onboardingSteps.length}
+        />
 
-          <ScrollView
-            contentContainerStyle={styles.content}
-            contentInsetAdjustmentBehavior="automatic"
-            keyboardShouldPersistTaps="handled"
-          >
-            <Animated.View style={[styles.mascotWrap, mascotStyle]}>
-              <Mascot size={84} />
-            </Animated.View>
-            <Animated.View style={{ opacity: fade, transform: [{ translateY: slide }] }}>
-              {renderStep()}
-            </Animated.View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
+        <ScrollView
+          contentContainerStyle={styles.content}
+          contentInsetAdjustmentBehavior="never"
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <Animated.View style={[styles.mascotWrap, mascotStyle]}>
+            <Mascot size={86} />
+          </Animated.View>
+          <Animated.View style={{ opacity: fade, transform: [{ translateY: slide }] }}>
+            {renderStep()}
+          </Animated.View>
+        </ScrollView>
+
+        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.md) }]}>
+          <AppButton
+            disabled={primaryButton.disabled}
+            icon={primaryButton.icon}
+            loading={saving}
+            onPress={goNext}
+            title={primaryButton.title}
+          />
+        </View>
+      </KeyboardAvoidingView>
     </LinearGradient>
   );
 }
 
-function StepCard({ children, eyebrow, helper, title }: { children: ReactNode; eyebrow: string; helper: string; title: string }) {
+function StepPanel({ children, helper, title }: { children: ReactNode; helper: string; title: string }) {
   return (
     <AnimatedCard>
-    <View style={styles.panel}>
-      <Text style={styles.eyebrow}>{eyebrow}</Text>
-      <Text style={styles.title}>{title}</Text>
-      <Text style={styles.helper}>{helper}</Text>
-      {children}
-    </View>
+      <View style={styles.panel}>
+        <Text style={styles.title}>{title}</Text>
+        <Text style={styles.helper}>{helper}</Text>
+        {children}
+      </View>
     </AnimatedCard>
   );
 }
 
-function ChipGroup({ children }: { children: ReactNode }) {
-  return <View style={styles.chips}>{children}</View>;
-}
-
-function GoalOption({ item, onPress, selected }: { item: GoalCard; onPress: () => void; selected: boolean }) {
-  const Icon = item.icon;
-
+function OptionCard({
+  icon,
+  label,
+  onPress,
+  selected,
+}: {
+  icon: ReactNode;
+  label: string;
+  onPress: () => void;
+  selected: boolean;
+}) {
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityState={{ selected }}
       onPress={onPress}
-      style={({ pressed }) => [styles.goalCard, selected && styles.goalCardSelected, pressed && styles.pressed]}
+      style={({ pressed }) => [styles.optionCard, selected && styles.optionCardSelected, pressed && styles.pressed]}
     >
-      <View style={[styles.goalIcon, selected && styles.goalIconSelected]}>
-        <Icon color={selected ? colors.white : colors.royalPurple} size={20} strokeWidth={2.5} />
-      </View>
-      <Text style={[styles.goalTitle, selected && styles.goalTitleSelected]}>{item.label}</Text>
+      <View style={[styles.optionIcon, selected && styles.optionIconSelected]}>{icon}</View>
+      <Text style={[styles.optionLabel, selected && styles.optionLabelSelected]} numberOfLines={2}>{label}</Text>
     </Pressable>
   );
 }
 
-function ValueIllustration({ lines, title }: { lines: string[]; title: string }) {
+function ValueIllustration() {
   return (
     <View style={styles.valueCard}>
       <View style={styles.valueIcon}>
         <Sparkles color={colors.yellow} size={22} strokeWidth={2.6} />
       </View>
       <View style={styles.valueCopy}>
-        <Text style={styles.valueTitle}>{title}</Text>
-        <View style={styles.valueLines}>
-          {lines.map((line) => <Text key={line} style={styles.valueLine}>{line}</Text>)}
-        </View>
-      </View>
-    </View>
-  );
-}
-
-function SchedulePreview({ minutes }: { minutes: number }) {
-  const blocks = minutes <= 5
-    ? ['Mikro ders', 'SRS']
-    : minutes <= 10
-      ? ['Ders', 'SRS', 'Konuşma']
-      : ['Ders', 'SRS', 'Konuşma', 'Yazma'];
-
-  return (
-    <View style={styles.scheduleCard}>
-      <View style={styles.scheduleHeader}>
-        <TimerReset color={colors.royalPurple} size={20} />
-        <Text style={styles.scheduleTitle}>{minutes} dk/gün</Text>
-      </View>
-      <View style={styles.scheduleBlocks}>
-        {blocks.map((block) => <Text key={block} style={styles.scheduleBlock}>{block}</Text>)}
+        <Text style={styles.valueTitle}>1 dakikadan kısa</Text>
+        <Text style={styles.valueText}>Hedef, seviye ve günlük süreye göre ilk dersin seçilecek.</Text>
       </View>
     </View>
   );
@@ -527,57 +623,16 @@ const styles = StyleSheet.create({
   gradient: {
     flex: 1,
   },
-  safeArea: {
-    flex: 1,
-  },
   keyboard: {
     flex: 1,
-  },
-  topRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: spacing.md,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
-  },
-  backButton: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.14)',
-    borderRadius: radius.sm,
-    height: 44,
-    justifyContent: 'center',
-    width: 44,
-  },
-  backPlaceholder: {
-    height: 44,
-    width: 44,
-  },
-  progressCopy: {
-    flex: 1,
-    gap: spacing.xs,
-  },
-  progressLabel: {
-    ...typography.small,
-    color: colors.lavender,
-    fontWeight: '900',
-  },
-  progressTrack: {
-    backgroundColor: 'rgba(255,255,255,0.18)',
-    borderRadius: radius.pill,
-    height: 8,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    backgroundColor: colors.yellow,
-    borderRadius: radius.pill,
-    height: 8,
   },
   content: {
     flexGrow: 1,
     gap: spacing.lg,
     justifyContent: 'center',
-    padding: spacing.lg,
-    paddingBottom: spacing.xxl,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.xl,
   },
   mascotWrap: {
     alignItems: 'center',
@@ -588,12 +643,6 @@ const styles = StyleSheet.create({
     gap: spacing.lg,
     padding: spacing.lg,
   },
-  eyebrow: {
-    ...typography.small,
-    color: colors.royalPurple,
-    fontWeight: '900',
-    textTransform: 'uppercase',
-  },
   title: {
     ...typography.title,
     color: colors.deepViolet,
@@ -602,12 +651,15 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: colors.muted,
   },
-  goalGrid: {
+  optionGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing.sm,
   },
-  goalCard: {
+  optionStack: {
+    gap: spacing.sm,
+  },
+  optionCard: {
     alignItems: 'center',
     backgroundColor: colors.surface,
     borderColor: colors.border,
@@ -616,55 +668,41 @@ const styles = StyleSheet.create({
     flexBasis: '47%',
     flexGrow: 1,
     gap: spacing.sm,
-    minHeight: 94,
+    minHeight: 96,
     padding: spacing.md,
   },
-  goalCardSelected: {
+  optionCardSelected: {
     backgroundColor: colors.deepViolet,
     borderColor: colors.royalPurple,
   },
-  goalIcon: {
+  optionIcon: {
     alignItems: 'center',
     backgroundColor: colors.lavender,
     borderRadius: radius.sm,
-    height: 36,
+    height: 38,
     justifyContent: 'center',
-    width: 36,
+    minWidth: 38,
+    paddingHorizontal: spacing.xs,
   },
-  goalIconSelected: {
+  optionIconSelected: {
     backgroundColor: colors.royalPurple,
   },
-  goalTitle: {
+  optionIconText: {
+    ...typography.small,
+    color: colors.royalPurple,
+    fontWeight: '900',
+  },
+  optionIconTextSelected: {
+    color: colors.white,
+  },
+  optionLabel: {
     ...typography.small,
     color: colors.deepViolet,
     fontWeight: '900',
     textAlign: 'center',
   },
-  goalTitleSelected: {
+  optionLabelSelected: {
     color: colors.white,
-  },
-  chips: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-  },
-  fieldGroup: {
-    gap: spacing.sm,
-  },
-  label: {
-    ...typography.small,
-    color: colors.deepViolet,
-    fontWeight: '900',
-  },
-  input: {
-    ...typography.body,
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    color: colors.deepViolet,
-    minHeight: 52,
-    paddingHorizontal: spacing.md,
   },
   valueCard: {
     alignItems: 'center',
@@ -684,89 +722,76 @@ const styles = StyleSheet.create({
   },
   valueCopy: {
     flex: 1,
-    gap: spacing.sm,
+    gap: spacing.xs,
   },
   valueTitle: {
     ...typography.body,
     color: colors.white,
     fontWeight: '900',
   },
-  valueLines: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.xs,
-  },
-  valueLine: {
+  valueText: {
     ...typography.small,
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    borderRadius: radius.sm,
     color: colors.lavender,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 3,
   },
-  scheduleCard: {
+  examDateArea: {
+    gap: spacing.sm,
+  },
+  textLink: {
+    alignSelf: 'flex-start',
+    minHeight: 44,
+    justifyContent: 'center',
+  },
+  textLinkText: {
+    ...typography.body,
+    color: colors.royalPurple,
+    fontWeight: '900',
+  },
+  fieldGroup: {
+    gap: spacing.sm,
+  },
+  label: {
+    ...typography.small,
+    color: colors.deepViolet,
+    fontWeight: '900',
+  },
+  input: {
+    ...typography.body,
     backgroundColor: colors.surface,
     borderColor: colors.border,
     borderRadius: radius.md,
     borderWidth: 1,
-    gap: spacing.md,
+    color: colors.deepViolet,
+    minHeight: 52,
+    paddingHorizontal: spacing.md,
+  },
+  readyCard: {
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    gap: spacing.sm,
     padding: spacing.md,
   },
-  scheduleHeader: {
+  readyRow: {
     alignItems: 'center',
     flexDirection: 'row',
-    gap: spacing.sm,
+    justifyContent: 'space-between',
   },
-  scheduleTitle: {
+  readyLabel: {
     ...typography.body,
-    color: colors.deepViolet,
-    fontWeight: '900',
-  },
-  scheduleBlocks: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-  },
-  scheduleBlock: {
-    ...typography.small,
-    backgroundColor: colors.lavender,
-    borderRadius: radius.sm,
-    color: colors.deepViolet,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-  },
-  previewCard: {
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    gap: spacing.xs,
-    padding: spacing.md,
-  },
-  previewTitle: {
-    ...typography.body,
-    color: colors.deepViolet,
-    fontWeight: '900',
-  },
-  previewText: {
-    ...typography.small,
     color: colors.muted,
   },
-  loadingDots: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: spacing.sm,
-    justifyContent: 'center',
-    minHeight: 64,
+  readyValue: {
+    ...typography.body,
+    color: colors.deepViolet,
+    fontWeight: '900',
   },
-  dot: {
-    backgroundColor: colors.royalPurple,
-    borderRadius: radius.pill,
-    height: 12,
-    width: 12,
-  },
-  dotMuted: {
-    backgroundColor: colors.lavender,
+  footer: {
+    backgroundColor: 'rgba(30,27,58,0.96)',
+    borderTopColor: 'rgba(255,255,255,0.12)',
+    borderTopWidth: 1,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
   },
   pressed: {
     opacity: 0.84,

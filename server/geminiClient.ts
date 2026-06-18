@@ -27,10 +27,10 @@ const makeMockResponse = (
           : 'Das ist gut.'),
     tr:
       request.mode === 'chat'
-        ? 'Mock yanıt: Kısa A1 cümlelerle devam edelim.'
-        : 'Mock geri bildirim: Cevabın A1 düzeyinde kısa ve anlaşılır şekilde değerlendirildi.',
+        ? 'Yerel yanıt: Kısa A1 cümlelerle devam edelim.'
+        : 'Yerel geri bildirim: Cevabın A1 düzeyinde kısa ve anlaşılır şekilde değerlendirildi.',
     tip: isPronunciation
-      ? 'Bu mock konuşma geri bildirimi transcript üzerinden çalışır; gerçek ses puanı daha sonra backend ile eklenecek.'
+      ? 'Bu konuşma geri bildirimi yazıya dökülen cümlen ile hedef cümleyi karşılaştırır; gerçek fonetik ses puanı daha sonra eklenecek.'
       : 'Artikel, fiil sırası ve kısa cümle doğruluğuna dikkat et.',
     score:
       request.mode === 'writing_feedback' || request.mode === 'speaking_feedback'

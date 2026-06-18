@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { RouteProp } from '@react-navigation/native';
-import { ArrowLeft, BookOpen, Check, CheckCircle2, Home, RotateCcw } from 'lucide-react-native';
+import { ArrowLeft, BookOpen, Check, CheckCircle2, Home, Mic, RotateCcw } from 'lucide-react-native';
 
 import { AnimatedCard } from '../components/AnimatedCard';
 import { AppButton } from '../components/AppButton';
@@ -312,6 +312,21 @@ export function ExercisePlayerScreen({
               icon={BookOpen}
               onPress={() => navigation.navigate('LessonIntro', { lessonId: completion.nextLessonId! })}
               title="Sıradaki ders"
+            />
+          ) : null}
+          {lesson.speakingPrompt ? (
+            <AppButton
+              icon={Mic}
+              onPress={() => navigation.navigate('SpeakingPractice', {
+                source: 'lesson_completion',
+                promptId: lesson.id + '-speaking',
+                topicTitle: lesson.speakingPrompt?.titleTr,
+                expectedText: lesson.speakingPrompt?.promptDe,
+                meaningTr: lesson.speakingPrompt?.promptTr,
+                tipTr: 'Dersi bitirdin. Şimdi cümleyi sesli dene.',
+              })}
+              title="Bu cümleyi sesli dene"
+              variant="secondary"
             />
           ) : null}
           <AppButton

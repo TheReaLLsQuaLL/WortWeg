@@ -25,6 +25,12 @@ const allowedMetadataKeys = new Set<keyof LocalEventMetadata>([
   'hasOnboarded',
   'hasProfile',
   'hasLearningPlan',
+  'stepId',
+  'selectedOptionId',
+  'platform',
+  'audioExtension',
+  'audioMimeType',
+  'source',
 ]);
 
 const makeEventId = () =>

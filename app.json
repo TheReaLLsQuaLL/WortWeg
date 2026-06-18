@@ -9,7 +9,10 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "WortWeg konuşma pratiği için mikrofonuna erişmek istiyor."
+      }
     },
     "android": {
       "adaptiveIcon": {

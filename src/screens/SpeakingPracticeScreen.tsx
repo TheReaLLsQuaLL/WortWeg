@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { RouteProp } from '@react-navigation/native';
-import { ArrowLeft, CheckCircle2, Mic, Play, RotateCcw, Square } from 'lucide-react-native';
+import { ArrowLeft, CheckCircle2, Mic, Play, RotateCcw } from 'lucide-react-native';
 
 import { AppButton } from '../components/AppButton';
 import { AppScrollView, Screen } from '../components/layout';
 import { SpeakerButton } from '../components/SpeakerButton';
 import { colors, radius, spacing, typography } from '../data/theme';
-import { speakingPromptsA1 } from '../data/speaking.a1';
+import { getSpeakingPromptById, speakingPromptsA1, type SpeakingPrompt } from '../data/speaking.a1';
 import type { RootNavigation, RootStackParamList } from '../navigation/AppNavigator';
 import {
   cleanupRecording,
@@ -20,6 +20,7 @@ import {
   transcribeGerman,
   type MicrophonePermissionResult,
   type PronunciationScore,
+  type RecordingResult,
   type TranscriptionResult,
 } from '../services/speechService';
 import { trackLocalEvent } from '../services/localEventLog';
@@ -34,10 +35,13 @@ type PracticeStatus =
   | 'requestingPermission'
   | 'recording'
   | 'stopping'
-  | 'recorded'
-  | 'transcribing'
+  | 'analyzing'
   | 'scored'
   | 'error';
+
+type ActivePrompt = SpeakingPrompt & { id: string };
+
+const MIN_RECORDING_MS = 500;
 
 const formatDuration = (durationMs: number) => {
   const totalSeconds = Math.max(0, Math.floor(durationMs / 1000));
@@ -49,29 +53,47 @@ const formatDuration = (durationMs: number) => {
 
 const getPermissionText = (permission: MicrophonePermissionResult | null) => {
   if (!permission) {
-    return 'Mikrofon izni henüz sorulmadı.';
+    return 'Kayda başlarken mikrofon izni istenecek.';
   }
 
   if (permission.granted) {
-    return 'Mikrofon izni verildi.';
+    return 'Mikrofon hazır.';
   }
 
   return permission.canAskAgain
-    ? 'Mikrofon izni gerekli. Kayda başlarken tekrar sorulacak.'
-    : 'Mikrofon izni kapalı. Telefon ayarlarından WortWeg için mikrofon izni ver.';
+    ? 'Mikrofon izni gerekli.'
+    : 'Mikrofon izni kapalı. Telefon ayarlarından izin ver.';
 };
 
-const blockedRecordStates: PracticeStatus[] = [
-  'requestingPermission',
-  'recording',
-  'stopping',
-  'transcribing',
-];
+const getResultTitle = (result: PronunciationScore) => {
+  if (result.comparison.similarityScore >= 80) {
+    return 'Çok yakın!';
+  }
+
+  if (result.comparison.similarityScore >= 50) {
+    return 'Neredeyse oldu';
+  }
+
+  return 'Tekrar deneyelim';
+};
+
+const getResultColor = (result: PronunciationScore) => {
+  if (result.comparison.similarityScore >= 80) {
+    return colors.green;
+  }
+
+  if (result.comparison.similarityScore >= 50) {
+    return '#A66500';
+  }
+
+  return colors.red;
+};
 
 export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeScreenProps) {
+  const initialPrompt = getSpeakingPromptById(route.params?.promptId);
   const initialIndex = Math.max(
     0,
-    speakingPromptsA1.findIndex((prompt) => prompt.id === route.params?.promptId),
+    speakingPromptsA1.findIndex((prompt) => prompt.id === initialPrompt.id),
   );
   const [promptIndex, setPromptIndex] = useState(initialIndex === -1 ? 0 : initialIndex);
   const [permission, setPermission] = useState<MicrophonePermissionResult | null>(null);
@@ -82,21 +104,45 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
   const [pronunciationResult, setPronunciationResult] = useState<PronunciationScore | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [replaying, setReplaying] = useState(false);
+  const [analysisIsSlow, setAnalysisIsSlow] = useState(false);
   const durationTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const replayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const analysisTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const actionLockedRef = useRef(false);
+  const releasePendingRef = useRef(false);
+  const pressStartedAtRef = useRef(0);
   const mountedRef = useRef(true);
-  const pulseOpacity = useRef(new Animated.Value(0)).current;
+  const statusRef = useRef<PracticeStatus>('idle');
+  const recordPulseOpacity = useRef(new Animated.Value(0)).current;
+  const recordScale = useRef(new Animated.Value(1)).current;
+  const waveBars = useRef([
+    new Animated.Value(0.45),
+    new Animated.Value(0.75),
+    new Animated.Value(0.55),
+    new Animated.Value(0.9),
+    new Animated.Value(0.6),
+  ]).current;
 
-  const prompt = speakingPromptsA1[promptIndex] ?? speakingPromptsA1[0]!;
-  const progressText = useMemo(
-    () => String(promptIndex + 1) + '/' + speakingPromptsA1.length,
-    [promptIndex],
-  );
-  const canRecord = !blockedRecordStates.includes(status);
-  const canStop = status === 'recording';
-  const canReplay = Boolean(audioUri) && !['recording', 'stopping', 'requestingPermission'].includes(status);
-  const canMovePrompt = !['recording', 'stopping', 'requestingPermission', 'transcribing'].includes(status);
+  const prompt = useMemo<ActivePrompt>(() => {
+    if (route.params?.expectedText) {
+      return {
+        id: route.params.promptId ?? 'custom-speaking-prompt',
+        topicTitle: route.params.topicTitle ?? 'Ders konuşması',
+        expectedText: route.params.expectedText,
+        meaningTr: route.params.meaningTr ?? 'Cümleyi sesli oku.',
+        tipTr: route.params.tipTr ?? 'Yavaş ve net söylemen yeterli.',
+      };
+    }
+
+    return speakingPromptsA1[promptIndex] ?? speakingPromptsA1[0]!;
+  }, [promptIndex, route.params?.expectedText, route.params?.meaningTr, route.params?.promptId, route.params?.tipTr, route.params?.topicTitle]);
+  const source = route.params?.source ?? 'speaking_practice';
+  const progressText = route.params?.expectedText
+    ? 'Ders cümlesi'
+    : String(promptIndex + 1) + '/' + speakingPromptsA1.length;
+  const canPressRecord = !['requestingPermission', 'recording', 'stopping', 'analyzing'].includes(status);
+  const canReplay = Boolean(audioUri) && !['recording', 'stopping', 'requestingPermission', 'analyzing'].includes(status);
+  const canMovePrompt = !route.params?.expectedText && !['recording', 'stopping', 'requestingPermission', 'analyzing'].includes(status);
 
   const clearDurationTimer = () => {
     if (durationTimerRef.current) {
@@ -112,32 +158,84 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
     }
   };
 
+  const clearAnalysisTimer = () => {
+    if (analysisTimerRef.current) {
+      clearTimeout(analysisTimerRef.current);
+      analysisTimerRef.current = null;
+    }
+  };
+
   const setSafeStatus = (nextStatus: PracticeStatus) => {
+    statusRef.current = nextStatus;
+
     if (mountedRef.current) {
       setStatus(nextStatus);
     }
   };
 
   useEffect(() => {
-    trackLocalEvent({ type: 'speaking_opened', screen: 'SpeakingPractice' });
-  }, []);
+    trackLocalEvent({
+      type: 'speaking_opened',
+      screen: 'SpeakingPractice',
+      metadata: { source },
+    });
+  }, [source]);
 
   useEffect(() => {
     if (status !== 'recording') {
-      pulseOpacity.setValue(0);
+      recordPulseOpacity.setValue(0);
+      recordScale.setValue(1);
       return;
     }
 
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseOpacity, { toValue: 0.28, duration: 520, useNativeDriver: true }),
-        Animated.timing(pulseOpacity, { toValue: 0, duration: 520, useNativeDriver: true }),
+    const pulse = Animated.loop(
+      Animated.parallel([
+        Animated.sequence([
+          Animated.timing(recordPulseOpacity, { toValue: 0.28, duration: 520, useNativeDriver: true }),
+          Animated.timing(recordPulseOpacity, { toValue: 0, duration: 520, useNativeDriver: true }),
+        ]),
+        Animated.sequence([
+          Animated.timing(recordScale, { toValue: 1.06, duration: 520, useNativeDriver: true }),
+          Animated.timing(recordScale, { toValue: 1, duration: 520, useNativeDriver: true }),
+        ]),
       ]),
     );
-    loop.start();
+    pulse.start();
 
-    return () => loop.stop();
-  }, [pulseOpacity, status]);
+    return () => pulse.stop();
+  }, [recordPulseOpacity, recordScale, status]);
+
+  useEffect(() => {
+    if (status !== 'analyzing') {
+      clearAnalysisTimer();
+      setAnalysisIsSlow(false);
+      return;
+    }
+
+    analysisTimerRef.current = setTimeout(() => {
+      if (mountedRef.current) {
+        setAnalysisIsSlow(true);
+      }
+    }, 5_000);
+
+    const animation = Animated.loop(
+      Animated.stagger(
+        90,
+        waveBars.map((bar) =>
+          Animated.sequence([
+            Animated.timing(bar, { toValue: 1, duration: 280, useNativeDriver: true }),
+            Animated.timing(bar, { toValue: 0.35, duration: 280, useNativeDriver: true }),
+          ]),
+        ),
+      ),
+    );
+    animation.start();
+
+    return () => {
+      clearAnalysisTimer();
+      animation.stop();
+    };
+  }, [status, waveBars]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -146,6 +244,7 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
       mountedRef.current = false;
       clearDurationTimer();
       clearReplayTimer();
+      clearAnalysisTimer();
       void cleanupRecording().catch(() => undefined);
     };
   }, []);
@@ -157,98 +256,21 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
     setPronunciationResult(null);
     setErrorMessage(null);
     setReplaying(false);
+    setAnalysisIsSlow(false);
     clearReplayTimer();
+    clearAnalysisTimer();
   };
 
-  const beginRecording = async () => {
-    if (!canRecord || actionLockedRef.current) {
-      return;
-    }
-
-    actionLockedRef.current = true;
-    clearDurationTimer();
-    clearFeedback();
-    setSafeStatus('requestingPermission');
-
-    try {
-      const nextPermission = await requestMicrophonePermission();
-
-      if (!mountedRef.current) {
-        return;
-      }
-
-      setPermission(nextPermission);
-
-      if (!nextPermission.granted) {
-        setErrorMessage(
-          nextPermission.canAskAgain
-            ? 'Mikrofon izni olmadan kayıt alamıyoruz. Lütfen izin ver.'
-            : 'Mikrofon izni kapalı. Telefon ayarlarından WortWeg için mikrofon iznini aç.',
-        );
-        setSafeStatus('error');
-        return;
-      }
-
-      await startRecording();
-      trackLocalEvent({ type: 'recording_started', screen: 'SpeakingPractice' });
-
-      if (!mountedRef.current) {
-        await cleanupRecording().catch(() => undefined);
-        return;
-      }
-
-      setDurationMs(0);
-      setSafeStatus('recording');
-      durationTimerRef.current = setInterval(() => {
-        const snapshot = getActiveRecordingStatus();
-        setDurationMs(snapshot.durationMs);
-      }, 250);
-    } catch (error) {
-      clearDurationTimer();
-      setSafeStatus('error');
-      trackLocalEvent({
-        type: 'recording_error',
-        screen: 'SpeakingPractice',
-        action: 'start_recording',
-        severity: 'error',
-      });
-      setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : 'Kayıt başlatılırken bir sorun oluştu.',
-      );
-    } finally {
-      actionLockedRef.current = false;
-    }
-  };
-
-  const finishRecording = async () => {
-    if (!canStop || actionLockedRef.current) {
-      return;
-    }
-
-    actionLockedRef.current = true;
-    clearDurationTimer();
-    setSafeStatus('stopping');
-    setErrorMessage(null);
+  const analyzeRecording = async (recording: RecordingResult) => {
+    const analysisStartedAt = Date.now();
+    setSafeStatus('analyzing');
+    trackLocalEvent({
+      type: 'speech_analysis_started',
+      screen: 'SpeakingPractice',
+      metadata: { source, durationMs: recording.durationMs, platform: Platform.OS },
+    });
 
     try {
-      const recording = await stopRecording();
-      trackLocalEvent({
-        type: 'recording_stopped',
-        screen: 'SpeakingPractice',
-        metadata: { durationMs: recording.durationMs },
-      });
-
-      if (!mountedRef.current) {
-        return;
-      }
-
-      setAudioUri(recording.uri);
-      setDurationMs(recording.durationMs);
-      setSafeStatus('recorded');
-      setSafeStatus('transcribing');
-
       const nextTranscriptionResult = await transcribeGerman(recording.uri, prompt.expectedText);
 
       if (__DEV__) {
@@ -274,20 +296,170 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
       setTranscriptionResult(nextTranscriptionResult);
       setPronunciationResult(nextPronunciationResult);
       setSafeStatus('scored');
-    } catch (error) {
+      trackLocalEvent({
+        type: 'speech_analysis_completed',
+        screen: 'SpeakingPractice',
+        metadata: {
+          source,
+          durationMs: Date.now() - analysisStartedAt,
+          provider: nextTranscriptionResult.provider,
+          modelUsed: nextTranscriptionResult.modelUsed,
+          fallback: Boolean(nextTranscriptionResult.fallback),
+          similarityBucket: nextPronunciationResult.comparison.similarityBucket,
+          platform: Platform.OS,
+        },
+      });
+    } catch {
+      setSafeStatus('error');
+      setErrorMessage('Analiz sırasında sorun oldu. Lütfen tekrar dene.');
+      trackLocalEvent({
+        type: 'speech_analysis_failed',
+        screen: 'SpeakingPractice',
+        metadata: { source, platform: Platform.OS },
+        severity: 'error',
+      });
+    }
+  };
+
+  const beginPressRecording = async () => {
+    if (!canPressRecord || actionLockedRef.current) {
+      return;
+    }
+
+    actionLockedRef.current = true;
+    releasePendingRef.current = false;
+    pressStartedAtRef.current = Date.now();
+    clearDurationTimer();
+    clearFeedback();
+    setSafeStatus('requestingPermission');
+    trackLocalEvent({
+      type: 'speaking_press_started',
+      screen: 'SpeakingPractice',
+      metadata: { source, platform: Platform.OS },
+    });
+
+    try {
+      const nextPermission = await requestMicrophonePermission();
+
+      if (!mountedRef.current) {
+        return;
+      }
+
+      setPermission(nextPermission);
+
+      if (!nextPermission.granted) {
+        setErrorMessage(
+          nextPermission.canAskAgain
+            ? 'Mikrofon izni olmadan kayıt alamıyoruz. Lütfen izin ver.'
+            : 'Mikrofon izni kapalı. Telefon ayarlarından WortWeg için mikrofon iznini aç.',
+        );
+        setSafeStatus('error');
+        return;
+      }
+
+      await startRecording();
+      trackLocalEvent({
+        type: 'recording_started',
+        screen: 'SpeakingPractice',
+        metadata: { source, platform: Platform.OS },
+      });
+
+      if (!mountedRef.current) {
+        await cleanupRecording().catch(() => undefined);
+        return;
+      }
+
+      setDurationMs(0);
+      setSafeStatus('recording');
+      durationTimerRef.current = setInterval(() => {
+        const snapshot = getActiveRecordingStatus();
+        setDurationMs(snapshot.durationMs);
+      }, 150);
+    } catch {
+      clearDurationTimer();
+      setSafeStatus('error');
+      trackLocalEvent({
+        type: 'recording_error',
+        screen: 'SpeakingPractice',
+        action: 'start_recording',
+        metadata: { source, platform: Platform.OS },
+        severity: 'error',
+      });
+      setErrorMessage('Mikrofon izni veya kayıt başlatma sırasında sorun oldu. Lütfen tekrar dene.');
+    } finally {
+      actionLockedRef.current = false;
+
+      if (releasePendingRef.current && mountedRef.current) {
+        releasePendingRef.current = false;
+        void finishPressRecording();
+      }
+    }
+  };
+
+  const finishPressRecording = async () => {
+    const currentStatus = statusRef.current;
+
+    if (currentStatus === 'requestingPermission' || actionLockedRef.current) {
+      releasePendingRef.current = true;
+      return;
+    }
+
+    if (currentStatus !== 'recording') {
+      return;
+    }
+
+    actionLockedRef.current = true;
+    clearDurationTimer();
+    setSafeStatus('stopping');
+    setErrorMessage(null);
+    const heldDurationMs = Math.max(0, Date.now() - pressStartedAtRef.current);
+    trackLocalEvent({
+      type: 'speaking_press_released',
+      screen: 'SpeakingPractice',
+      metadata: { source, durationMs: heldDurationMs, platform: Platform.OS },
+    });
+
+    try {
+      const recording = await stopRecording();
+      const finalDurationMs = recording.durationMs || heldDurationMs;
+      trackLocalEvent({
+        type: 'recording_stopped',
+        screen: 'SpeakingPractice',
+        metadata: { source, durationMs: finalDurationMs, platform: Platform.OS },
+      });
+
+      if (!mountedRef.current) {
+        return;
+      }
+
+      if (finalDurationMs < MIN_RECORDING_MS) {
+        setDurationMs(0);
+        setAudioUri(null);
+        setErrorMessage('Biraz daha uzun söylemeyi dene.');
+        setSafeStatus('error');
+        trackLocalEvent({
+          type: 'speaking_too_short',
+          screen: 'SpeakingPractice',
+          metadata: { source, durationMs: finalDurationMs, platform: Platform.OS },
+          severity: 'warning',
+        });
+        return;
+      }
+
+      setAudioUri(recording.uri);
+      setDurationMs(finalDurationMs);
+      await analyzeRecording({ ...recording, durationMs: finalDurationMs });
+    } catch {
       clearDurationTimer();
       setSafeStatus('error');
       trackLocalEvent({
         type: 'recording_error',
         screen: 'SpeakingPractice',
         action: 'stop_recording',
+        metadata: { source, platform: Platform.OS },
         severity: 'error',
       });
-      setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : 'Kayıt durdurulurken bir sorun oluştu.',
-      );
+      setErrorMessage('Kayıt durdurulurken bir sorun oluştu. Lütfen tekrar dene.');
     } finally {
       actionLockedRef.current = false;
     }
@@ -308,30 +480,28 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
           setReplaying(false);
         }
       }, Math.max(900, durationMs));
-    } catch (error) {
+    } catch {
       clearReplayTimer();
       setReplaying(false);
       trackLocalEvent({
         type: 'recording_error',
         screen: 'SpeakingPractice',
         action: 'replay_recording',
+        metadata: { source, platform: Platform.OS },
         severity: 'error',
       });
-      setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : 'Kaydı oynatırken bir sorun oluştu.',
-      );
+      setErrorMessage('Kaydı oynatırken bir sorun oluştu.');
     }
   };
 
   const retryCurrentPrompt = () => {
-    if (!canMovePrompt) {
+    if (['recording', 'stopping', 'requestingPermission', 'analyzing'].includes(status)) {
       return;
     }
 
     clearDurationTimer();
     clearFeedback();
+    releasePendingRef.current = false;
     setSafeStatus('idle');
   };
 
@@ -342,28 +512,41 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
 
     clearDurationTimer();
     clearFeedback();
+    releasePendingRef.current = false;
     setSafeStatus('idle');
     setPromptIndex((index) => (index + 1) % speakingPromptsA1.length);
   };
 
-  const statusCopy = (() => {
-    switch (status) {
-      case 'requestingPermission':
-        return 'Mikrofon izni kontrol ediliyor.';
-      case 'recording':
-        return 'Kaydediliyor. Cümleyi net ve sakin oku.';
-      case 'stopping':
-        return 'Kayıt güvenli şekilde durduruluyor.';
-      case 'transcribing':
-        return 'Sesin yazıya çevriliyor.';
-      case 'scored':
-      case 'recorded':
-        return 'Kaydın hazır. Dinleyebilir veya tekrar kaydedebilirsin.';
-      case 'error':
-        return 'Sorunu düzeltip tekrar deneyebilirsin.';
-      default:
-        return 'Hazır olduğunda kayıt butonuna bas.';
+  const recordingTitle = (() => {
+    if (status === 'requestingPermission') {
+      return 'Hazırlanıyor…';
     }
+
+    if (status === 'recording') {
+      return 'Konuşuyorsun…';
+    }
+
+    if (status === 'stopping') {
+      return 'Kaydı alıyorum…';
+    }
+
+    if (status === 'analyzing') {
+      return 'Dinliyorum…';
+    }
+
+    return 'Basılı tut ve söyle';
+  })();
+
+  const recordingHelper = (() => {
+    if (status === 'recording') {
+      return 'Bırakınca analiz başlayacak.';
+    }
+
+    if (status === 'analyzing') {
+      return analysisIsSlow ? 'Biraz uzun sürdü, devam ediyoruz.' : 'Cümleni karşılaştırıyoruz.';
+    }
+
+    return 'Cümleyi sakin ve net oku.';
   })();
 
   return (
@@ -378,7 +561,7 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
         </Pressable>
         <View style={styles.headerCopy}>
           <Text style={styles.kicker}>A1 konuşma pratiği · {progressText}</Text>
-          <Text style={styles.headerTitle}>Sesini kaydet</Text>
+          <Text style={styles.headerTitle}>Sesli dene</Text>
         </View>
       </View>
 
@@ -395,222 +578,188 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
           <Text style={styles.tip}>{prompt.tipTr}</Text>
         </View>
 
-        <View style={styles.permissionCard}>
-          <Text style={styles.sectionTitle}>Mikrofon durumu</Text>
-          <Text style={styles.body}>{getPermissionText(permission)}</Text>
+        <View style={[styles.recorderCard, status === 'recording' && styles.recordingCard]}>
+          <Text style={styles.duration}>{formatDuration(durationMs)}</Text>
+          <Text style={styles.recordTitle}>{recordingTitle}</Text>
+          <Text style={styles.body}>{recordingHelper}</Text>
+
+          {status === 'analyzing' ? (
+            <AnalysisWave bars={waveBars} />
+          ) : (
+            <View style={styles.recordActions}>
+              {status === 'recording' ? (
+                <Animated.View pointerEvents="none" style={[styles.recordPulse, { opacity: recordPulseOpacity }]} />
+              ) : null}
+              <Animated.View style={{ transform: [{ scale: recordScale }] }}>
+                <Pressable
+                  accessibilityRole="button"
+                  disabled={!canPressRecord && status !== 'recording'}
+                  onPressIn={beginPressRecording}
+                  onPressOut={finishPressRecording}
+                  style={({ pressed }) => [
+                    styles.recordButton,
+                    status === 'recording' && styles.recordButtonActive,
+                    (!canPressRecord && status !== 'recording') && styles.disabledButton,
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <Mic color={colors.white} size={42} strokeWidth={2.8} />
+                </Pressable>
+              </Animated.View>
+            </View>
+          )}
+
+          <Text style={styles.permissionText}>{getPermissionText(permission)}</Text>
           {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
         </View>
 
-        <View style={[styles.recorderCard, status === 'recording' && styles.recordingCard]}>
-          <Text style={styles.duration}>{formatDuration(durationMs)}</Text>
-          <Text style={styles.body}>{statusCopy}</Text>
-
-          <View style={styles.recordActions}>
-            {status === 'recording' ? <Animated.View pointerEvents="none" style={[styles.recordPulse, { opacity: pulseOpacity }]} /> : null}
-            {status === 'recording' || status === 'stopping' ? (
-              <Pressable
-                accessibilityRole="button"
-                disabled={!canStop}
-                onPress={finishRecording}
-                style={({ pressed }) => [
-                  styles.recordButton,
-                  styles.stopButton,
-                  !canStop && styles.disabledButton,
-                  pressed && canStop && styles.pressed,
-                ]}
-              >
-                <Square color={colors.white} fill={colors.white} size={34} />
-                <Text style={styles.recordButtonText}>{status === 'stopping' ? 'Duruyor' : 'Durdur'}</Text>
-              </Pressable>
-            ) : (
-              <Pressable
-                accessibilityRole="button"
-                disabled={!canRecord}
-                onPress={beginRecording}
-                style={({ pressed }) => [
-                  styles.recordButton,
-                  !canRecord && styles.disabledButton,
-                  pressed && canRecord && styles.pressed,
-                ]}
-              >
-                <Mic color={colors.white} size={38} strokeWidth={2.8} />
-                <Text style={styles.recordButtonText}>
-                  {audioUri ? 'Tekrar kaydet' : 'Kaydet'}
-                </Text>
-              </Pressable>
-            )}
-          </View>
-
-          <View style={styles.secondaryActions}>
-            <AppButton
-              disabled={!canReplay}
-              icon={Play}
-              loading={replaying}
-              onPress={replay}
-              title="Dinle"
-              variant="secondary"
-            />
-            <AppButton
-              disabled={!canMovePrompt}
-              icon={RotateCcw}
-              onPress={nextPrompt}
-              title="Sonraki cümle"
-              variant="secondary"
-            />
-          </View>
-        </View>
-
-        {status === 'transcribing' ? (
-          <View style={styles.feedbackCard}>
-            <Text style={styles.sectionTitle}>Geri bildirim hazırlanıyor</Text>
-            <Text style={styles.body}>
-              Önce söylediğin cümle yazıya çevrilecek. Sonra hedef cümleyle karşılaştıracağız.
-            </Text>
-          </View>
-        ) : null}
-
         {transcriptionResult && pronunciationResult ? (
-          <View style={styles.feedbackCard}>
-            <View style={styles.feedbackHeader}>
-              <CheckCircle2 color={colors.green} size={24} />
-              <Text style={styles.sectionTitle}>Sonuç</Text>
-            </View>
-
-            <View style={styles.resultSection}>
-              <Text style={styles.sectionTitle}>Beklenen cümle</Text>
-              <Text style={styles.expectedResultText}>{prompt.expectedText}</Text>
-            </View>
-
-            <View style={styles.resultSection}>
-              <Text style={styles.sectionTitle}>Söylediğin cümle</Text>
-              <Text style={styles.transcriptText}>
-                {transcriptionResult.transcript || 'Metin alınamadı.'}
-              </Text>
-              {transcriptionResult.fallback ? (
-                <Text style={styles.fallbackText}>Şimdilik yerel tahmin kullanıldı.</Text>
-              ) : null}
-              {__DEV__ ? (
-                <View style={styles.debugChipRow}>
-                  <View style={styles.debugChip}>
-                    <Text style={styles.debugChipText}>STT: {transcriptionResult.provider ?? 'unknown'}</Text>
-                  </View>
-                  <View style={styles.debugChip}>
-                    <Text style={styles.debugChipText}>model: {transcriptionResult.modelUsed ?? 'unknown'}</Text>
-                  </View>
-                  <View style={styles.debugChip}>
-                    <Text style={styles.debugChipText}>fallback: {String(transcriptionResult.fallback ?? false)}</Text>
-                  </View>
-                </View>
-              ) : null}
-            </View>
-
-            <View style={styles.resultSection}>
-              <View style={styles.comparisonHeaderRow}>
-                <View style={styles.flexCopy}>
-                  <Text style={styles.sectionTitle}>Hedefe yakınlık</Text>
-                  <Text style={styles.body}>{pronunciationResult.comparison.shortFeedbackTr}</Text>
-                </View>
-                <Text style={[
-                  styles.similarityScore,
-                  pronunciationResult.comparison.similarityBucket === 'high'
-                    ? styles.similarityHigh
-                    : pronunciationResult.comparison.similarityBucket === 'medium'
-                      ? styles.similarityMedium
-                      : styles.similarityLow,
-                ]}>{pronunciationResult.comparison.similarityScore}</Text>
-              </View>
-              <View style={styles.wordGroup}>
-                <Text style={styles.wordGroupTitle}>Eşleşen</Text>
-                <View style={styles.wordChipRow}>
-                  {pronunciationResult.comparison.matchedWords.length > 0 ? pronunciationResult.comparison.matchedWords.map((word, index) => (
-                    <View key={'matched-' + word + '-' + index} style={[styles.wordChip, styles.matchedChip]}>
-                      <Text style={styles.wordChipText}>{word}</Text>
-                    </View>
-                  )) : (
-                    <Text style={styles.emptyChipText}>Henüz yok</Text>
-                  )}
-                </View>
-              </View>
-              {pronunciationResult.comparison.missingWords.length > 0 ? (
-                <View style={styles.wordGroup}>
-                  <Text style={styles.wordGroupTitle}>Eksik</Text>
-                  <View style={styles.wordChipRow}>
-                    {pronunciationResult.comparison.missingWords.map((word, index) => (
-                      <View key={'missing-' + word + '-' + index} style={[styles.wordChip, styles.missingChip]}>
-                        <Text style={styles.wordChipText}>{word}</Text>
-                      </View>
-                    ))}
-                  </View>
-                </View>
-              ) : null}
-              {pronunciationResult.comparison.extraWords.length > 0 ? (
-                <View style={styles.wordGroup}>
-                  <Text style={styles.wordGroupTitle}>Ekstra</Text>
-                  <View style={styles.wordChipRow}>
-                    {pronunciationResult.comparison.extraWords.map((word, index) => (
-                      <View key={'extra-' + word + '-' + index} style={[styles.wordChip, styles.extraChip]}>
-                        <Text style={styles.wordChipText}>{word}</Text>
-                      </View>
-                    ))}
-                  </View>
-                </View>
-              ) : null}
-            </View>
-
-            <View style={styles.resultSection}>
-              <View style={styles.pronunciationHeaderRow}>
-                <Text style={styles.sectionTitle}>Pratik geri bildirimi</Text>
-                {__DEV__ && pronunciationResult.isMock ? (
-                  <View style={styles.mockTag}>
-                    <Text style={styles.mockTagText}>DEV</Text>
-                  </View>
-                ) : null}
-              </View>
-              {__DEV__ && pronunciationResult.isMock ? (
-                <Text style={styles.devFallback}>pronunciation: mock</Text>
-              ) : null}
-              <Text style={styles.feedbackText}>{pronunciationResult.feedbackTr}</Text>
-              {__DEV__ ? (
-                <View style={styles.scoreGrid}>
-                  <View style={styles.scorePill}>
-                    <Text style={styles.scorePillValue}>{pronunciationResult.pronunciationScore}</Text>
-                    <Text style={styles.scorePillLabel}>DEV puan</Text>
-                  </View>
-                  <View style={styles.scorePill}>
-                    <Text style={styles.scorePillValue}>{pronunciationResult.accuracyScore}</Text>
-                    <Text style={styles.scorePillLabel}>Eşleşme</Text>
-                  </View>
-                  <View style={styles.scorePill}>
-                    <Text style={styles.scorePillValue}>{pronunciationResult.completenessScore}</Text>
-                    <Text style={styles.scorePillLabel}>Tamlık</Text>
-                  </View>
-                </View>
-              ) : null}
-              {pronunciationResult.wordFeedback.map((item) => (
-                <View key={item.word} style={styles.wordFeedback}>
-                  <Text style={styles.wordTitle}>{item.word}</Text>
-                  <Text style={styles.body}>{item.issue}</Text>
-                  <Text style={styles.tip}>{item.suggestionTr}</Text>
-                </View>
-              ))}
-            </View>
-
-            <View style={styles.resultActions}>
-              <AppButton
-                icon={RotateCcw}
-                onPress={retryCurrentPrompt}
-                title="Tekrar dene"
-              />
-              <AppButton
-                onPress={nextPrompt}
-                title="Başka cümle"
-                variant="secondary"
-              />
-            </View>
-          </View>
+          <ResultCard
+            canMovePrompt={canMovePrompt}
+            canReplay={canReplay}
+            expectedText={prompt.expectedText}
+            onNextPrompt={nextPrompt}
+            onReplay={replay}
+            onRetry={retryCurrentPrompt}
+            pronunciationResult={pronunciationResult}
+            replaying={replaying}
+            transcriptionResult={transcriptionResult}
+          />
         ) : null}
       </AppScrollView>
     </Screen>
+  );
+}
+
+function AnalysisWave({ bars }: { bars: Animated.Value[] }) {
+  return (
+    <View style={styles.waveWrap}>
+      {bars.map((bar, index) => (
+        <Animated.View
+          key={'wave-' + index}
+          style={[
+            styles.waveBar,
+            {
+              transform: [{ scaleY: bar }],
+              opacity: bar.interpolate({ inputRange: [0.35, 1], outputRange: [0.45, 1] }),
+            },
+          ]}
+        />
+      ))}
+    </View>
+  );
+}
+
+function ResultCard({
+  canMovePrompt,
+  canReplay,
+  expectedText,
+  onNextPrompt,
+  onReplay,
+  onRetry,
+  pronunciationResult,
+  replaying,
+  transcriptionResult,
+}: {
+  canMovePrompt: boolean;
+  canReplay: boolean;
+  expectedText: string;
+  onNextPrompt: () => void;
+  onReplay: () => void;
+  onRetry: () => void;
+  pronunciationResult: PronunciationScore;
+  replaying: boolean;
+  transcriptionResult: TranscriptionResult;
+}) {
+  const resultColor = getResultColor(pronunciationResult);
+
+  return (
+    <View style={styles.feedbackCard}>
+      <View style={styles.resultHero}>
+        <CheckCircle2 color={resultColor} size={28} />
+        <View style={styles.resultHeroCopy}>
+          <Text style={[styles.resultTitle, { color: resultColor }]}>{getResultTitle(pronunciationResult)}</Text>
+          <Text style={styles.body}>Hedefe yakınlık</Text>
+        </View>
+        <Text style={[styles.similarityScore, { color: resultColor }]}>
+          {pronunciationResult.comparison.similarityScore}
+        </Text>
+      </View>
+
+      <View style={styles.sentenceGrid}>
+        <View style={styles.sentenceCard}>
+          <Text style={styles.sentenceLabel}>Beklenen</Text>
+          <Text style={styles.expectedResultText}>{expectedText}</Text>
+        </View>
+        <View style={styles.sentenceCard}>
+          <Text style={styles.sentenceLabel}>Söylediğin</Text>
+          <Text style={styles.transcriptText}>{transcriptionResult.transcript || 'Metin alınamadı.'}</Text>
+          {transcriptionResult.fallback ? (
+            <Text style={styles.fallbackText}>Şimdilik yerel tahmin kullanıldı.</Text>
+          ) : null}
+          {__DEV__ ? (
+            <View style={styles.debugChipRow}>
+              <View style={styles.debugChip}>
+                <Text style={styles.debugChipText}>STT: {transcriptionResult.provider ?? 'unknown'}</Text>
+              </View>
+              <View style={styles.debugChip}>
+                <Text style={styles.debugChipText}>model: {transcriptionResult.modelUsed ?? 'unknown'}</Text>
+              </View>
+              <View style={styles.debugChip}>
+                <Text style={styles.debugChipText}>fallback: {String(transcriptionResult.fallback ?? false)}</Text>
+              </View>
+              {pronunciationResult.isMock ? (
+                <View style={styles.debugChip}>
+                  <Text style={styles.debugChipText}>pronunciation: mock</Text>
+                </View>
+              ) : null}
+            </View>
+          ) : null}
+        </View>
+      </View>
+
+      {pronunciationResult.comparison.missingWords.length > 0 ? (
+        <WordGroup title="Eksik duyulan" words={pronunciationResult.comparison.missingWords} tone="missing" />
+      ) : null}
+      {pronunciationResult.comparison.extraWords.length > 0 ? (
+        <WordGroup title="Ekstra duyulan" words={pronunciationResult.comparison.extraWords} tone="extra" />
+      ) : null}
+
+      <View style={styles.feedbackNote}>
+        <Text style={styles.sectionTitle}>Pratik geri bildirimi</Text>
+        <Text style={styles.feedbackText}>{pronunciationResult.feedbackTr}</Text>
+      </View>
+
+      <View style={styles.resultActions}>
+        <AppButton icon={RotateCcw} onPress={onRetry} title="Tekrar dene" />
+        {canMovePrompt ? (
+          <AppButton onPress={onNextPrompt} title="Başka cümle" variant="secondary" />
+        ) : null}
+        <AppButton
+          disabled={!canReplay}
+          icon={Play}
+          loading={replaying}
+          onPress={onReplay}
+          title="Kaydı dinle"
+          variant="secondary"
+        />
+      </View>
+    </View>
+  );
+}
+
+function WordGroup({ title, tone, words }: { title: string; tone: 'missing' | 'extra'; words: string[] }) {
+  return (
+    <View style={styles.wordGroup}>
+      <Text style={styles.wordGroupTitle}>{title}</Text>
+      <View style={styles.wordChipRow}>
+        {words.slice(0, 6).map((word, index) => (
+          <View key={title + '-' + word + '-' + index} style={[styles.wordChip, tone === 'missing' ? styles.missingChip : styles.extraChip]}>
+            <Text style={styles.wordChipText}>{word}</Text>
+          </View>
+        ))}
+      </View>
+    </View>
   );
 }
 
@@ -631,9 +780,6 @@ const styles = StyleSheet.create({
     width: 44,
   },
   headerCopy: {
-    flex: 1,
-  },
-  flexCopy: {
     flex: 1,
   },
   kicker: {
@@ -672,6 +818,7 @@ const styles = StyleSheet.create({
   kickerDark: {
     ...typography.small,
     color: colors.royalPurple,
+    fontWeight: '900',
   },
   expected: {
     ...typography.heading,
@@ -685,35 +832,13 @@ const styles = StyleSheet.create({
     ...typography.small,
     color: colors.deepViolet,
   },
-  permissionCard: {
-    backgroundColor: colors.white,
-    borderColor: colors.border,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    gap: spacing.sm,
-    padding: spacing.lg,
-  },
-  sectionTitle: {
-    ...typography.body,
-    color: colors.deepViolet,
-    fontWeight: '900',
-  },
-  body: {
-    ...typography.body,
-    color: colors.muted,
-  },
-  errorText: {
-    ...typography.body,
-    color: colors.red,
-    fontWeight: '800',
-  },
   recorderCard: {
     alignItems: 'center',
     backgroundColor: colors.white,
     borderColor: colors.border,
     borderRadius: radius.lg,
     borderWidth: 1,
-    gap: spacing.md,
+    gap: spacing.sm,
     padding: spacing.lg,
   },
   recordingCard: {
@@ -721,50 +846,76 @@ const styles = StyleSheet.create({
   },
   duration: {
     color: colors.deepViolet,
-    fontSize: 42,
+    fontSize: 38,
     fontWeight: '900',
     letterSpacing: 0,
-    lineHeight: 50,
+    lineHeight: 44,
+  },
+  recordTitle: {
+    ...typography.heading,
+    color: colors.deepViolet,
+    textAlign: 'center',
+  },
+  body: {
+    ...typography.body,
+    color: colors.muted,
+    textAlign: 'center',
   },
   recordActions: {
     alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 168,
     paddingVertical: spacing.md,
   },
   recordPulse: {
     backgroundColor: colors.red,
     borderRadius: 999,
-    height: 156,
+    height: 166,
     position: 'absolute',
-    top: 2,
-    width: 156,
+    width: 166,
   },
   recordButton: {
     alignItems: 'center',
     backgroundColor: colors.royalPurple,
-    borderRadius: 72,
-    elevation: 6,
-    gap: spacing.xs,
-    height: 136,
+    borderRadius: 76,
+    elevation: 8,
+    height: 144,
     justifyContent: 'center',
     shadowColor: colors.deepViolet,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.16,
-    shadowRadius: 12,
-    width: 136,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18,
+    shadowRadius: 16,
+    width: 144,
   },
-  stopButton: {
+  recordButtonActive: {
     backgroundColor: colors.red,
   },
   disabledButton: {
     opacity: 0.5,
   },
-  recordButtonText: {
+  permissionText: {
     ...typography.small,
-    color: colors.white,
+    color: colors.muted,
+    textAlign: 'center',
   },
-  secondaryActions: {
-    alignSelf: 'stretch',
+  errorText: {
+    ...typography.body,
+    color: colors.red,
+    fontWeight: '800',
+    textAlign: 'center',
+  },
+  waveWrap: {
+    alignItems: 'center',
+    flexDirection: 'row',
     gap: spacing.sm,
+    height: 104,
+    justifyContent: 'center',
+  },
+  waveBar: {
+    backgroundColor: colors.royalPurple,
+    borderRadius: radius.pill,
+    height: 76,
+    width: 12,
   },
   feedbackCard: {
     backgroundColor: colors.white,
@@ -774,32 +925,38 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     padding: spacing.lg,
   },
-  feedbackHeader: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  resultRow: {
+  resultHero: {
     alignItems: 'center',
     flexDirection: 'row',
     gap: spacing.md,
   },
-  scoreValue: {
-    color: colors.green,
-    fontSize: 52,
+  resultHeroCopy: {
+    flex: 1,
+    gap: 2,
+  },
+  resultTitle: {
+    ...typography.heading,
+    fontWeight: '900',
+  },
+  similarityScore: {
+    fontSize: 46,
     fontWeight: '900',
     letterSpacing: 0,
-    lineHeight: 58,
+    lineHeight: 50,
   },
-  resultCopy: {
-    flex: 1,
-    gap: spacing.xs,
+  sentenceGrid: {
+    gap: spacing.sm,
   },
-  resultSection: {
+  sentenceCard: {
     backgroundColor: colors.surface,
     borderRadius: radius.md,
-    gap: spacing.sm,
+    gap: spacing.xs,
     padding: spacing.md,
+  },
+  sentenceLabel: {
+    ...typography.small,
+    color: colors.royalPurple,
+    fontWeight: '900',
   },
   transcriptText: {
     ...typography.body,
@@ -831,31 +988,6 @@ const styles = StyleSheet.create({
     color: colors.royalPurple,
     fontWeight: '900',
   },
-  comparisonHeaderRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: spacing.md,
-    justifyContent: 'space-between',
-  },
-  similarityScore: {
-    color: colors.royalPurple,
-    fontSize: 42,
-    fontWeight: '900',
-    letterSpacing: 0,
-    lineHeight: 48,
-  },
-  similarityHigh: {
-    color: colors.green,
-  },
-  similarityMedium: {
-    color: '#A66500',
-  },
-  similarityLow: {
-    color: colors.red,
-  },
-  resultActions: {
-    gap: spacing.sm,
-  },
   wordGroup: {
     gap: spacing.xs,
   },
@@ -874,9 +1006,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
   },
-  matchedChip: {
-    backgroundColor: '#DFF8EA',
-  },
   missingChip: {
     backgroundColor: '#FFE7E7',
   },
@@ -888,71 +1017,23 @@ const styles = StyleSheet.create({
     color: colors.deepViolet,
     fontWeight: '900',
   },
-  emptyChipText: {
-    ...typography.small,
-    color: colors.muted,
+  feedbackNote: {
+    backgroundColor: colors.lavender,
+    borderRadius: radius.md,
+    gap: spacing.xs,
+    padding: spacing.md,
   },
-  pronunciationHeaderRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: spacing.sm,
-    justifyContent: 'space-between',
-  },
-  mockTag: {
-    backgroundColor: colors.yellow,
-    borderRadius: radius.sm,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-  },
-  mockTagText: {
-    ...typography.small,
-    color: colors.deepViolet,
-    fontWeight: '900',
-  },
-  scoreLabel: {
+  sectionTitle: {
     ...typography.body,
     color: colors.deepViolet,
     fontWeight: '900',
-  },
-  scoreGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-  },
-  scorePill: {
-    backgroundColor: colors.lavender,
-    borderRadius: radius.sm,
-    flexGrow: 1,
-    minWidth: 92,
-    padding: spacing.md,
-  },
-  scorePillValue: {
-    ...typography.heading,
-    color: colors.royalPurple,
-  },
-  scorePillLabel: {
-    ...typography.small,
-    color: colors.deepViolet,
   },
   feedbackText: {
     ...typography.body,
     color: colors.deepViolet,
   },
-  devFallback: {
-    ...typography.small,
-    color: colors.royalPurple,
-    fontWeight: '900',
-  },
-  wordFeedback: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    gap: spacing.xs,
-    padding: spacing.md,
-  },
-  wordTitle: {
-    ...typography.body,
-    color: colors.royalPurple,
-    fontWeight: '900',
+  resultActions: {
+    gap: spacing.sm,
   },
   pressed: {
     opacity: 0.78,

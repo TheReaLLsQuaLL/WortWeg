@@ -4,6 +4,8 @@ export type LocalEventType =
   | 'app_opened'
   | 'app_boot_decision'
   | 'onboarding_started'
+  | 'onboarding_step_viewed'
+  | 'onboarding_option_selected'
   | 'onboarding_completed'
   | 'onboarding_skipped_if_applicable'
   | 'placement_started'
@@ -22,6 +24,12 @@ export type LocalEventType =
   | 'ai_chat_opened'
   | 'ai_chat_backend_fallback'
   | 'speaking_opened'
+  | 'speaking_press_started'
+  | 'speaking_press_released'
+  | 'speaking_too_short'
+  | 'speech_analysis_started'
+  | 'speech_analysis_completed'
+  | 'speech_analysis_failed'
   | 'speech_transcription_started'
   | 'speech_transcription_completed'
   | 'speech_transcription_fallback'
@@ -55,6 +63,12 @@ export type LocalEventMetadata = Partial<{
   hasOnboarded: boolean;
   hasProfile: boolean;
   hasLearningPlan: boolean;
+  stepId: string;
+  selectedOptionId: string;
+  platform: string;
+  audioExtension: string;
+  audioMimeType: string;
+  source: string;
 }>;
 
 export type LocalEvent = {
