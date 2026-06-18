@@ -2,37 +2,36 @@ import type { CurriculumModule } from '../../types/curriculum';
 
 export const modulesA2: CurriculumModule[] = [
   {
-    "id": "a2-01-seyahat-ve-ulasim",
+    "id": "a2-01-gunluk-planlar",
     "level": "A2",
     "order": 1,
-    "titleTr": "Seyahat ve Ulaşım",
-    "titleDe": "Reisen und Verkehr",
-    "goalTr": "Seyahat ve Ulaşım konusunda daha bağlı A2 cümleleri kurmak ve pratik görevler çözmek.",
+    "titleTr": "Günlük Planlar",
+    "titleDe": "Tagespläne",
+    "goalTr": "Günün planını zaman ifadeleri ve ayrılabilir fiillerle anlatmak.",
     "cefrCanDoTr": "Tanıdık günlük konularda kısa ve bağlı bilgi alışverişi yapabilirim.",
     "topics": [
-      "tren",
-      "otobüs",
-      "bilet",
-      "otel"
+      "günlük rutin",
+      "zaman ifadeleri",
+      "ayrılabilir fiiller",
+      "alışveriş"
     ],
     "grammar": [
-      "Perfekt tekrar",
-      "wohin",
-      "mit + ulaşım",
-      "zaman edatları"
+      "ayrılabilir fiiller",
+      "zaman başta + fiil ikinci yerde",
+      "um/am ifadeleri"
     ],
     "vocabularyThemes": [
-      "ulaşım",
-      "bilet",
-      "otel",
-      "yolculuk"
+      "günlük plan",
+      "sabah/akşam",
+      "arama",
+      "alışveriş"
     ],
     "pronunciationFocus": [
       "uzun duyurularda ana kelime"
     ],
     "speakingTasks": [
-      "tren hakkında iki kısa Almanca cümle söyle.",
-      "Bir soru sor ve kısa cevap ver."
+      "Günün planını iki kısa Almanca cümleyle söyle.",
+      "Ayrılabilir fiilli bir cümleyi sesli oku."
     ],
     "listeningTasks": [
       "tren bağlamında yavaş bir cümlede ana bilgiyi seç.",
@@ -57,42 +56,42 @@ export const modulesA2: CurriculumModule[] = [
     "estimatedMinutes": 130,
     "unlockRequirements": {},
     "trackBoosts": {
-      "travel": 4,
-      "exam_a1": 1
+      "daily_life": 4,
+      "speaking_confidence": 2
     }
   },
   {
-    "id": "a2-02-sehirde-yasam",
+    "id": "a2-02-gecmisten-bahsetmek",
     "level": "A2",
     "order": 2,
-    "titleTr": "Şehirde Yaşam",
-    "titleDe": "Leben in der Stadt",
-    "goalTr": "Şehirde Yaşam konusunda daha bağlı A2 cümleleri kurmak ve pratik görevler çözmek.",
+    "titleTr": "Geçmişten Bahsetmek",
+    "titleDe": "Über Vergangenes sprechen",
+    "goalTr": "Dün veya hafta sonu yaptıklarını basit Perfekt cümleleriyle anlatmak.",
     "cefrCanDoTr": "Tanıdık günlük konularda kısa ve bağlı bilgi alışverişi yapabilirim.",
     "topics": [
-      "mahalle",
-      "yönler",
-      "hizmetler",
-      "şehir işleri"
+      "hafta sonu",
+      "Perfekt",
+      "haben/sein",
+      "seyahat"
     ],
     "grammar": [
-      "dativ edatlarına hazırlık",
-      "es gibt",
-      "lokal ifadeler"
+      "Perfekt giriş",
+      "haben/sein seçimi",
+      "Partizip sona yakın"
     ],
     "vocabularyThemes": [
-      "şehir",
-      "belediye/hizmet",
-      "adres",
-      "konum"
+      "geçmiş aktiviteler",
+      "seyahat",
+      "tren",
+      "bilet"
     ],
     "pronunciationFocus": [
       "ch/ş ayrımı",
       "cümle vurgusu"
     ],
     "speakingTasks": [
-      "mahalle hakkında iki kısa Almanca cümle söyle.",
-      "Bir soru sor ve kısa cevap ver."
+      "Hafta sonunu iki kısa Almanca cümleyle anlat.",
+      "haben ve sein ile birer geçmiş cümlesi söyle."
     ],
     "listeningTasks": [
       "mahalle bağlamında yavaş bir cümlede ana bilgiyi seç.",
@@ -119,43 +118,43 @@ export const modulesA2: CurriculumModule[] = [
       "minCompletedModules": 1
     },
     "trackBoosts": {
-      "daily_life": 4,
-      "family_reunion": 2,
-      "travel": 2
+      "daily_life": 3,
+      "travel": 2,
+      "exam_a1": 1
     }
   },
   {
-    "id": "a2-03-saglik-ve-doktor",
+    "id": "a2-03-randevu-ve-plan-yapma",
     "level": "A2",
     "order": 3,
-    "titleTr": "Sağlık ve Doktor",
-    "titleDe": "Gesundheit und Arzt",
-    "goalTr": "Sağlık ve Doktor konusunda daha bağlı A2 cümleleri kurmak ve pratik görevler çözmek.",
+    "titleTr": "Randevu ve Plan Yapma",
+    "titleDe": "Termine vereinbaren",
+    "goalTr": "Bir randevu istemek, zamanı değiştirmek ve kibarca konuşmak.",
     "cefrCanDoTr": "Tanıdık günlük konularda kısa ve bağlı bilgi alışverişi yapabilirim.",
     "topics": [
-      "doktor",
-      "şikayet",
-      "ilaç",
-      "randevu"
+      "randevu",
+      "kibar rica",
+      "modal fiiller",
+      "mesaj"
     ],
     "grammar": [
-      "müssen/sollen",
-      "haben/sein",
-      "dativ zamirlere giriş"
+      "können/möchten/müssen",
+      "modal fiil + mastar",
+      "resmi soru"
     ],
     "vocabularyThemes": [
-      "vücut",
-      "hastalık",
-      "ilaç",
-      "randevu"
+      "randevu",
+      "görüşme",
+      "mesaj",
+      "ofis"
     ],
     "pronunciationFocus": [
       "ö/ü netliği",
       "doktor konuşmasında yavaşlama"
     ],
     "speakingTasks": [
-      "doktor hakkında iki kısa Almanca cümle söyle.",
-      "Bir soru sor ve kısa cevap ver."
+      "Kibar bir randevu isteğini sesli söyle.",
+      "Können wir...? ile kısa soru sor."
     ],
     "listeningTasks": [
       "doktor bağlamında yavaş bir cümlede ana bilgiyi seç.",
@@ -182,42 +181,43 @@ export const modulesA2: CurriculumModule[] = [
       "minCompletedModules": 2
     },
     "trackBoosts": {
-      "family_reunion": 4,
-      "daily_life": 3
+      "daily_life": 4,
+      "family_reunion": 2,
+      "work_german": 2
     }
   },
   {
-    "id": "a2-04-is-ve-meslekler",
+    "id": "a2-04-yol-tarifi-ve-sehir",
     "level": "A2",
     "order": 4,
-    "titleTr": "İş ve Meslekler",
-    "titleDe": "Arbeit und Berufe",
-    "goalTr": "İş ve Meslekler konusunda daha bağlı A2 cümleleri kurmak ve pratik görevler çözmek.",
+    "titleTr": "Yol Tarifi ve Şehir",
+    "titleDe": "Wegbeschreibung und Stadt",
+    "goalTr": "Şehirde basit yol tarifi sormak ve anlamak.",
     "cefrCanDoTr": "Tanıdık günlük konularda kısa ve bağlı bilgi alışverişi yapabilirim.",
     "topics": [
-      "meslek",
-      "iş günü",
-      "başvuru",
-      "iş yeri"
+      "yol tarifi",
+      "şehir yerleri",
+      "yönler",
+      "konum"
     ],
     "grammar": [
-      "modal fiiller",
-      "weil girişi",
-      "Präteritum: war/hatte"
+      "Gehen Sie...",
+      "neben/gegenüber girişi",
+      "konum ifadeleri"
     ],
     "vocabularyThemes": [
-      "meslekler",
-      "iş görevleri",
-      "başvuru",
-      "çalışma zamanı"
+      "şehir",
+      "eczane",
+      "istasyon",
+      "yönler"
     ],
     "pronunciationFocus": [
       "resmi tonlama",
       "telefon ritmi"
     ],
     "speakingTasks": [
-      "meslek hakkında iki kısa Almanca cümle söyle.",
-      "Bir soru sor ve kısa cevap ver."
+      "Kibar bir yol tarifi cümlesini sesli söyle.",
+      "Bir şehir yerinin nerede olduğunu anlat."
     ],
     "listeningTasks": [
       "meslek bağlamında yavaş bir cümlede ana bilgiyi seç.",
@@ -244,8 +244,8 @@ export const modulesA2: CurriculumModule[] = [
       "minCompletedModules": 3
     },
     "trackBoosts": {
-      "work_german": 5,
-      "university": 2
+      "travel": 4,
+      "daily_life": 3
     }
   },
   {

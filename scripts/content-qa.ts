@@ -46,8 +46,8 @@ for (const lesson of playableLessons) {
     errors.push('Lesson missing titleTr/titleDe/goalTr: ' + lesson.id);
   }
 
-  if (lesson.baseExercises.length < 8 || lesson.baseExercises.length > 15) {
-    errors.push('Lesson must have 8-15 exercises: ' + lesson.id + ' has ' + lesson.baseExercises.length);
+  if (lesson.baseExercises.length !== 8) {
+    errors.push('Playable lesson must have exactly 8 exercises: ' + lesson.id + ' has ' + lesson.baseExercises.length);
   }
 
   if (!lesson.speakingPrompt) {
@@ -62,8 +62,8 @@ for (const lesson of playableLessons) {
     errors.push('Lesson missing reviewSummaryTr: ' + lesson.id);
   }
 
-  if (lesson.vocabulary.length === 0) {
-    errors.push('Lesson missing vocabulary: ' + lesson.id);
+  if (lesson.vocabulary.length !== 8) {
+    errors.push('Playable lesson must have exactly 8 vocabulary items: ' + lesson.id + ' has ' + lesson.vocabulary.length);
   }
 
   for (const word of lesson.vocabulary) {

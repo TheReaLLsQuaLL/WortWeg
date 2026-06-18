@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Alert, Linking, Modal, StyleSheet, Text, View } from 'react-native';
+import { Alert, Clipboard, Linking, Modal, Platform, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Map, NotebookTabs, RotateCcw, Settings2 } from 'lucide-react-native';
 
 import { AppButton } from '../components/AppButton';
@@ -7,6 +7,7 @@ import { DevEventLogPanel } from '../components/DevEventLogPanel';
 import { EmptyState } from '../components/EmptyState';
 import { AppScrollView, Screen } from '../components/layout';
 import { TopBar } from '../components/TopBar';
+import { ALPHA_BUILD_DATE, APP_NAME, APP_VERSION } from '../data/constants';
 import { getPlayableLessonsForPlan } from '../data/lessons';
 import { colors, radius, spacing, typography } from '../data/theme';
 import { getKnownReviewCardCount, getReviewCoverage } from '../lib/srs';
@@ -22,10 +23,53 @@ type ProfileScreenProps = {
   onResetApp: () => Promise<void>;
 };
 
+type BackendStatus = 'checking' | 'reachable' | 'unreachable' | 'not_configured';
+
+const getBackendUrl = () => process.env.EXPO_PUBLIC_AI_BACKEND_URL?.trim() ?? '';
+
+const getBackendHost = (backendUrl: string) => {
+  if (!backendUrl) {
+    return 'Ayarlı değil';
+  }
+
+  const withoutProtocol = backendUrl.replace(/^https?:\/\//, '');
+  const host = withoutProtocol.split('/')[0]?.split('?')[0] ?? '';
+  const safeHost = host.includes('@') ? host.split('@').pop() : host;
+
+  return safeHost || 'Ayarlı değil';
+};
+
+const backendStatusLabel: Record<BackendStatus, string> = {
+  checking: 'kontrol ediliyor',
+  reachable: 'erişilebilir',
+  unreachable: 'erişilemiyor',
+  not_configured: 'ayarlı değil',
+};
+
+const yesNo = (value: boolean) => (value ? 'evet' : 'hayır');
+
+type InfoRowProps = {
+  label: string;
+  value: string;
+};
+
+function InfoRow({ label, value }: InfoRowProps) {
+  return (
+    <View style={styles.infoRow}>
+      <Text style={styles.infoLabel}>{label}</Text>
+      <Text style={styles.infoValue}>{value}</Text>
+    </View>
+  );
+}
+
 export function ProfileScreen({ navigation, userState, onUpdateState, onResetApp }: ProfileScreenProps) {
   const [activeMistakeId, setActiveMistakeId] = useState<string | null>(null);
   const [debugModalVisible, setDebugModalVisible] = useState(false);
   const [debugText, setDebugText] = useState('');
+  const [testerInfoModalVisible, setTesterInfoModalVisible] = useState(false);
+  const [testerInfoText, setTesterInfoText] = useState('');
+  const [backendStatus, setBackendStatus] = useState<BackendStatus>('not_configured');
+  const [hasSpeechDebug, setHasSpeechDebug] = useState(false);
   const level = Math.floor(userState.xp / 50) + 1;
   const xpInCurrentLevel = userState.xp % 50;
   const xpToNextLevel = xpInCurrentLevel === 0 ? 50 : 50 - xpInCurrentLevel;
@@ -40,6 +84,9 @@ export function ProfileScreen({ navigation, userState, onUpdateState, onResetApp
     ) * 100,
   );
   const recentMistakes = userState.mistakes.slice(-8).reverse();
+  const backendUrl = getBackendUrl();
+  const backendHost = getBackendHost(backendUrl);
+  const currentLevel = userState.learningPlan?.currentLevel ?? userState.profile?.startLevel ?? 'A0';
   const badges = [
     { label: 'İlk ders', active: userState.completedLessons.length >= 1 },
     { label: '3 gün seri', active: userState.streak >= 3 },
@@ -53,12 +100,91 @@ export function ProfileScreen({ navigation, userState, onUpdateState, onResetApp
     trackLocalEvent({ type: 'mistakes_opened', screen: 'Profile' });
   }, []);
 
+  useEffect(() => {
+    if (!__DEV__) {
+      return;
+    }
+
+    let mounted = true;
+
+    const loadDevStatus = async () => {
+      const events = await getLocalEventLog();
+      const speechEvents = events.some((event) => event.type.startsWith('speech_') || event.type.startsWith('recording_'));
+
+      if (mounted) {
+        setHasSpeechDebug(speechEvents);
+      }
+
+      if (!backendUrl) {
+        if (mounted) {
+          setBackendStatus('not_configured');
+        }
+        return;
+      }
+
+      if (mounted) {
+        setBackendStatus('checking');
+      }
+
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 2500);
+
+      try {
+        const response = await fetch(backendUrl.replace(/\/+$/, '') + '/health', { signal: controller.signal });
+
+        if (mounted) {
+          setBackendStatus(response.ok ? 'reachable' : 'unreachable');
+        }
+      } catch {
+        if (mounted) {
+          setBackendStatus('unreachable');
+        }
+      } finally {
+        clearTimeout(timeout);
+      }
+    };
+
+    void loadDevStatus();
+
+    return () => {
+      mounted = false;
+    };
+  }, [backendUrl]);
+
   const clearMistake = async (mistakeId: string) => {
     await onUpdateState((state) => ({
       ...state,
       mistakes: state.mistakes.filter((mistake) => mistake.id !== mistakeId),
     }));
     setActiveMistakeId(null);
+  };
+
+  const openTesterInfo = () => {
+    const text = [
+      'WortWeg Alpha Feedback',
+      'Phone:',
+      'OS: ' + Platform.OS + ' ' + String(Platform.Version),
+      'App version: ' + APP_VERSION,
+      'Environment: Private Alpha',
+      'Backend host: ' + backendHost,
+      'Mode: ' + (__DEV__ ? 'DEV' : 'Production'),
+      'Onboarding completed: ' + String(userState.hasCompletedOnboarding),
+      'Current level: ' + currentLevel,
+      '',
+      'Screen:',
+      'What happened:',
+      'Expected:',
+      'Can reproduce: yes/no',
+    ].join('\n');
+
+    try {
+      Clipboard.setString(text);
+    } catch {
+      // Selectable fallback remains available in the modal.
+    }
+
+    setTesterInfoText(text);
+    setTesterInfoModalVisible(true);
   };
 
   const openFeedbackDraft = async (eventLogText?: string) => {
@@ -177,6 +303,28 @@ export function ProfileScreen({ navigation, userState, onUpdateState, onResetApp
             {' '}
             {userState.profile?.dailyGoalXp ?? 20} XP.
           </Text>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Alpha bilgileri</Text>
+          <Text style={styles.body}>Bir hata görürsen ekran görüntüsüyle birlikte test bilgilerini gönder.</Text>
+          <View style={styles.infoList}>
+            <InfoRow label="App" value={APP_NAME} />
+            <InfoRow label="Ortam" value="Private Alpha" />
+            <InfoRow label="Sürüm" value={APP_VERSION} />
+            <InfoRow label="Build tarihi" value={ALPHA_BUILD_DATE} />
+            <InfoRow label="Platform" value={Platform.OS} />
+            {__DEV__ ? <InfoRow label="Mod" value="DEV / Expo" /> : null}
+            <InfoRow label="Backend host" value={backendHost} />
+          </View>
+          {__DEV__ ? (
+            <View style={styles.devStatusBox}>
+              <InfoRow label="Backend" value={backendStatusLabel[backendStatus]} />
+              <InfoRow label="Speech endpoint" value={yesNo(Boolean(backendUrl))} />
+              <InfoRow label="Son speech debug" value={yesNo(hasSpeechDebug)} />
+            </View>
+          ) : null}
+          <AppButton onPress={openTesterInfo} title="Test bilgilerini kopyala" variant="secondary" />
         </View>
 
         <View style={styles.section}>
@@ -299,6 +447,29 @@ export function ProfileScreen({ navigation, userState, onUpdateState, onResetApp
           {/* TODO: premium subscription with RevenueCat should be wired here. */}
         </View>
 
+        <Modal
+          animationType="slide"
+          onRequestClose={() => setTesterInfoModalVisible(false)}
+          transparent
+          visible={testerInfoModalVisible}
+        >
+          <View style={styles.modalBackdrop}>
+            <View style={styles.debugModal}>
+              <Text style={styles.sectionTitle}>Test bilgileri</Text>
+              <Text style={styles.body}>Panoya kopyalandı. Gerekirse metne uzun basıp tekrar seçebilirsin.</Text>
+              <TextInput
+                editable={false}
+                multiline
+                scrollEnabled
+                selectTextOnFocus
+                style={styles.testerInfoBox}
+                value={testerInfoText}
+              />
+              <AppButton onPress={() => setTesterInfoModalVisible(false)} title="Kapat" variant="secondary" />
+            </View>
+          </View>
+        </Modal>
+
         {__DEV__ ? (
           <Modal
             animationType="fade"
@@ -398,6 +569,35 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: colors.muted,
   },
+  infoList: {
+    gap: spacing.xs,
+  },
+  infoRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.md,
+    justifyContent: 'space-between',
+  },
+  infoLabel: {
+    ...typography.small,
+    color: colors.muted,
+    flex: 1,
+  },
+  infoValue: {
+    ...typography.small,
+    color: colors.deepViolet,
+    flex: 1,
+    fontWeight: '800',
+    textAlign: 'right',
+  },
+  devStatusBox: {
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    gap: spacing.xs,
+    padding: spacing.md,
+  },
   planTitle: {
     ...typography.body,
     color: colors.deepViolet,
@@ -462,5 +662,16 @@ const styles = StyleSheet.create({
     ...typography.small,
     color: colors.deepViolet,
     lineHeight: 20,
+  },
+  testerInfoBox: {
+    ...typography.small,
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    color: colors.deepViolet,
+    minHeight: 260,
+    padding: spacing.md,
+    textAlignVertical: 'top',
   },
 });

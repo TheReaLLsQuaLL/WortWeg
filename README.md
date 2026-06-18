@@ -438,7 +438,7 @@ Alpha test checklist:
 3. Reset, complete onboarding with placement, accept the recommendation, then confirm Home opens.
 4. Start A0.1 from Home, answer at least one question wrong, finish the lesson, and confirm XP/progress updates.
 5. Open Kelime review and Hatalarım.
-6. Open CurriculumMap and confirm A0/A1 lessons open while A2/B1/B2 show coming-soon behavior.
+6. Open CurriculumMap and confirm A0/A1 plus the first four A2 lessons open while later A2/B1/B2 modules show coming-soon behavior.
 7. Open AI chat and send a short A1 message.
 8. Open speaking practice, press and hold the microphone, speak, release, replay, and confirm:
    - Release starts the animated analysis state.
@@ -476,7 +476,7 @@ Privacy expectations:
 
 Known alpha limitations:
 
-- A2/B1/B2 are curriculum metadata only; playable lessons currently focus on A0/A1.
+- A0/A1 and the first four A2 lessons are playable; later A2 plus B1/B2 remain curriculum metadata for now.
 - Speaking transcript uses backend OpenAI STT and requires backend reachability plus OpenAI API quota.
 - Speaking feedback is transcript-comparison based, not real phonetic pronunciation scoring.
 - This is Expo Go/dev-build testing only for now.
@@ -484,7 +484,7 @@ Known alpha limitations:
 - Feedback opens a mail draft/template; there is no feedback backend yet.
 - AI chat needs the local backend and falls back to a local Wolli response if unavailable.
 
-See also: `docs/alpha-test-checklist.md` for a short tester-facing Turkish checklist and `docs/language-app-ux-research.md` for high-level UX research notes.
+See also: `docs/alpha-test-checklist.md` for a short tester-facing Turkish checklist, `docs/backend-roadmap.md` for future public backend planning, and `docs/language-app-ux-research.md` for high-level UX research notes.
 
 ## Product Notes
 

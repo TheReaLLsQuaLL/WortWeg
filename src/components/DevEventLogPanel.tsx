@@ -50,13 +50,13 @@ export function DevEventLogPanel({ onFeedbackPress }: DevEventLogPanelProps) {
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>Alpha test günlüğü</Text>
       <Text style={styles.body}>
-        Sadece yerel ürün olayları tutulur. Mesaj, ses, cevap metni veya kişisel bilgi kaydedilmez.
+        Gizli anahtar veya ses kaydı içermez. Mesaj, cevap metni ve kişisel bilgi kaydedilmez.
       </Text>
       <AppButton
         icon={FileText}
         loading={loading}
         onPress={() => void openExport()}
-        title="Test günlüğünü kopyala"
+        title="Alpha logunu dışa aktar"
         variant="secondary"
       />
       <AppButton

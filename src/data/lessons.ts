@@ -1,14 +1,15 @@
 import { lessonsA0 } from './lessons.a0';
 import { lessonsA1 } from './lessons.a1';
+import { lessonsA2 } from './lessons.a2';
 import type { CurriculumLevelId } from '../types/curriculum';
 import type { LearningPlan, StartLevelId, TargetLevelId } from '../types/learningPlan';
 import type { Lesson } from '../types/lesson';
 
-export const playableLessons: Lesson[] = [...lessonsA0, ...lessonsA1];
+export const playableLessons: Lesson[] = [...lessonsA0, ...lessonsA1, ...lessonsA2];
 
-export { lessonsA0, lessonsA1 };
+export { lessonsA0, lessonsA1, lessonsA2 };
 
-export const playableLevelOrder: Array<'A0' | 'A1'> = ['A0', 'A1'];
+export const playableLevelOrder: Array<'A0' | 'A1' | 'A2'> = ['A0', 'A1', 'A2'];
 
 export const getLessonById = (lessonId: string) =>
   playableLessons.find((lesson) => lesson.id === lessonId);
@@ -19,17 +20,21 @@ export const getPlayableLessonByModuleId = (moduleId: string) =>
 export const getLessonsForLevel = (levelId: CurriculumLevelId) =>
   playableLessons.filter((lesson) => lesson.cefr === levelId);
 
-const normalizeStartLevel = (level?: StartLevelId): 'A0' | 'A1' => {
+const normalizeStartLevel = (level?: StartLevelId): 'A0' | 'A1' | 'A2' => {
   if (level === 'zero' || level === 'A0') {
     return 'A0';
+  }
+
+  if (level === 'A2' || level === 'B1') {
+    return 'A2';
   }
 
   return 'A1';
 };
 
-const normalizeTargetLevel = (level?: TargetLevelId): 'A0' | 'A1' => {
-  if (!level || level === 'A1') {
-    return 'A1';
+const normalizeTargetLevel = (level?: TargetLevelId): 'A0' | 'A1' | 'A2' => {
+  if (level === 'A2' || level === 'B1' || level === 'B2') {
+    return 'A2';
   }
 
   return 'A1';
