@@ -56,6 +56,7 @@ export const submitExamAnswer = async (
   const pronunciation = await scorePronunciation(
     audioUri,
     question.expectedText ?? '',
+    transcription.transcript,
   );
   const speakingGrade = await gradeSpeaking({
     expectedText: question.expectedText ?? '',

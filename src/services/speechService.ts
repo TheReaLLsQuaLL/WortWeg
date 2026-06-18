@@ -23,6 +23,7 @@ export type RecordingResult = {
 
 export type TranscriptionResult = {
   transcript: string;
+  language?: string;
   confidence: number;
   provider?: string;
   modelUsed?: string;
@@ -39,6 +40,8 @@ export type WordPronunciationFeedback = {
 
 export type PronunciationScore = {
   pronunciationScore: number;
+  isMock: boolean;
+  provider: 'mock';
   accuracyScore: number;
   fluencyScore: number;
   completenessScore: number;
@@ -117,6 +120,7 @@ const getAudioMimeType = (extension: string) => {
 
 const makeMockTranscription = (audioUri: string, fallbackReason?: string): TranscriptionResult => ({
   transcript: audioUri ? 'Ich heiße Toprak und ich wohne in Istanbul.' : '',
+  language: 'de',
   confidence: audioUri ? 0.92 : 0,
   provider: 'mock',
   modelUsed: fallbackReason ? 'mock:' + fallbackReason : 'mock:local',
@@ -478,6 +482,7 @@ export const transcribeGerman = async (
 
     const transcriptResult: TranscriptionResult = {
       transcript: body.transcript,
+      language: body.language || 'de',
       confidence: typeof body.confidence === 'number' ? body.confidence : 0,
       provider: body.provider,
       modelUsed: body.modelUsed,
@@ -502,6 +507,8 @@ export const transcribeGerman = async (
       modelUsed: body.modelUsed,
       fallback: body.fallback,
       responseTimeMs,
+      hasTranscript: Boolean(body.transcript),
+      transcriptLength: body.transcript.length,
     });
 
     return transcriptResult;
@@ -536,6 +543,7 @@ export const transcribeGerman = async (
 export const scorePronunciation = async (
   audioUri: string,
   expectedText: string,
+  transcript?: string,
 ): Promise<PronunciationScore> => {
   // TODO: pronunciation scoring should call Azure Pronunciation Assessment via backend.
   await wait(850);
@@ -543,6 +551,8 @@ export const scorePronunciation = async (
   if (!audioUri || !expectedText) {
     return {
       pronunciationScore: 0,
+      isMock: true,
+      provider: 'mock',
       accuracyScore: 0,
       fluencyScore: 0,
       completenessScore: 0,
@@ -551,17 +561,31 @@ export const scorePronunciation = async (
     };
   }
 
+  const normalizedExpected = expectedText.trim().toLocaleLowerCase('de-DE');
+  const normalizedTranscript = transcript?.trim().toLocaleLowerCase('de-DE') ?? '';
+  const transcriptMatchesExpected = Boolean(normalizedTranscript) && normalizedTranscript === normalizedExpected;
+  const transcriptLooksClose = Boolean(normalizedTranscript) && (
+    normalizedExpected.includes(normalizedTranscript) || normalizedTranscript.includes(normalizedExpected)
+  );
+
+  const feedbackTr = transcriptMatchesExpected || transcriptLooksClose
+    ? 'Transcript hedef cümleyle uyumlu görünüyor. Telaffuz skoru şimdilik mock; gerçek ses analizi daha sonra eklenecek.'
+    : normalizedTranscript
+      ? 'Transcript hedef cümleden biraz farklı görünüyor. Telaffuz skoru şimdilik mock; cümleyi yavaş ve net tekrar oku.'
+      : 'Transcript alınamadı. Telaffuz skoru şimdilik mock; kaydı tekrar deneyebilirsin.';
+
   return {
-    pronunciationScore: 84,
-    accuracyScore: 88,
+    pronunciationScore: transcriptMatchesExpected || transcriptLooksClose ? 88 : 82,
+    isMock: true,
+    provider: 'mock',
+    accuracyScore: transcriptMatchesExpected || transcriptLooksClose ? 90 : 84,
     fluencyScore: 76,
-    completenessScore: 90,
-    feedbackTr:
-      "Çok iyi. 'heiße' kelimesini biraz daha net söyle ve cümleyi daha akıcı oku.",
+    completenessScore: transcriptMatchesExpected || transcriptLooksClose ? 92 : 86,
+    feedbackTr,
     wordFeedback: [
       {
         word: 'heiße',
-        issue: 'Biraz belirsiz telaffuz edildi.',
+        issue: 'Bu bölüm gerçek telaffuz analizi değil, mock geri bildirimdir.',
         suggestionTr: "ß sesini 's' gibi net söyle.",
       },
     ],

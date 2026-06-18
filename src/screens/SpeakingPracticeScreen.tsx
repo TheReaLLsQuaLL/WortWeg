@@ -78,8 +78,8 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
   const [status, setStatus] = useState<PracticeStatus>('idle');
   const [audioUri, setAudioUri] = useState<string | null>(null);
   const [durationMs, setDurationMs] = useState(0);
-  const [transcript, setTranscript] = useState<TranscriptionResult | null>(null);
-  const [pronunciation, setPronunciation] = useState<PronunciationScore | null>(null);
+  const [transcriptionResult, setTranscriptionResult] = useState<TranscriptionResult | null>(null);
+  const [pronunciationResult, setPronunciationResult] = useState<PronunciationScore | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [replaying, setReplaying] = useState(false);
   const durationTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -153,8 +153,8 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
   const clearFeedback = () => {
     setAudioUri(null);
     setDurationMs(0);
-    setTranscript(null);
-    setPronunciation(null);
+    setTranscriptionResult(null);
+    setPronunciationResult(null);
     setErrorMessage(null);
     setReplaying(false);
     clearReplayTimer();
@@ -249,15 +249,30 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
       setSafeStatus('recorded');
       setSafeStatus('transcribing');
 
-      const nextTranscript = await transcribeGerman(recording.uri, prompt.expectedText);
-      const nextPronunciation = await scorePronunciation(recording.uri, prompt.expectedText);
+      const nextTranscriptionResult = await transcribeGerman(recording.uri, prompt.expectedText);
+
+      if (__DEV__) {
+        console.log('[WortWeg Speech UI] transcription result', {
+          provider: nextTranscriptionResult.provider,
+          modelUsed: nextTranscriptionResult.modelUsed,
+          fallback: nextTranscriptionResult.fallback,
+          hasTranscript: Boolean(nextTranscriptionResult.transcript),
+          transcriptLength: nextTranscriptionResult.transcript.length,
+        });
+      }
+
+      const nextPronunciationResult = await scorePronunciation(
+        recording.uri,
+        prompt.expectedText,
+        nextTranscriptionResult.transcript,
+      );
 
       if (!mountedRef.current) {
         return;
       }
 
-      setTranscript(nextTranscript);
-      setPronunciation(nextPronunciation);
+      setTranscriptionResult(nextTranscriptionResult);
+      setPronunciationResult(nextPronunciationResult);
       setSafeStatus('scored');
     } catch (error) {
       clearDurationTimer();
@@ -330,7 +345,7 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
       case 'stopping':
         return 'Kayıt güvenli şekilde durduruluyor.';
       case 'transcribing':
-        return 'Almanca transcript hazırlanıyor.';
+        return 'Sesin yazıya çevriliyor.';
       case 'scored':
       case 'recorded':
         return 'Kaydın hazır. Dinleyebilir veya tekrar kaydedebilirsin.';
@@ -439,50 +454,87 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
           <View style={styles.feedbackCard}>
             <Text style={styles.sectionTitle}>Geri bildirim hazırlanıyor</Text>
             <Text style={styles.body}>
-              Ses backend'e yükleniyor. Transcript geldikten sonra telaffuz puanı şimdilik mock olarak hazırlanacak.
+              Önce söylediğin cümle yazıya çevrilecek. Telaffuz puanı bu sürümde mock kalacak.
             </Text>
           </View>
         ) : null}
 
-        {transcript && pronunciation ? (
+        {transcriptionResult && pronunciationResult ? (
           <View style={styles.feedbackCard}>
             <View style={styles.feedbackHeader}>
               <CheckCircle2 color={colors.green} size={24} />
-              <Text style={styles.sectionTitle}>Mock değerlendirme</Text>
+              <Text style={styles.sectionTitle}>Sonuç</Text>
             </View>
-            <View style={styles.resultRow}>
-              <Text style={styles.scoreValue}>{pronunciation.pronunciationScore}</Text>
-              <View style={styles.resultCopy}>
-                <Text style={styles.scoreLabel}>Telaffuz puanı</Text>
-                <Text style={styles.body}>Transcript: {transcript.transcript}</Text>
-                {__DEV__ && transcript.fallback ? (
-                  <Text style={styles.devFallback}>DEV fallback: {transcript.modelUsed ?? 'mock'}</Text>
+
+            <View style={styles.resultSection}>
+              <Text style={styles.sectionTitle}>Söylediğin cümle</Text>
+              <Text style={styles.transcriptText}>
+                {transcriptionResult.transcript || 'Metin alınamadı.'}
+              </Text>
+              {transcriptionResult.fallback ? (
+                <Text style={styles.fallbackText}>Şimdilik yerel tahmin kullanıldı.</Text>
+              ) : null}
+              {__DEV__ ? (
+                <View style={styles.debugChipRow}>
+                  <View style={styles.debugChip}>
+                    <Text style={styles.debugChipText}>STT: {transcriptionResult.provider ?? 'unknown'}</Text>
+                  </View>
+                  <View style={styles.debugChip}>
+                    <Text style={styles.debugChipText}>model: {transcriptionResult.modelUsed ?? 'unknown'}</Text>
+                  </View>
+                  <View style={styles.debugChip}>
+                    <Text style={styles.debugChipText}>fallback: {String(transcriptionResult.fallback ?? false)}</Text>
+                  </View>
+                </View>
+              ) : null}
+            </View>
+
+            <View style={styles.resultSection}>
+              <Text style={styles.sectionTitle}>Beklenen cümle</Text>
+              <Text style={styles.expectedResultText}>{prompt.expectedText}</Text>
+            </View>
+
+            <View style={styles.resultSection}>
+              <View style={styles.pronunciationHeaderRow}>
+                <Text style={styles.sectionTitle}>Telaffuz geri bildirimi</Text>
+                {__DEV__ && pronunciationResult.isMock ? (
+                  <View style={styles.mockTag}>
+                    <Text style={styles.mockTagText}>Mock</Text>
+                  </View>
                 ) : null}
-                <Text style={styles.body}>Güven: {transcript.provider === 'openai' ? 'OpenAI' : '%' + Math.round(transcript.confidence * 100)}</Text>
               </View>
+              {__DEV__ && pronunciationResult.isMock ? (
+                <Text style={styles.devFallback}>Telaffuz skoru şu an mock.</Text>
+              ) : null}
+              <View style={styles.resultRow}>
+                <Text style={styles.scoreValue}>{pronunciationResult.pronunciationScore}</Text>
+                <View style={styles.resultCopy}>
+                  <Text style={styles.scoreLabel}>Telaffuz puanı</Text>
+                  <Text style={styles.body}>{pronunciationResult.feedbackTr}</Text>
+                </View>
+              </View>
+              <View style={styles.scoreGrid}>
+                <View style={styles.scorePill}>
+                  <Text style={styles.scorePillValue}>{pronunciationResult.accuracyScore}</Text>
+                  <Text style={styles.scorePillLabel}>Doğruluk</Text>
+                </View>
+                <View style={styles.scorePill}>
+                  <Text style={styles.scorePillValue}>{pronunciationResult.fluencyScore}</Text>
+                  <Text style={styles.scorePillLabel}>Akıcılık</Text>
+                </View>
+                <View style={styles.scorePill}>
+                  <Text style={styles.scorePillValue}>{pronunciationResult.completenessScore}</Text>
+                  <Text style={styles.scorePillLabel}>Tamlık</Text>
+                </View>
+              </View>
+              {pronunciationResult.wordFeedback.map((item) => (
+                <View key={item.word} style={styles.wordFeedback}>
+                  <Text style={styles.wordTitle}>{item.word}</Text>
+                  <Text style={styles.body}>{item.issue}</Text>
+                  <Text style={styles.tip}>{item.suggestionTr}</Text>
+                </View>
+              ))}
             </View>
-            <View style={styles.scoreGrid}>
-              <View style={styles.scorePill}>
-                <Text style={styles.scorePillValue}>{pronunciation.accuracyScore}</Text>
-                <Text style={styles.scorePillLabel}>Doğruluk</Text>
-              </View>
-              <View style={styles.scorePill}>
-                <Text style={styles.scorePillValue}>{pronunciation.fluencyScore}</Text>
-                <Text style={styles.scorePillLabel}>Akıcılık</Text>
-              </View>
-              <View style={styles.scorePill}>
-                <Text style={styles.scorePillValue}>{pronunciation.completenessScore}</Text>
-                <Text style={styles.scorePillLabel}>Tamlık</Text>
-              </View>
-            </View>
-            <Text style={styles.feedbackText}>{pronunciation.feedbackTr}</Text>
-            {pronunciation.wordFeedback.map((item) => (
-              <View key={item.word} style={styles.wordFeedback}>
-                <Text style={styles.wordTitle}>{item.word}</Text>
-                <Text style={styles.body}>{item.issue}</Text>
-                <Text style={styles.tip}>{item.suggestionTr}</Text>
-              </View>
-            ))}
           </View>
         ) : null}
       </AppScrollView>
@@ -667,6 +719,59 @@ const styles = StyleSheet.create({
   resultCopy: {
     flex: 1,
     gap: spacing.xs,
+  },
+  resultSection: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    gap: spacing.sm,
+    padding: spacing.md,
+  },
+  transcriptText: {
+    ...typography.body,
+    color: colors.deepViolet,
+    fontWeight: '900',
+  },
+  expectedResultText: {
+    ...typography.body,
+    color: colors.deepViolet,
+  },
+  fallbackText: {
+    ...typography.small,
+    color: colors.muted,
+    fontWeight: '800',
+  },
+  debugChipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.xs,
+  },
+  debugChip: {
+    backgroundColor: colors.lavender,
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+  debugChipText: {
+    ...typography.small,
+    color: colors.royalPurple,
+    fontWeight: '900',
+  },
+  pronunciationHeaderRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.sm,
+    justifyContent: 'space-between',
+  },
+  mockTag: {
+    backgroundColor: colors.yellow,
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+  mockTagText: {
+    ...typography.small,
+    color: colors.deepViolet,
+    fontWeight: '900',
   },
   scoreLabel: {
     ...typography.body,
