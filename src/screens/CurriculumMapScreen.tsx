@@ -94,7 +94,14 @@ export function CurriculumMapScreen({ navigation, userState }: CurriculumMapScre
                 return (
                   <Pressable
                     key={module.id}
-                    onPress={() => openModule(navigation, module.id)}
+                    onPress={() => {
+                      if (!unlocked) {
+                        Alert.alert('Kilitli', playableLesson ? 'Önce önceki dersi bitir.' : 'Bu modül yakında oynanabilir olacak.');
+                        return;
+                      }
+
+                      openModule(navigation, module.id);
+                    }}
                     style={({ pressed }) => [styles.moduleRow, !unlocked && styles.lockedModule, pressed && styles.pressed]}
                   >
                     <View style={styles.moduleIcon}>
