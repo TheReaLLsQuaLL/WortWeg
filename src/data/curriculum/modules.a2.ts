@@ -337,258 +337,92 @@ export const modulesA2: CurriculumModule[] = [
     "trackBoosts": { "speaking_confidence": 3, "daily_life": 3, "work_german": 1 }
   },
   {
-    "id": "a2-09-modal-fiiller-ve-zorunluluk",
+    "id": "a2-09-is-ve-gunluk-iletisim",
     "level": "A2",
     "order": 9,
-    "titleTr": "Modal Fiiller ve Zorunluluk",
-    "titleDe": "Modalverben",
-    "goalTr": "Modal Fiiller ve Zorunluluk konusunda daha bağlı A2 cümleleri kurmak ve pratik görevler çözmek.",
-    "cefrCanDoTr": "Tanıdık günlük konularda kısa ve bağlı bilgi alışverişi yapabilirim.",
-    "topics": [
-      "izin",
-      "zorunluluk",
-      "beceri",
-      "öneri"
-    ],
-    "grammar": [
-      "können/müssen/dürfen/sollen/wollen",
-      "cümle sonu infinitiv"
-    ],
-    "vocabularyThemes": [
-      "kurallar",
-      "işler",
-      "öneriler",
-      "izin"
-    ],
-    "pronunciationFocus": [
-      "iki fiilli cümlede vurgu"
-    ],
-    "speakingTasks": [
-      "izin hakkında iki kısa Almanca cümle söyle.",
-      "Bir soru sor ve kısa cevap ver."
-    ],
-    "listeningTasks": [
-      "izin bağlamında yavaş bir cümlede ana bilgiyi seç.",
-      "Duyduğun sayı, yer veya kişi bilgisini işaretle."
-    ],
-    "readingTasks": [
-      "izin ile ilgili kısa not veya mesajdan ana bilgiyi bul.",
-      "Anahtar kelimeleri renkli etiketlerle eşleştir."
-    ],
-    "writingTasks": [
-      "izin hakkında bir kısa cümle yaz.",
-      "Kısa form veya mesaj boşluğunu doldur."
-    ],
-    "examTasks": [
-      "Kısa okuma veya dinleme bilgisini seç.",
-      "Bir mini konuşma soru-cevap turu yap."
-    ],
-    "turkishLearnerWarnings": [
-      "Türkçedeki esnek kelime dizilişini Almancaya taşımadan fiili ikinci yere koy.",
-      "Artikel kelimeyle birlikte öğrenilir; renk sistemini kullan."
-    ],
-    "estimatedMinutes": 130,
-    "unlockRequirements": {
-      "minCompletedModules": 8
-    },
-    "trackBoosts": {
-      "work_german": 3,
-      "family_reunion": 2,
-      "exam_b1": 1
-    }
+    "titleTr": "İş ve Günlük İletişim",
+    "titleDe": "Arbeit und Kommunikation",
+    "goalTr": "İş yerinde kısa ve kibar mesajlar yazmak, yardım istemek ve zorunluluk bildirmek.",
+    "cefrCanDoTr": "Tanıdık günlük ve iş konularında kısa, net bilgi alışverişi yapabilirim.",
+    "topics": ["iş", "günlük iletişim", "kibar yardım", "mesaj"],
+    "grammar": ["können/sollen/müssen tekrarı", "modal fiil + mastar", "kibar soru"],
+    "vocabularyThemes": ["ofis", "görev", "iş arkadaşı", "yardım"],
+    "pronunciationFocus": ["kibar soru tonlaması", "ü/ö netliği"],
+    "speakingTasks": ["İş yerinde yardım iste.", "Zorunluluk bildiren kısa cümle söyle."],
+    "listeningTasks": ["Kısa iş mesajında ana görevi seç.", "Duyduğun yardım isteğini işaretle."],
+    "readingTasks": ["Kısa iş mesajından zamanı veya görevi bul.", "Modal fiilli cümleleri eşleştir."],
+    "writingTasks": ["Kısa iş mesajı yaz.", "Yardım isteyen kibar cümle kur."],
+    "examTasks": ["Sınav tarzı kısa mesajda ana bilgiyi seç.", "Kibar cevap cümlesini tamamla."],
+    "turkishLearnerWarnings": ["Modal fiilden sonra ikinci fiili çekme; asıl fiil sonda mastar kalır.", "Resmi durumda Sie kullanmayı unutma."],
+    "estimatedMinutes": 135,
+    "unlockRequirements": { "minCompletedModules": 8 },
+    "trackBoosts": { "work_german": 4, "daily_life": 2, "university": 2 }
   },
   {
-    "id": "a2-10-dativ-baslangic",
+    "id": "a2-10-seyahat-ve-konaklama",
     "level": "A2",
     "order": 10,
-    "titleTr": "Dativ Başlangıç",
-    "titleDe": "Dativ Start",
-    "goalTr": "Dativ Başlangıç konusunda daha bağlı A2 cümleleri kurmak ve pratik görevler çözmek.",
-    "cefrCanDoTr": "Tanıdık günlük konularda kısa ve bağlı bilgi alışverişi yapabilirim.",
-    "topics": [
-      "kişiye verme",
-      "yer",
-      "yardım",
-      "dativ kalıplar"
-    ],
-    "grammar": [
-      "dativ artikeller",
-      "mir/dir/Ihnen",
-      "mit/nach/bei/von/zu"
-    ],
-    "vocabularyThemes": [
-      "kişiler",
-      "ulaşım",
-      "randevu",
-      "yardım"
-    ],
-    "pronunciationFocus": [
-      "Ihnen/ihnen ayrımı",
-      "kelime sonları"
-    ],
-    "speakingTasks": [
-      "kişiye verme hakkında iki kısa Almanca cümle söyle.",
-      "Bir soru sor ve kısa cevap ver."
-    ],
-    "listeningTasks": [
-      "kişiye verme bağlamında yavaş bir cümlede ana bilgiyi seç.",
-      "Duyduğun sayı, yer veya kişi bilgisini işaretle."
-    ],
-    "readingTasks": [
-      "kişiye verme ile ilgili kısa not veya mesajdan ana bilgiyi bul.",
-      "Anahtar kelimeleri renkli etiketlerle eşleştir."
-    ],
-    "writingTasks": [
-      "kişiye verme hakkında bir kısa cümle yaz.",
-      "Kısa form veya mesaj boşluğunu doldur."
-    ],
-    "examTasks": [
-      "Kısa okuma veya dinleme bilgisini seç.",
-      "Bir mini konuşma soru-cevap turu yap."
-    ],
-    "turkishLearnerWarnings": [
-      "Dativ Türkçedeki yönelme haliyle birebir değildir; önce mit/bei/zu gibi edatlarla sabitle.",
-      "Türkçedeki esnek kelime dizilişini Almancaya taşımadan fiili ikinci yere koy.",
-      "Artikel kelimeyle birlikte öğrenilir; renk sistemini kullan."
-    ],
-    "estimatedMinutes": 130,
-    "unlockRequirements": {
-      "minCompletedModules": 9
-    },
-    "trackBoosts": {
-      "balanced": 3,
-      "work_german": 2,
-      "family_reunion": 2
-    }
+    "titleTr": "Seyahat ve Konaklama",
+    "titleDe": "Reise und Unterkunft",
+    "goalTr": "Otel ve tren bağlamında rezervasyon, soru ve kısa bilgi isteme cümleleri kurmak.",
+    "cefrCanDoTr": "Seyahatte sık karşılaşılan kısa konuşmaları ve duyuruları anlayabilirim.",
+    "topics": ["otel", "tren", "rezervasyon", "konaklama"],
+    "grammar": ["Perfekt: reserviert", "Wann fährt...?", "im/am yer kalıpları"],
+    "vocabularyThemes": ["oda", "otel", "tren", "resepsiyon"],
+    "pronunciationFocus": ["tren/otel bilgisinde sayı netliği", "r sesi"],
+    "speakingTasks": ["Otel rezervasyonunu söyle.", "Tren saatini sor."],
+    "listeningTasks": ["Kısa seyahat cümlesinde saat veya yer bilgisini seç.", "Rezervasyon bilgisini işaretle."],
+    "readingTasks": ["Kısa otel notundan ana bilgiyi bul.", "Tren saati sorusunu tamamla."],
+    "writingTasks": ["Otel için kısa mesaj yaz.", "Tren saati sorusu yaz."],
+    "examTasks": ["Sınav tarzı kısa okuma/dinleme bilgisini seç.", "Seyahat diyaloğunda uygun cevabı bul."],
+    "turkishLearnerWarnings": ["im Hotel ve am Bahnhof kalıplarını ayrı öğren.", "Soru cümlesinde çekimli fiil erken gelir: Wann fährt...?"],
+    "estimatedMinutes": 135,
+    "unlockRequirements": { "minCompletedModules": 9 },
+    "trackBoosts": { "travel": 4, "daily_life": 2 }
   },
   {
-    "id": "a2-11-e-posta-ve-mesaj-yazma",
+    "id": "a2-11-karsilastirma-ve-tercihler",
     "level": "A2",
     "order": 11,
-    "titleTr": "E-posta ve Mesaj Yazma",
-    "titleDe": "E-Mail und Nachrichten",
-    "goalTr": "E-posta ve Mesaj Yazma konusunda daha bağlı A2 cümleleri kurmak ve pratik görevler çözmek.",
-    "cefrCanDoTr": "Tanıdık günlük konularda kısa ve bağlı bilgi alışverişi yapabilirim.",
-    "topics": [
-      "kısa e-posta",
-      "davet",
-      "özür",
-      "randevu değiştirme"
-    ],
-    "grammar": [
-      "bağlaçlar",
-      "nazik kalıplar",
-      "cümle bağlantısı"
-    ],
-    "vocabularyThemes": [
-      "e-posta kalıpları",
-      "neden",
-      "rica",
-      "plan"
-    ],
-    "pronunciationFocus": [
-      "yazılı dilde noktalama",
-      "okurken ritim"
-    ],
-    "speakingTasks": [
-      "kısa e-posta hakkında iki kısa Almanca cümle söyle.",
-      "Bir soru sor ve kısa cevap ver."
-    ],
-    "listeningTasks": [
-      "kısa e-posta bağlamında yavaş bir cümlede ana bilgiyi seç.",
-      "Duyduğun sayı, yer veya kişi bilgisini işaretle."
-    ],
-    "readingTasks": [
-      "kısa e-posta ile ilgili kısa not veya mesajdan ana bilgiyi bul.",
-      "Anahtar kelimeleri renkli etiketlerle eşleştir."
-    ],
-    "writingTasks": [
-      "kısa e-posta hakkında bir kısa cümle yaz.",
-      "Kısa form veya mesaj boşluğunu doldur."
-    ],
-    "examTasks": [
-      "Kısa okuma veya dinleme bilgisini seç.",
-      "Bir mini konuşma soru-cevap turu yap."
-    ],
-    "turkishLearnerWarnings": [
-      "Türkçedeki esnek kelime dizilişini Almancaya taşımadan fiili ikinci yere koy.",
-      "Artikel kelimeyle birlikte öğrenilir; renk sistemini kullan."
-    ],
+    "titleTr": "Karşılaştırma ve Tercihler",
+    "titleDe": "Vergleichen und Vorlieben",
+    "goalTr": "İki seçeneği karşılaştırmak ve basit tercihleri söylemek.",
+    "cefrCanDoTr": "Tanıdık konularda basit tercih ve karşılaştırma cümleleri kurabilirim.",
+    "topics": ["karşılaştırma", "tercih", "ulaşım", "içecekler"],
+    "grammar": ["Komparativ", "als", "lieber ... als ..."],
+    "vocabularyThemes": ["hız", "tercih", "ulaşım", "içecek"],
+    "pronunciationFocus": ["-er sonu", "als vurgusu"],
+    "speakingTasks": ["İki ulaşım seçeneğini karşılaştır.", "Bir içecek tercihini söyle."],
+    "listeningTasks": ["Kısa karşılaştırmada hangi seçeneğin üstün olduğunu seç.", "Tercih bilgisini işaretle."],
+    "readingTasks": ["Kısa karşılaştırma cümlesinden sonucu bul.", "lieber/als kalıplarını eşleştir."],
+    "writingTasks": ["İki şeyi karşılaştıran kısa cümle yaz.", "Bir tercih cümlesi yaz."],
+    "examTasks": ["Sınav tarzı kısa metinde tercih bilgisini seç.", "Karşılaştırma cümlesini tamamla."],
+    "turkishLearnerWarnings": ["Türkçedeki -den daha yapısını Almancada çoğu zaman als ile kur.", "lieber kelimesi tercih bildirir; besser ile karıştırma."],
     "estimatedMinutes": 130,
-    "unlockRequirements": {
-      "minCompletedModules": 10
-    },
-    "trackBoosts": {
-      "exam_b1": 2,
-      "work_german": 3,
-      "university": 3
-    }
+    "unlockRequirements": { "minCompletedModules": 10 },
+    "trackBoosts": { "balanced": 3, "speaking_confidence": 2, "travel": 2 }
   },
   {
-    "id": "a2-12-sinav-tarzi-pratik",
+    "id": "a2-12-a2-genel-tekrar",
     "level": "A2",
     "order": 12,
-    "titleTr": "A2 Sınav Tarzı Pratik",
-    "titleDe": "A2 Praxis",
-    "goalTr": "A2 Sınav Tarzı Pratik konusunda daha bağlı A2 cümleleri kurmak ve pratik görevler çözmek.",
-    "cefrCanDoTr": "Tanıdık günlük konularda kısa ve bağlı bilgi alışverişi yapabilirim.",
-    "topics": [
-      "okuma",
-      "dinleme",
-      "yazma",
-      "konuşma",
-      "dil öğeleri"
-    ],
-    "grammar": [
-      "A2 tekrar",
-      "modal fiiller",
-      "dativ/akkusativ kontrolü"
-    ],
-    "vocabularyThemes": [
-      "A2 yüksek frekans",
-      "hizmet",
-      "seyahat",
-      "sağlık"
-    ],
-    "pronunciationFocus": [
-      "anlaşılır akıcılık",
-      "du/Sie doğruluğu"
-    ],
-    "speakingTasks": [
-      "okuma hakkında iki kısa Almanca cümle söyle.",
-      "Bir soru sor ve kısa cevap ver."
-    ],
-    "listeningTasks": [
-      "okuma bağlamında yavaş bir cümlede ana bilgiyi seç.",
-      "Duyduğun sayı, yer veya kişi bilgisini işaretle."
-    ],
-    "readingTasks": [
-      "okuma ile ilgili kısa not veya mesajdan ana bilgiyi bul.",
-      "Anahtar kelimeleri renkli etiketlerle eşleştir."
-    ],
-    "writingTasks": [
-      "okuma hakkında bir kısa cümle yaz.",
-      "Kısa form veya mesaj boşluğunu doldur."
-    ],
-    "examTasks": [
-      "A2 tarzı kısa metinlerde detay bul.",
-      "Diyalog dinleyip amacı seç.",
-      "Kısa e-posta yaz.",
-      "Konuşmada plan öner ve cevap ver.",
-      "Dil öğeleri: doğru kelime/gramer seç."
-    ],
-    "turkishLearnerWarnings": [
-      "Türkçedeki esnek kelime dizilişini Almancaya taşımadan fiili ikinci yere koy.",
-      "Artikel kelimeyle birlikte öğrenilir; renk sistemini kullan."
-    ],
+    "titleTr": "A2 Genel Tekrar",
+    "titleDe": "A2 Wiederholung",
+    "goalTr": "A2 boyunca öğrenilen alışveriş, sağlık, seyahat, davet ve geçmiş zaman konularını karışık pratikte kullanmak.",
+    "cefrCanDoTr": "A2 düzeyindeki tanıdık durumlarda kısa metinleri anlayıp pratik cevap verebilirim.",
+    "topics": ["A2 tekrar", "randevu", "alışveriş", "seyahat", "mesaj"],
+    "grammar": ["A2 karışık tekrar", "modal fiiller", "weil/deshalb", "Akkusativ/Dativ kontrolü"],
+    "vocabularyThemes": ["A2 yüksek frekans", "sorun/çözüm", "seyahat", "randevu"],
+    "pronunciationFocus": ["anlaşılır akıcılık", "uzun cümlede nefes"],
+    "speakingTasks": ["A2 karışık tekrar cümlesini sesli oku.", "Randevu değiştirme nedeni söyle."],
+    "listeningTasks": ["Kısa A2 tarzı metinde ana bilgiyi seç.", "Duyduğun neden veya sonucu işaretle."],
+    "readingTasks": ["Kısa A2 tarzı mesajdan detay bul.", "Bağlaçlı cümlede ana fikri seç."],
+    "writingTasks": ["Kısa A2 mesajı yaz.", "Randevu değiştirme nedenini belirt."],
+    "examTasks": ["A2 sınav tarzı kısa metinde detay bul.", "Diyalog dinleme tarzı metinde amacı seç.", "Kısa mesaj yazma pratiği yap."],
+    "turkishLearnerWarnings": ["Bu pratik herhangi bir sınav kurumuna ait değildir; amaç A2 becerilerini karışık tekrar etmektir.", "Fiil konumu ve artikel bilgisini birlikte kontrol et."],
     "estimatedMinutes": 160,
-    "unlockRequirements": {
-      "minCompletedModules": 11
-    },
-    "trackBoosts": {
-      "exam_b1": 3,
-      "balanced": 2,
-      "fast_track": 3
-    }
+    "unlockRequirements": { "minCompletedModules": 11 },
+    "trackBoosts": { "balanced": 4, "fast_track": 3, "exam_b1": 2 }
   }
+
 ];

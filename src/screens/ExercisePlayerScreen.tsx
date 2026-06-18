@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { RouteProp } from '@react-navigation/native';
-import { ArrowLeft, BookOpen, Check, CheckCircle2, Home, Mic, NotebookTabs } from 'lucide-react-native';
+import { ArrowLeft, BookOpen, Check, CheckCircle2, Home, Mic, NotebookTabs, RotateCcw } from 'lucide-react-native';
 
 import { AnimatedCard } from '../components/AnimatedCard';
 import { AppButton } from '../components/AppButton';
@@ -288,6 +288,7 @@ export function ExercisePlayerScreen({
   if (lesson && completion) {
     const hasMistakes = completion.mistakeCount > 0;
     const hasNextLesson = Boolean(completion.nextLessonId);
+    const isA2PathComplete = lesson.id === 'a2-12-a2-genel-tekrar' && !hasNextLesson;
     const selectCompletionAction = (actionId: string, runAction: () => void) => {
       trackLocalEvent({
         type: 'lesson_completion_action_selected',
@@ -305,6 +306,10 @@ export function ExercisePlayerScreen({
 
       navigation.navigate('Main', { initialTab: 'home' });
     };
+    const goHome = () => navigation.navigate('Main', { initialTab: 'home' });
+    const goVocab = () => navigation.navigate('Main', { initialTab: 'vocab' });
+    const goMistakes = () => navigation.navigate('Main', { initialTab: 'profile' });
+    const goA2Review = () => navigation.navigate('LessonIntro', { lessonId: 'a2-01-gunluk-planlar' });
 
     return (
       <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
@@ -318,31 +323,44 @@ export function ExercisePlayerScreen({
 
         <ScrollView contentContainerStyle={styles.completionContent}>
           <View style={styles.completionCard}>
-            <Text style={styles.completionCardTitle}>Sıradaki en iyi adım</Text>
+            <Text style={styles.completionCardTitle}>{isA2PathComplete ? 'A2 yolu tamamlandı' : 'Sıradaki en iyi adım'}</Text>
             <View style={styles.completionPills}>
               <ProgressPill label={completion.correctAnswers + '/' + completion.totalAnswers + ' doğru'} tone="green" />
               <ProgressPill label={'+' + completion.xpEarned + ' XP'} tone="yellow" />
               <ProgressPill label={completion.newReviewCards + ' kelime'} tone="purple" />
             </View>
-            {hasMistakes ? (
+            {isA2PathComplete ? (
+              <Text style={styles.completionText}>A2 yolunun ilk paketi tamamlandı. B1 yakında.</Text>
+            ) : hasMistakes ? (
               <Text style={styles.completionText}>{completion.mistakeCount} hata defterine eklendi. Önce kısa bir tekrar iyi olur.</Text>
             ) : (
               <Text style={styles.completionText}>Hata yok. Sıradaki derse geçebilirsin.</Text>
             )}
+            {isA2PathComplete && hasMistakes ? (
+              <Text style={styles.completionText}>{completion.mistakeCount} hata defterine eklendi. İstersen kısa tekrar yap.</Text>
+            ) : null}
             {completion.newReviewCards > 0 ? (
               <Text style={styles.completionText}>{completion.newReviewCards} kelime tekrar listene eklendi.</Text>
             ) : null}
-            {completion.nextLessonTitle ? (
+            {isA2PathComplete ? (
+              <Text style={styles.completionText}>Kelime tekrarı, hatalar veya A2 tekrar ile devam edebilirsin.</Text>
+            ) : completion.nextLessonTitle ? (
               <Text style={styles.completionText}>Sıradaki ders: {completion.nextLessonTitle}</Text>
             ) : (
               <Text style={styles.completionText}>Bu seviyedeki oynanabilir dersleri bitirdin. Haritadan yakında açılacak modülleri görebilirsin.</Text>
             )}
           </View>
 
-          {hasMistakes ? (
+          {isA2PathComplete ? (
+            <AppButton
+              icon={RotateCcw}
+              onPress={() => selectCompletionAction('vocab_review', goVocab)}
+              title="Kelime tekrarı"
+            />
+          ) : hasMistakes ? (
             <AppButton
               icon={NotebookTabs}
-              onPress={() => selectCompletionAction('mistakes_review', () => navigation.navigate('Main', { initialTab: 'profile' }))}
+              onPress={() => selectCompletionAction('mistakes_review', goMistakes)}
               title="Hatalarını tekrar et"
             />
           ) : (
@@ -354,7 +372,31 @@ export function ExercisePlayerScreen({
           )}
 
           <View style={styles.secondaryActions}>
-            {lesson.speakingPrompt ? (
+            {isA2PathComplete ? (
+              <>
+                <AppButton
+                  icon={NotebookTabs}
+                  onPress={() => selectCompletionAction('mistakes_review', goMistakes)}
+                  title="Hatalar"
+                  variant="secondary"
+                  style={styles.secondaryButton}
+                />
+                <AppButton
+                  icon={Home}
+                  onPress={() => selectCompletionAction('home', goHome)}
+                  title="Ana sayfa"
+                  variant="secondary"
+                  style={styles.secondaryButton}
+                />
+                <AppButton
+                  icon={BookOpen}
+                  onPress={() => selectCompletionAction('a2_review', goA2Review)}
+                  title="A2 tekrar"
+                  variant="secondary"
+                  style={styles.secondaryButton}
+                />
+              </>
+            ) : lesson.speakingPrompt ? (
               <AppButton
                 icon={Mic}
                 onPress={() => selectCompletionAction('speaking_prompt', () => navigation.navigate('SpeakingPractice', {
@@ -370,7 +412,7 @@ export function ExercisePlayerScreen({
                 style={styles.secondaryButton}
               />
             ) : null}
-            {hasMistakes ? (
+            {!isA2PathComplete && hasMistakes ? (
               <AppButton
                 icon={hasNextLesson ? BookOpen : Home}
                 onPress={() => selectCompletionAction(hasNextLesson ? 'next_lesson' : 'home', goNextOrHome)}
