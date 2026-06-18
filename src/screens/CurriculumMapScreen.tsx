@@ -29,10 +29,6 @@ const trackLabels: Record<TrackId, string> = {
   balanced: 'dengeli',
 };
 
-const getCompletedModuleCount = (userState: UserState, levelId: string) =>
-  getLessonsForLevel(levelId as Parameters<typeof getLessonsForLevel>[0])
-    .filter((lesson) => userState.completedLessons.includes(lesson.id)).length;
-
 const openModule = (navigation: RootNavigation, moduleId: string) => {
   const lesson = getPlayableLessonByModuleId(moduleId);
 
@@ -66,7 +62,6 @@ export function CurriculumMapScreen({ navigation, userState }: CurriculumMapScre
       <AppScrollView contentContainerStyle={styles.content} style={styles.scroll}>
         {curriculumLevels.map((level) => {
           const modules = getModulesForLevel(level.id);
-          const completedCount = getCompletedModuleCount(userState, level.id);
           const activeLevel = plan?.currentLevel === level.id;
           const previewModuleCount = level.id === 'A2' ? Math.max(4, getLessonsForLevel(level.id).length) : 4;
 
@@ -85,8 +80,16 @@ export function CurriculumMapScreen({ navigation, userState }: CurriculumMapScre
 
               {modules.slice(0, level.isPlaceholder ? 1 : previewModuleCount).map((module, index) => {
                 const playableLesson = getPlayableLessonByModuleId(module.id);
-                const unlocked = Boolean(playableLesson) ? index <= completedCount : false;
+                const previousPlayableLesson = modules
+                  .slice(0, index)
+                  .map((item) => getPlayableLessonByModuleId(item.id))
+                  .filter((item): item is NonNullable<typeof playableLesson> => Boolean(item))
+                  .at(-1);
                 const completed = playableLesson ? userState.completedLessons.includes(playableLesson.id) : false;
+                const previousCompleted = previousPlayableLesson
+                  ? userState.completedLessons.includes(previousPlayableLesson.id)
+                  : true;
+                const unlocked = Boolean(playableLesson) ? index === 0 || completed || previousCompleted : false;
                 const labels = Object.entries(module.trackBoosts)
                   .sort((a, b) => b[1] - a[1])
                   .slice(0, 3)
