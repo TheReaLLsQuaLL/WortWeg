@@ -34,6 +34,28 @@ export type TranscriptionResult = {
   fallbackReason?: string;
 };
 
+export type SpeechProvider = 'openai' | 'ios-native' | 'android-native' | 'mlkit' | 'gemma';
+
+export type NativeSpeechCapability = {
+  available: boolean;
+  provider: SpeechProvider | null;
+  platform: string;
+  reason: string;
+  requiresDevBuild: boolean;
+};
+
+export const canUseNativeSpeech = (): NativeSpeechCapability => ({
+  available: false,
+  provider: Platform.OS === 'ios'
+    ? 'ios-native'
+    : Platform.OS === 'android'
+      ? 'android-native'
+      : null,
+  platform: Platform.OS,
+  reason: 'native-speech-not-implemented-in-current-expo-build',
+  requiresDevBuild: true,
+});
+
 export type WordPronunciationFeedback = {
   word: string;
   issue: string;
