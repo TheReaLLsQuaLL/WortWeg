@@ -110,7 +110,7 @@ npm run typecheck
 - Lesson completion awards XP, updates local-date streaks, adds SRS cards, and records mistakes.
 - SRS review uses `src/lib/srs.ts`.
 - AI chat, exam answer feedback, writing feedback, and speaking feedback call the local backend when configured, and fall back to mock responses when unavailable.
-- Speech recording, German transcription, and pronunciation scoring are mocked in `src/services/speechService.ts`.
+- Speech recording/replay is local, German transcription can use the secure backend, and pronunciation scoring is still mocked in `src/services/speechService.ts`.
 
 ## AI Service Boundary
 
@@ -173,6 +173,9 @@ Cheap/helper model modes:
 GEMINI_API_KEY=your_server_side_key
 GEMINI_MODEL=gemini-3.5-flash
 GEMINI_CHEAP_MODEL=gemini-3.1-flash-lite
+OPENAI_API_KEY=your_server_side_openai_key
+STT_PROVIDER=openai
+STT_MODEL=gpt-4o-mini-transcribe
 
 # Server/internal tools on this Mac.
 AI_BACKEND_URL=http://localhost:3001
@@ -180,9 +183,89 @@ AI_BACKEND_URL=http://localhost:3001
 # Expo Go on a physical phone. Use the LAN IP shown by Expo.
 EXPO_PUBLIC_AI_BACKEND_URL=http://192.168.1.8:3001
 EXPO_PUBLIC_AI_TIMEOUT_MS=30000
+EXPO_PUBLIC_SPEECH_TIMEOUT_MS=45000
 ```
 
 Use `localhost` only for simulator/web or curl commands running on the same Mac. For Expo Go on a physical phone, `localhost` means the phone itself, so use your computer LAN IP.
+
+
+## Speech-to-text Backend
+
+WortWeg speaking practice now sends recorded audio through the secure backend for German transcription:
+
+```text
+mobile recording -> WortWeg backend -> OpenAI transcription -> backend response -> mobile transcript
+```
+
+The mobile app never calls OpenAI directly and never contains `OPENAI_API_KEY`. Pronunciation scoring is still mocked in the app after the transcript returns. Uploaded audio is handled as a temporary backend file and is deleted after transcription/fallback.
+
+Backend `.env` values:
+
+```bash
+OPENAI_API_KEY=your_server_side_openai_key
+STT_PROVIDER=openai
+STT_MODEL=gpt-4o-mini-transcribe
+```
+
+Mobile `.env` values:
+
+```bash
+EXPO_PUBLIC_AI_BACKEND_URL=http://YOUR_MAC_LAN_IP:3001
+EXPO_PUBLIC_SPEECH_TIMEOUT_MS=45000
+```
+
+Run the backend and Expo in separate terminals:
+
+```bash
+npm run server:dev
+PATH=/Users/squall/.nvm/versions/node/v22.22.3/bin:$PATH npx expo start --clear --port 8083
+```
+
+Health checks:
+
+```bash
+curl http://localhost:3001/health
+curl http://192.168.1.8:3001/health
+```
+
+Transcription curl example:
+
+```bash
+curl -X POST http://localhost:3001/speech/transcribe \
+  -F "audio=@/path/to/test-audio.m4a" \
+  -F "language=de" \
+  -F "expectedText=Ich heiße Toprak."
+```
+
+Android Expo Go test:
+
+1. Ensure phone and Mac are on the same Wi-Fi.
+2. Set `EXPO_PUBLIC_AI_BACKEND_URL` to the Mac LAN IP, not `localhost`.
+3. Open speaking practice.
+4. Record, stop, and replay a German sentence.
+5. Confirm transcript appears.
+6. Confirm pronunciation scores still appear as mock scores.
+7. Stop the backend and repeat to confirm local mock fallback works.
+8. Export the alpha event log and confirm speech events do not include transcript text or audio URI.
+
+Fallback behavior:
+
+- Missing `OPENAI_API_KEY`: backend returns a mock transcript with `provider: "mock"` and `modelUsed: "mock:missing-openai-key"`.
+- OpenAI failure: backend returns a mock transcript with a `mock:<reason>:<model>` model marker.
+- Mobile upload failure or timeout: app falls back to the local mock transcript and logs safe speech fallback events.
+
+STT quota troubleshooting:
+
+If `/speech/transcribe` returns `modelUsed: "mock:openai-http-429:gpt-4o-mini-transcribe"` and OpenAI reports `errorCode: "insufficient_quota"`, the backend is configured correctly but OpenAI rejected the request for account/project quota or billing reasons.
+
+Check:
+
+- OpenAI API billing is active for the project that owns the key.
+- The project has budget/usage limits that allow transcription requests.
+- The key in `.env` belongs to the paid OpenAI API project.
+- ChatGPT subscription billing is separate from OpenAI API billing.
+
+After fixing billing, create a fresh API key in the paid project, update `.env`, and restart the backend with `npm run server:dev`.
 
 ## Troubleshooting Mock AI In Expo Go
 
@@ -237,7 +320,7 @@ curl -s -X POST http://192.168.1.8:3001/ai/teacher \
 
 ## Speaking Practice Recording
 
-The first real speaking practice flow uses `expo-audio` for local recording and replay in Expo Go. The app still does not send audio to Gemini and does not call any paid speech APIs.
+The speaking practice flow uses `expo-audio` for local recording and replay in Expo Go. German transcription uploads audio to the WortWeg backend when configured; pronunciation scoring remains mocked.
 
 Current behavior:
 
@@ -245,7 +328,9 @@ Current behavior:
 - records audio locally
 - stops and stores the local recording URI
 - replays the local recording
-- returns mocked German transcript and pronunciation scores
+- uploads audio to `/speech/transcribe` for German transcript when backend is reachable
+- falls back to a local mock transcript when backend/OpenAI is unavailable
+- returns mocked pronunciation scores
 
 Test on Android Expo Go:
 
@@ -259,17 +344,17 @@ Then open WortWeg, tap `Sesli cümle pratiği` on Home, and verify:
 - record starts
 - stop creates an audio URI
 - replay plays the recording
-- mock transcript and pronunciation feedback appear
+- backend transcript or DEV fallback transcript appears
+- mock pronunciation feedback appears
 - bottom safe area remains clear
 
 Limitations:
 
-- transcription is mocked in `src/services/speechService.ts`
+- transcription requires the local backend and server-side `OPENAI_API_KEY`; otherwise it falls back to a mock transcript
 - pronunciation scoring is mocked in `src/services/speechService.ts`
-- no audio is uploaded yet
 - no paid speech API keys are used in the mobile app
 
-Next step for real transcription: upload the recorded audio URI to a secure backend route, then call a server-side provider such as Deepgram, OpenAI transcription, or Azure Speech. Keep provider keys only on the backend.
+Next step for speech: keep this backend provider abstraction and add Azure Pronunciation Assessment or another scoring provider server-side.
 
 ## Azure Pronunciation Assessment Later
 
@@ -356,7 +441,7 @@ Privacy rules for the local log:
 
 - no external analytics SDK is used
 - no events are sent to a server
-- no contacts, location, microphone content, audio files, audio URI, device fingerprint, API keys, AI prompts/responses, chat messages, placement free text, or lesson answer text are logged
+- no contacts, location, microphone content, audio files, audio URI, transcript text, device fingerprint, API keys, AI prompts/responses, chat messages, placement free text, or lesson answer text are logged
 - safe metadata is limited to labels such as `lessonId`, `level`, `moduleId`, `exerciseType`, `result`, `durationMs`, `routeName`, `routeChosen`, `fallbackReason`, and onboarding boot booleans
 
 Feedback to report:
@@ -370,7 +455,7 @@ Feedback to report:
 Known alpha limitations:
 
 - A2/B1/B2 modules are curriculum metadata only and show coming-soon behavior.
-- Speaking transcription and pronunciation scoring are mocked.
+- Speaking transcription uses the backend when configured; pronunciation scoring is still mocked.
 - No Supabase account sync yet; progress is local to the device.
 - Feedback opens a mail draft or template; there is no feedback backend yet.
 - Local alpha event logs are manually exportable only; there is no analytics backend.

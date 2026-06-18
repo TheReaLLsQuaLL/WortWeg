@@ -11,12 +11,14 @@
     "server:dev": "tsx server/index.ts",
     "dev:all": "concurrently \"npm run server:dev\" \"npm start\"",
     "typecheck": "tsc --noEmit",
-    "content:qa": "tsx scripts/content-qa.ts"
+    "content:qa": "tsx scripts/content-qa.ts",
+    "env:check:openai": "node scripts/check-openai-env.cjs"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-navigation/native": "latest",
     "@react-navigation/native-stack": "latest",
+    "@types/multer": "^2.1.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "expo": "~54.0.0",
@@ -26,6 +28,7 @@
     "expo-status-bar": "~3.0.9",
     "express": "^5.2.1",
     "lucide-react-native": "latest",
+    "multer": "^2.2.0",
     "react": "19.1.0",
     "react-native": "0.81.5",
     "react-native-safe-area-context": "~5.6.0",

@@ -249,10 +249,8 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
       setSafeStatus('recorded');
       setSafeStatus('transcribing');
 
-      const [nextTranscript, nextPronunciation] = await Promise.all([
-        transcribeGerman(recording.uri),
-        scorePronunciation(recording.uri, prompt.expectedText),
-      ]);
+      const nextTranscript = await transcribeGerman(recording.uri, prompt.expectedText);
+      const nextPronunciation = await scorePronunciation(recording.uri, prompt.expectedText);
 
       if (!mountedRef.current) {
         return;
@@ -332,7 +330,7 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
       case 'stopping':
         return 'Kayıt güvenli şekilde durduruluyor.';
       case 'transcribing':
-        return 'Mock transcript ve telaffuz puanı hazırlanıyor.';
+        return 'Almanca transcript hazırlanıyor.';
       case 'scored':
       case 'recorded':
         return 'Kaydın hazır. Dinleyebilir veya tekrar kaydedebilirsin.';
@@ -441,7 +439,7 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
           <View style={styles.feedbackCard}>
             <Text style={styles.sectionTitle}>Geri bildirim hazırlanıyor</Text>
             <Text style={styles.body}>
-              Bu adım şimdilik mock çalışıyor. Ses dosyan cihazda kaydedildi; transcript ve puan yerel mock sonuçlardan geliyor.
+              Ses backend'e yükleniyor. Transcript geldikten sonra telaffuz puanı şimdilik mock olarak hazırlanacak.
             </Text>
           </View>
         ) : null}
@@ -457,7 +455,10 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
               <View style={styles.resultCopy}>
                 <Text style={styles.scoreLabel}>Telaffuz puanı</Text>
                 <Text style={styles.body}>Transcript: {transcript.transcript}</Text>
-                <Text style={styles.body}>Güven: %{Math.round(transcript.confidence * 100)}</Text>
+                {__DEV__ && transcript.fallback ? (
+                  <Text style={styles.devFallback}>DEV fallback: {transcript.modelUsed ?? 'mock'}</Text>
+                ) : null}
+                <Text style={styles.body}>Güven: {transcript.provider === 'openai' ? 'OpenAI' : '%' + Math.round(transcript.confidence * 100)}</Text>
               </View>
             </View>
             <View style={styles.scoreGrid}>
@@ -695,6 +696,11 @@ const styles = StyleSheet.create({
   feedbackText: {
     ...typography.body,
     color: colors.deepViolet,
+  },
+  devFallback: {
+    ...typography.small,
+    color: colors.royalPurple,
+    fontWeight: '900',
   },
   wordFeedback: {
     backgroundColor: colors.surface,

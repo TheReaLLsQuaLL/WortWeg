@@ -22,6 +22,10 @@ export type LocalEventType =
   | 'ai_chat_opened'
   | 'ai_chat_backend_fallback'
   | 'speaking_opened'
+  | 'speech_transcription_started'
+  | 'speech_transcription_completed'
+  | 'speech_transcription_fallback'
+  | 'speech_transcription_error'
   | 'recording_started'
   | 'recording_stopped'
   | 'recording_error'
@@ -41,6 +45,10 @@ export type LocalEventMetadata = Partial<{
   routeName: string;
   routeChosen: string;
   fallbackReason: string;
+  provider: string;
+  modelUsed: string;
+  fileSizeBucket: string;
+  fallback: boolean;
   repairedPlan: boolean;
   hasCompletedOnboarding: boolean;
   hasOnboarded: boolean;

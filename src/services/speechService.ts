@@ -8,6 +8,8 @@ import {
 } from 'expo-audio';
 import { Platform } from 'react-native';
 
+import { trackLocalEvent } from './localEventLog';
+
 export type MicrophonePermissionResult = {
   granted: boolean;
   status: string;
@@ -22,6 +24,11 @@ export type RecordingResult = {
 export type TranscriptionResult = {
   transcript: string;
   confidence: number;
+  provider?: string;
+  modelUsed?: string;
+  fallback?: boolean;
+  durationMs?: number;
+  fallbackReason?: string;
 };
 
 export type WordPronunciationFeedback = {
@@ -52,6 +59,100 @@ const wait = (ms: number) =>
   new Promise<void>((resolve) => {
     setTimeout(resolve, ms);
   });
+
+const isDevelopment = process.env.NODE_ENV !== 'production';
+const DEFAULT_SPEECH_TIMEOUT_MS = 45_000;
+
+const getSpeechBackendUrl = () =>
+  process.env.EXPO_PUBLIC_AI_BACKEND_URL?.trim() || '';
+
+const getSpeechTimeoutMs = () => {
+  const rawTimeout = process.env.EXPO_PUBLIC_SPEECH_TIMEOUT_MS?.trim();
+  const parsedTimeout = rawTimeout ? Number(rawTimeout) : DEFAULT_SPEECH_TIMEOUT_MS;
+
+  return Number.isFinite(parsedTimeout) && parsedTimeout > 0
+    ? parsedTimeout
+    : DEFAULT_SPEECH_TIMEOUT_MS;
+};
+
+const logSpeechDebug = (
+  message: string,
+  details?: Record<string, string | number | boolean | undefined>,
+) => {
+  if (!isDevelopment) {
+    return;
+  }
+
+  console.log('[WortWeg Speech]', message, details ?? {});
+};
+
+const getAudioExtension = (audioUri: string) => {
+  const cleanUri = audioUri.split('?')[0] ?? audioUri;
+  const extension = cleanUri.split('.').pop()?.toLowerCase();
+
+  if (!extension || extension.length > 5) {
+    return 'm4a';
+  }
+
+  return extension;
+};
+
+const getAudioMimeType = (extension: string) => {
+  switch (extension) {
+    case 'mp3':
+    case 'mpeg':
+    case 'mpga':
+      return 'audio/mpeg';
+    case 'wav':
+      return 'audio/wav';
+    case 'webm':
+      return 'audio/webm';
+    case 'mp4':
+      return 'audio/mp4';
+    case 'm4a':
+    default:
+      return 'audio/m4a';
+  }
+};
+
+const makeMockTranscription = (audioUri: string, fallbackReason?: string): TranscriptionResult => ({
+  transcript: audioUri ? 'Ich heiße Toprak und ich wohne in Istanbul.' : '',
+  confidence: audioUri ? 0.92 : 0,
+  provider: 'mock',
+  modelUsed: fallbackReason ? 'mock:' + fallbackReason : 'mock:local',
+  fallback: true,
+  durationMs: 0,
+  fallbackReason,
+});
+
+type SpeechBackendResponse = {
+  transcript: string;
+  language?: string;
+  confidence: number | null;
+  provider: string;
+  modelUsed: string;
+  fallback: boolean;
+  durationMs: number;
+};
+
+const isSpeechBackendResponse = (value: unknown): value is SpeechBackendResponse => {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+
+  const response = value as SpeechBackendResponse;
+  return (
+    typeof response.transcript === 'string' &&
+    (typeof response.confidence === 'number' || response.confidence === null) &&
+    typeof response.provider === 'string' &&
+    typeof response.modelUsed === 'string' &&
+    typeof response.fallback === 'boolean' &&
+    typeof response.durationMs === 'number'
+  );
+};
+
+const getFallbackEventSeverity = (reason: string) =>
+  reason === 'missing-backend-url' ? 'warning' : 'error';
 
 const logAndroidAudio = (message: string, details?: Record<string, unknown>) => {
   if (Platform.OS !== 'android' || process.env.NODE_ENV === 'production') {
@@ -311,16 +412,125 @@ export const replayRecording = async (audioUri: string): Promise<void> => {
 
 export const transcribeGerman = async (
   audioUri: string,
+  expectedText?: string,
 ): Promise<TranscriptionResult> => {
-  // TODO: real transcription should call a backend speech endpoint, not expose keys.
-  await wait(650);
+  const backendUrl = getSpeechBackendUrl();
+  const timeoutMs = getSpeechTimeoutMs();
+  const startedAt = Date.now();
 
-  return {
-    transcript: audioUri
-      ? 'Ich heiße Toprak und ich wohne in Istanbul.'
-      : '',
-    confidence: audioUri ? 0.92 : 0,
-  };
+  if (!audioUri) {
+    return makeMockTranscription('', 'missing-audio-uri');
+  }
+
+  if (!backendUrl) {
+    trackLocalEvent({
+      type: 'speech_transcription_fallback',
+      screen: 'SpeakingPractice',
+      metadata: { provider: 'mock', modelUsed: 'mock:missing-backend-url', fallback: true },
+      severity: 'warning',
+    });
+    return makeMockTranscription(audioUri, 'missing-backend-url');
+  }
+
+  const endpoint = backendUrl.replace(/\/+$/, '') + '/speech/transcribe';
+  const extension = getAudioExtension(audioUri);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+  trackLocalEvent({
+    type: 'speech_transcription_started',
+    screen: 'SpeakingPractice',
+    metadata: { provider: 'backend', fallback: false },
+  });
+
+  logSpeechDebug('upload started', { endpoint, timeoutMs });
+
+  try {
+    const formData = new FormData();
+    formData.append('audio', {
+      uri: audioUri,
+      name: 'wortweg-speaking.' + extension,
+      type: getAudioMimeType(extension),
+    } as unknown as Blob);
+    formData.append('language', 'de');
+
+    if (expectedText?.trim()) {
+      formData.append('expectedText', expectedText.trim());
+      formData.append('prompt', expectedText.trim());
+    }
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      body: formData,
+      signal: controller.signal,
+    });
+    const responseTimeMs = Date.now() - startedAt;
+
+    if (!response.ok) {
+      throw new Error('http-' + response.status);
+    }
+
+    const body = (await response.json()) as unknown;
+
+    if (!isSpeechBackendResponse(body)) {
+      throw new Error('invalid-response');
+    }
+
+    const transcriptResult: TranscriptionResult = {
+      transcript: body.transcript,
+      confidence: typeof body.confidence === 'number' ? body.confidence : 0,
+      provider: body.provider,
+      modelUsed: body.modelUsed,
+      fallback: body.fallback,
+      durationMs: body.durationMs,
+    };
+
+    trackLocalEvent({
+      type: body.fallback ? 'speech_transcription_fallback' : 'speech_transcription_completed',
+      screen: 'SpeakingPractice',
+      metadata: {
+        provider: body.provider,
+        modelUsed: body.modelUsed,
+        fallback: body.fallback,
+        durationMs: responseTimeMs,
+      },
+      severity: body.fallback ? 'warning' : 'info',
+    });
+
+    logSpeechDebug('upload completed', {
+      provider: body.provider,
+      modelUsed: body.modelUsed,
+      fallback: body.fallback,
+      responseTimeMs,
+    });
+
+    return transcriptResult;
+  } catch (error) {
+    const reason = error instanceof Error && error.name === 'AbortError'
+      ? 'timeout'
+      : error instanceof Error
+        ? error.message
+        : 'upload-failed';
+
+    trackLocalEvent({
+      type: 'speech_transcription_error',
+      screen: 'SpeakingPractice',
+      metadata: { provider: 'mock', modelUsed: 'mock:' + reason, fallback: true },
+      severity: getFallbackEventSeverity(reason),
+    });
+    trackLocalEvent({
+      type: 'speech_transcription_fallback',
+      screen: 'SpeakingPractice',
+      metadata: { provider: 'mock', modelUsed: 'mock:' + reason, fallback: true },
+      severity: getFallbackEventSeverity(reason),
+    });
+
+    logSpeechDebug('upload fallback', { reason, timeoutMs });
+
+    return makeMockTranscription(audioUri, reason);
+  } finally {
+    clearTimeout(timeout);
+  }
 };
 
 export const scorePronunciation = async (
