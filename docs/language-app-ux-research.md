@@ -17,6 +17,27 @@ Purpose: extract high-level UX principles from public screenshots, App Store / G
 | Mondly | App Store listing: https://apps.apple.com/us/app/mondly-learn-languages/id987873536 | Voice recognition, chatbot/speaking practice, bright beginner-friendly phrase work. | Speaking feedback should be clear and lenient for beginners. | Do not copy chatbot UI, color treatment, or phrase examples. | Use simple result states: Çok yakın, Neredeyse oldu, Tekrar deneyelim. |
 | Mango Languages | Official page: https://mangolanguages.com | Conversation-based learning, pronunciation/culture/comprehension as integrated skills. | Connect grammar and pronunciation to practical conversation. | Do not copy Mango color-coded translation system or institutional positioning. | Keep article colors as WortWeg own der/die/das system for Turkish learners. |
 
+## Onboarding animation and first-session patterns
+
+| App | Principle observed | What WortWeg can learn | What WortWeg must not copy | Concrete WortWeg implementation idea |
+| --- | --- | --- | --- | --- |
+| Duolingo | Public listings emphasize personalization, motivation, level segmentation, friendly guidance, and gradual engagement before deeper commitment. | Ask only the minimum setup questions and make progress visible. Add one tiny learning moment so onboarding does not feel like a form. | Do not copy the green palette, owl behavior, exact path shape, copy tone, streak pressure, or mascot animation style. | Wolli appears briefly, asks goal/level, then introduces one der/die/das mini moment in WortWeg purple. |
+| Babbel | Public screenshots and pages present practical language goals, clean step-by-step setup, and speech confidence as useful outcomes. | Keep onboarding mature, practical, and focused on why the user wants German. | Do not copy Babbel lesson cards, orange/white visual identity, subscription framing, or exact speech screens. | Goal cards stay short: Sınav, Günlük yaşam, İş, Seyahat, Aile, Okul. |
+| Busuu | Public pages emphasize placement, CEFR awareness, progress tracking, and a study-plan feeling. | Placement should feel optional but valuable, and the final plan should show start level, target level, and daily time clearly. | Do not copy Busuu community positioning, badges, layout, or wording. | Add a concise placement choice, then a small animated roadmap reveal. |
+| Memrise | Public pages emphasize real-life phrases and confidence through interactive language exposure. | Demonstrate actual German quickly instead of explaining features abstractly. | Do not copy video-first layouts, memory metaphors, or brand colors. | The mini demo shows real beginner words: der Apfel, die Schule, das Haus. |
+| Drops | Public screenshots emphasize visual-first micro-interactions and short-session energy. | Use compact visual cards, gentle entrance animation, and minimal text. | Do not copy Drops gestures, illustrations, word-card layouts, or bright palette. | Option cards stagger in, selected cards gently scale, and the daily-time card fills a small meter. |
+| LingoDeer | Public listings emphasize structured progression and grammar clarity. | Give a tiny grammar signal early, but keep it concise and beginner-safe. | Do not copy deer mascot, lesson map, grammar screen wording, or layout. | The article demo explains that der/die/das are learned with color + pattern, not long rules. |
+| Mondly | Public listings emphasize conversation, chat/speaking practice, and a path-like language journey. | Show that the app leads into speaking and daily practice, not only quizzes. | Do not copy chatbot UI, exact conversational screens, or visual treatment. | Final reveal includes nodes for first lesson, vocabulary review, and speaking practice. |
+| Mango Languages | Public pages emphasize real-world conversation and real voices. | Keep onboarding tied to practical speech and understanding. | Do not copy Mango's institutional positioning, color-coded translation method, or wording. | Use Turkish-first copy that connects German examples to practical learning. |
+
+Onboarding direction from these patterns:
+
+- Show value, do not only ask questions.
+- Keep setup short and one-action-at-a-time.
+- Add a single interactive learning demo before placement/daily planning.
+- Use subtle motion: fade/slide, staggered cards, selected-card scale, Wolli bounce, roadmap reveal.
+- Keep WortWeg original: purple identity, Wolli, Turkish explanations, German roadmap, and the der/die/das color system.
+
 ## WortWeg Design Direction
 
 - One obvious next action: Home should answer "Bugün ne yapacağım?" first.

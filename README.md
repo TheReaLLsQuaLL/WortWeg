@@ -248,6 +248,17 @@ Android Expo Go test:
 7. Stop the backend and repeat to confirm local fallback behavior works.
 8. Export the alpha event log and confirm speech events do not include transcript text or audio URI.
 
+iOS STT debug checklist:
+
+1. Confirm iPhone and Mac are on the same Wi-Fi.
+2. Open `http://192.168.1.8:3001/health` in iPhone Safari.
+3. Confirm `EXPO_PUBLIC_AI_BACKEND_URL=http://192.168.1.8:3001` in the Expo/mobile env.
+4. Restart Expo with `--clear` after env changes.
+5. Open speaking practice, hold the mic, speak, and release.
+6. Watch backend logs for the `/speech/transcribe` endpoint hit.
+7. In development, open the SpeakingPractice `Speech debug` panel and check platform, state, stage, extension, MIME type, backend reachability, HTTP status, provider, fallback, and transcript length.
+8. The debug panel must not show transcript text, expected sentence, audio URI, or API keys.
+
 Fallback behavior:
 
 - Missing `OPENAI_API_KEY`: backend returns a local fallback transcript and marks it internally with `provider: "mock"` and `modelUsed: "mock:missing-openai-key"`.

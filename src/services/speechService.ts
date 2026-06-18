@@ -32,6 +32,11 @@ export type TranscriptionResult = {
   fallback?: boolean;
   durationMs?: number;
   fallbackReason?: string;
+  audioExtension?: string;
+  audioMimeType?: string;
+  backendReachable?: boolean;
+  endpointHost?: string;
+  httpStatus?: number;
 };
 
 export type SpeechProvider = 'openai' | 'ios-native' | 'android-native' | 'mlkit' | 'gemma';
@@ -153,6 +158,32 @@ const isSpeechBackendResponse = (value: unknown): value is SpeechBackendResponse
 
 const getFallbackEventSeverity = (reason: string) =>
   reason === 'missing-backend-url' ? 'warning' : 'error';
+
+const getEndpointHost = (url: string) => {
+  try {
+    return new URL(url).host;
+  } catch {
+    return '';
+  }
+};
+
+const checkBackendReachability = async (backendUrl: string, timeoutMs = 3500) => {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(backendUrl.replace(/\/+$/, '') + '/health', {
+      method: 'GET',
+      signal: controller.signal,
+    });
+
+    return response.ok;
+  } catch {
+    return false;
+  } finally {
+    clearTimeout(timeout);
+  }
+};
 
 const logAndroidAudio = (message: string, details?: Record<string, unknown>) => {
   if (Platform.OS !== 'android' || process.env.NODE_ENV === 'production') {
@@ -425,6 +456,7 @@ export const transcribeGerman = async (
   const uploadInfo = inferAudioUploadInfo(audioUri);
 
   if (!backendUrl) {
+    logSpeechDebug('missing backend url', { platform: uploadInfo.platform });
     trackLocalEvent({
       type: 'speech_transcription_fallback',
       screen: 'SpeakingPractice',
@@ -438,10 +470,16 @@ export const transcribeGerman = async (
       },
       severity: 'warning',
     });
-    return makeMockTranscription(audioUri, 'missing-backend-url');
+    return {
+      ...makeMockTranscription(audioUri, 'missing-backend-url'),
+      audioExtension: uploadInfo.extension,
+      audioMimeType: uploadInfo.type,
+      backendReachable: false,
+    };
   }
 
   const endpoint = backendUrl.replace(/\/+$/, '') + '/speech/transcribe';
+  const endpointHost = getEndpointHost(endpoint);
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -457,14 +495,38 @@ export const transcribeGerman = async (
     },
   });
 
-  logSpeechDebug('upload started', {
+  logSpeechDebug('upload file info', {
     timeoutMs,
     platform: uploadInfo.platform,
     audioExtension: uploadInfo.extension,
     audioMimeType: uploadInfo.type,
+    endpointHost,
+    hasAudioUri: Boolean(audioUri),
   });
 
   try {
+    let backendReachable = true;
+
+    if (__DEV__ && Platform.OS === 'ios') {
+      backendReachable = await checkBackendReachability(backendUrl);
+      logSpeechDebug('backend reachability', {
+        platform: uploadInfo.platform,
+        backendReachable,
+        endpointHost,
+      });
+
+      if (!backendReachable) {
+        throw new Error('backend-unreachable');
+      }
+    }
+
+    logSpeechDebug('upload started', {
+      timeoutMs,
+      platform: uploadInfo.platform,
+      audioExtension: uploadInfo.extension,
+      audioMimeType: uploadInfo.type,
+      endpointHost,
+    });
     const formData = new FormData();
     formData.append('audio', {
       uri: audioUri,
@@ -485,6 +547,13 @@ export const transcribeGerman = async (
     });
     const responseTimeMs = Date.now() - startedAt;
 
+    logSpeechDebug('upload response', {
+      platform: uploadInfo.platform,
+      httpStatus: response.status,
+      responseTimeMs,
+      endpointHost,
+    });
+
     if (!response.ok) {
       throw new Error('http-' + response.status);
     }
@@ -503,6 +572,11 @@ export const transcribeGerman = async (
       modelUsed: body.modelUsed,
       fallback: body.fallback,
       durationMs: body.durationMs,
+      audioExtension: uploadInfo.extension,
+      audioMimeType: uploadInfo.type,
+      backendReachable: true,
+      endpointHost,
+      httpStatus: response.status,
     };
 
     const comparisonForEvent = expectedText?.trim()
@@ -534,6 +608,8 @@ export const transcribeGerman = async (
       transcriptLength: body.transcript.length,
       audioExtension: uploadInfo.extension,
       audioMimeType: uploadInfo.type,
+      endpointHost,
+      httpStatus: response.status,
     });
 
     return transcriptResult;
@@ -571,15 +647,22 @@ export const transcribeGerman = async (
       severity: getFallbackEventSeverity(reason),
     });
 
-    logSpeechDebug('upload fallback', {
+    logSpeechDebug('upload failed', {
       reason,
       timeoutMs,
       platform: uploadInfo.platform,
       audioExtension: uploadInfo.extension,
       audioMimeType: uploadInfo.type,
+      endpointHost,
     });
 
-    return makeMockTranscription(audioUri, reason);
+    return {
+      ...makeMockTranscription(audioUri, reason),
+      audioExtension: uploadInfo.extension,
+      audioMimeType: uploadInfo.type,
+      backendReachable: reason !== 'backend-unreachable',
+      endpointHost,
+    };
   } finally {
     clearTimeout(timeout);
   }

@@ -21,6 +21,7 @@ import {
   HeartHandshake,
   HelpCircle,
   Home,
+  Map,
   Plane,
   Sparkles,
 } from 'lucide-react-native';
@@ -36,7 +37,7 @@ import {
   startLevelOptions,
   targetLevelOptions,
 } from '../data/planOptions';
-import { colors, radius, spacing, typography } from '../data/theme';
+import { articleColors, articleLightColors, colors, radius, spacing, typography } from '../data/theme';
 import type { RootNavigation } from '../navigation/AppNavigator';
 import { buildOnboardingCompletion, type OnboardingCompletion } from '../services/onboardingService';
 import { trackLocalEvent } from '../services/localEventLog';
@@ -68,6 +69,7 @@ type OnboardingStepId =
   | 'welcome'
   | 'goal'
   | 'level'
+  | 'mini_demo'
   | 'placement'
   | 'daily_time'
   | 'focus'
@@ -78,12 +80,15 @@ const onboardingSteps: OnboardingStepId[] = [
   'welcome',
   'goal',
   'level',
+  'mini_demo',
   'placement',
   'daily_time',
   'focus',
   'target',
   'ready',
 ];
+
+const readyStepIndex = onboardingSteps.indexOf('ready');
 
 const goalIcons: Record<UserGoalId, ComponentType<IconProps>> = {
   exam: BookOpen,
@@ -127,6 +132,30 @@ const focusEmoji: Record<PrioritySkillId, string> = {
   listening: '♪',
   writing: '✎',
 };
+
+type ArticleDemoId = 'der' | 'die' | 'das';
+
+const articleDemoCards: Array<{
+  id: ArticleDemoId;
+  word: string;
+  explanationTr: string;
+}> = [
+  {
+    id: 'der',
+    word: 'Apfel',
+    explanationTr: 'der: sadece erkek/canlı demek değildir; kalıpla öğrenilir.',
+  },
+  {
+    id: 'die',
+    word: 'Schule',
+    explanationTr: 'die: birçok kadın isim ve bazı kelime gruplarında görülür.',
+  },
+  {
+    id: 'das',
+    word: 'Haus',
+    explanationTr: 'das: bazı nötr isimlerde kalıp olarak öğrenilir.',
+  },
+];
 
 const getStudyStyle = (
   userGoal: LearningPlanInput['userGoal'],
@@ -185,10 +214,12 @@ export function OnboardingScreen({ navigation, onComplete }: OnboardingScreenPro
   const [showExamDate, setShowExamDate] = useState(false);
   const [prioritySkill, setPrioritySkill] = useState<PrioritySkillId | null>(null);
   const [wantsPlacement, setWantsPlacement] = useState<boolean | null>(null);
+  const [selectedDemoCard, setSelectedDemoCard] = useState<ArticleDemoId | null>(null);
   const [saving, setSaving] = useState(false);
   const fade = useRef(new Animated.Value(1)).current;
   const slide = useRef(new Animated.Value(0)).current;
   const bounce = useRef(new Animated.Value(0)).current;
+  const planRevealTrackedRef = useRef(false);
 
   const setupValues = getSetupFallbacks({ userGoal, startLevel, targetLevel, dailyMinutes, prioritySkill });
   const studyStyle = getStudyStyle(setupValues.userGoal, setupValues.prioritySkill);
@@ -249,11 +280,43 @@ export function OnboardingScreen({ navigation, onComplete }: OnboardingScreenPro
     }
   }, [bounce, fade, isWelcomeMoment, slide, step]);
 
+  useEffect(() => {
+    if (stepId !== 'ready' || planRevealTrackedRef.current) {
+      return;
+    }
+
+    planRevealTrackedRef.current = true;
+    trackLocalEvent({
+      type: 'onboarding_plan_revealed',
+      screen: 'Onboarding',
+      metadata: {
+        stepId,
+        userGoal: setupValues.userGoal,
+        selectedLevel: setupValues.startLevel,
+        level: planPreview.currentLevel,
+      },
+    });
+  }, [planPreview.currentLevel, setupValues.startLevel, setupValues.userGoal, stepId]);
+
   const trackOption = (selectedOptionId: string) => {
     trackLocalEvent({
       type: 'onboarding_option_selected',
       screen: 'Onboarding',
-      metadata: { stepId, selectedOptionId },
+      metadata: {
+        stepId,
+        selectedOptionId,
+        userGoal: userGoal ?? undefined,
+        selectedLevel: startLevel ?? undefined,
+      },
+    });
+  };
+
+  const chooseDemoCard = (demoCardId: ArticleDemoId) => {
+    setSelectedDemoCard(demoCardId);
+    trackLocalEvent({
+      type: 'onboarding_demo_card_tapped',
+      screen: 'Onboarding',
+      metadata: { stepId, demoCardId },
     });
   };
 
@@ -288,7 +351,7 @@ export function OnboardingScreen({ navigation, onComplete }: OnboardingScreenPro
         return;
       }
 
-      setStep(7);
+      setStep(readyStepIndex);
       return;
     }
 
@@ -313,6 +376,10 @@ export function OnboardingScreen({ navigation, onComplete }: OnboardingScreenPro
       return { title: 'Devam', disabled: !startLevel, icon: ArrowRight };
     }
 
+    if (stepId === 'mini_demo') {
+      return { title: 'Anladım', disabled: false, icon: Check };
+    }
+
     if (stepId === 'placement') {
       return { title: 'Devam', disabled: wantsPlacement === null, icon: ArrowRight };
     }
@@ -329,7 +396,7 @@ export function OnboardingScreen({ navigation, onComplete }: OnboardingScreenPro
       return { title: wantsPlacement ? 'Seviye kontrolüne geç' : 'Planı hazırla', disabled: !targetLevel, icon: wantsPlacement ? Check : Sparkles };
     }
 
-    return { title: 'Ana sayfaya geç', disabled: false, icon: Sparkles };
+    return { title: 'İlk derse başla', disabled: false, icon: Sparkles };
   })();
 
   const renderStep = () => {
@@ -351,6 +418,8 @@ export function OnboardingScreen({ navigation, onComplete }: OnboardingScreenPro
               return (
                 <OptionCard
                   key={item.id}
+                  animationKey={stepId}
+                  index={goalCards.findIndex((goal) => goal.id === item.id)}
                   icon={<Icon color={userGoal === item.id ? colors.white : colors.royalPurple} size={20} strokeWidth={2.5} />}
                   label={item.label}
                   onPress={() => {
@@ -370,9 +439,11 @@ export function OnboardingScreen({ navigation, onComplete }: OnboardingScreenPro
       return (
         <StepPanel title="Nereden başlıyorsun?" helper="Emin değilsen kısa kontrol yapabilirsin.">
           <View style={styles.optionGrid}>
-            {startLevelOptions.map((item) => (
+            {startLevelOptions.map((item, index) => (
               <OptionCard
                 key={item.id}
+                animationKey={stepId}
+                index={index}
                 icon={<Text style={[styles.optionIconText, startLevel === item.id && styles.optionIconTextSelected]}>{levelEmoji[item.id]}</Text>}
                 label={getStartLevelLabel(item.id)}
                 onPress={() => {
@@ -387,11 +458,24 @@ export function OnboardingScreen({ navigation, onComplete }: OnboardingScreenPro
       );
     }
 
+    if (stepId === 'mini_demo') {
+      return (
+        <StepPanel
+          title="WortWeg nasıl öğretir?"
+          helper="Almancayı Türkçe mantıkla, renklerle ve kısa pratiklerle öğrenirsin."
+        >
+          <MiniArticleDemo selectedId={selectedDemoCard} onSelect={chooseDemoCard} stepKey={stepId} />
+        </StepPanel>
+      );
+    }
+
     if (stepId === 'placement') {
       return (
         <StepPanel title="2 dakikalık seviye kontrolü?" helper="Çok kolay ya da çok zor dersten başlamamak için.">
           <View style={styles.optionStack}>
             <OptionCard
+              animationKey={stepId}
+              index={0}
               icon={<Check color={wantsPlacement === true ? colors.white : colors.royalPurple} size={20} strokeWidth={2.5} />}
               label="Kontrol et"
               onPress={() => {
@@ -401,6 +485,8 @@ export function OnboardingScreen({ navigation, onComplete }: OnboardingScreenPro
               selected={wantsPlacement === true}
             />
             <OptionCard
+              animationKey={stepId}
+              index={1}
               icon={<Text style={[styles.optionIconText, wantsPlacement === false && styles.optionIconTextSelected]}>↷</Text>}
               label="Atla"
               onPress={() => {
@@ -418,9 +504,11 @@ export function OnboardingScreen({ navigation, onComplete }: OnboardingScreenPro
       return (
         <StepPanel title="Günde kaç dakika?" helper="Planın buna göre küçük parçalara bölünecek.">
           <View style={styles.optionGrid}>
-            {dailyMinuteOptions.map((item) => (
+            {dailyMinuteOptions.map((item, index) => (
               <OptionCard
                 key={item.id}
+                animationKey={stepId}
+                index={index}
                 icon={<Text style={[styles.optionIconText, dailyMinutes === item.id && styles.optionIconTextSelected]}>{item.id}</Text>}
                 label={item.label}
                 onPress={() => {
@@ -431,6 +519,7 @@ export function OnboardingScreen({ navigation, onComplete }: OnboardingScreenPro
               />
             ))}
           </View>
+          <DailyPlanMeter selectedMinutes={dailyMinutes} />
         </StepPanel>
       );
     }
@@ -439,9 +528,11 @@ export function OnboardingScreen({ navigation, onComplete }: OnboardingScreenPro
       return (
         <StepPanel title="Neye ağırlık verelim?" helper="İlk dersleri buna göre seçeceğiz.">
           <View style={styles.optionGrid}>
-            {prioritySkillOptions.map((item) => (
+            {prioritySkillOptions.map((item, index) => (
               <OptionCard
                 key={item.id}
+                animationKey={stepId}
+                index={index}
                 icon={<Text style={[styles.optionIconText, prioritySkill === item.id && styles.optionIconTextSelected]}>{focusEmoji[item.id]}</Text>}
                 label={item.label}
                 onPress={() => {
@@ -460,9 +551,11 @@ export function OnboardingScreen({ navigation, onComplete }: OnboardingScreenPro
       return (
         <StepPanel title="Hedef seviyen?" helper="İstersen bunu sonra değiştirebilirsin.">
           <View style={styles.optionGrid}>
-            {targetLevelOptions.map((item) => (
+            {targetLevelOptions.map((item, index) => (
               <OptionCard
                 key={item.id}
+                animationKey={stepId}
+                index={index}
                 icon={<Text style={[styles.optionIconText, targetLevel === item.id && styles.optionIconTextSelected]}>{item.label}</Text>}
                 label={item.label}
                 onPress={() => {
@@ -508,7 +601,8 @@ export function OnboardingScreen({ navigation, onComplete }: OnboardingScreenPro
     }
 
     return (
-      <StepPanel title="Yol haritan hazır" helper="Şimdi ilk adımına geçebilirsin.">
+      <StepPanel title="Yol haritan hazır" helper="İlk adımın hazır. Şimdi başlayalım.">
+        <PlanRevealRoadmap />
         <View style={styles.readyCard}>
           <View style={styles.readyRow}>
             <Text style={styles.readyLabel}>Başlangıç</Text>
@@ -549,6 +643,11 @@ export function OnboardingScreen({ navigation, onComplete }: OnboardingScreenPro
         >
           <Animated.View style={[styles.mascotWrap, mascotStyle]}>
             <Mascot size={86} />
+            {stepId === 'mini_demo' ? (
+              <View style={styles.wolliBubble}>
+                <Text style={styles.wolliBubbleText}>Renkler artikelı hatırlamana yardım edecek.</Text>
+              </View>
+            ) : null}
           </Animated.View>
           <Animated.View style={{ opacity: fade, transform: [{ translateY: slide }] }}>
             {renderStep()}
@@ -563,6 +662,16 @@ export function OnboardingScreen({ navigation, onComplete }: OnboardingScreenPro
             onPress={goNext}
             title={primaryButton.title}
           />
+          {stepId === 'ready' ? (
+            <Pressable
+              accessibilityRole="button"
+              disabled={saving}
+              onPress={() => void completeWithoutPlacement()}
+              style={({ pressed }) => [styles.footerLink, pressed && styles.pressed]}
+            >
+              <Text style={styles.footerLinkText}>Ana sayfa</Text>
+            </Pressable>
+          ) : null}
         </View>
       </KeyboardAvoidingView>
     </LinearGradient>
@@ -582,28 +691,215 @@ function StepPanel({ children, helper, title }: { children: ReactNode; helper: s
 }
 
 function OptionCard({
+  animationKey,
   icon,
+  index = 0,
   label,
   onPress,
   selected,
 }: {
+  animationKey: string;
   icon: ReactNode;
+  index?: number;
   label: string;
   onPress: () => void;
   selected: boolean;
 }) {
+  const entrance = useRef(new Animated.Value(0)).current;
+  const selectedScale = useRef(new Animated.Value(selected ? 1 : 0)).current;
+
+  useEffect(() => {
+    entrance.setValue(0);
+    Animated.timing(entrance, {
+      toValue: 1,
+      duration: 220,
+      delay: Math.min(index, 5) * 45,
+      useNativeDriver: true,
+    }).start();
+  }, [animationKey, entrance, index]);
+
+  useEffect(() => {
+    Animated.spring(selectedScale, {
+      toValue: selected ? 1 : 0,
+      friction: 8,
+      tension: 120,
+      useNativeDriver: true,
+    }).start();
+  }, [selected, selectedScale]);
+
+  const translateY = entrance.interpolate({ inputRange: [0, 1], outputRange: [16, 0] });
+  const scale = selectedScale.interpolate({ inputRange: [0, 1], outputRange: [1, 1.025] });
+
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityState={{ selected }}
-      onPress={onPress}
-      style={({ pressed }) => [styles.optionCard, selected && styles.optionCardSelected, pressed && styles.pressed]}
-    >
-      <View style={[styles.optionIcon, selected && styles.optionIconSelected]}>{icon}</View>
-      <Text style={[styles.optionLabel, selected && styles.optionLabelSelected]} numberOfLines={2}>{label}</Text>
-    </Pressable>
+    <Animated.View style={[styles.optionCardWrap, { opacity: entrance, transform: [{ translateY }, { scale }] }]}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityState={{ selected }}
+        onPress={onPress}
+        style={({ pressed }) => [styles.optionCard, selected && styles.optionCardSelected, pressed && styles.pressed]}
+      >
+        <View style={[styles.optionIcon, selected && styles.optionIconSelected]}>{icon}</View>
+        <Text style={[styles.optionLabel, selected && styles.optionLabelSelected]} numberOfLines={2}>{label}</Text>
+      </Pressable>
+    </Animated.View>
   );
 }
+
+function MiniArticleDemo({
+  onSelect,
+  selectedId,
+  stepKey,
+}: {
+  onSelect: (id: ArticleDemoId) => void;
+  selectedId: ArticleDemoId | null;
+  stepKey: string;
+}) {
+  const activeId = selectedId ?? 'der';
+  const selected = articleDemoCards.find((card) => card.id === activeId) ?? articleDemoCards[0]!;
+
+  return (
+    <View style={styles.demoWrap}>
+      <View style={styles.articleGrid}>
+        {articleDemoCards.map((card, index) => {
+          const selected = activeId === card.id;
+          return (
+            <ArticleDemoCard
+              key={card.id}
+              card={card}
+              index={index}
+              onPress={() => onSelect(card.id)}
+              selected={selected}
+              stepKey={stepKey}
+            />
+          );
+        })}
+      </View>
+      <View style={styles.demoExplanation}>
+        <Text style={[styles.demoArticle, { color: articleColors[selected.id] }]}>{selected.id}</Text>
+        <Text style={styles.demoExplanationText}>{selected.explanationTr}</Text>
+      </View>
+    </View>
+  );
+}
+
+function ArticleDemoCard({
+  card,
+  index,
+  onPress,
+  selected,
+  stepKey,
+}: {
+  card: (typeof articleDemoCards)[number];
+  index: number;
+  onPress: () => void;
+  selected: boolean;
+  stepKey: string;
+}) {
+  const entrance = useRef(new Animated.Value(0)).current;
+  const flip = useRef(new Animated.Value(selected ? 1 : 0)).current;
+
+  useEffect(() => {
+    entrance.setValue(0);
+    Animated.timing(entrance, {
+      toValue: 1,
+      duration: 240,
+      delay: index * 70,
+      useNativeDriver: true,
+    }).start();
+  }, [entrance, index, stepKey]);
+
+  useEffect(() => {
+    Animated.spring(flip, {
+      toValue: selected ? 1 : 0,
+      friction: 8,
+      tension: 130,
+      useNativeDriver: true,
+    }).start();
+  }, [flip, selected]);
+
+  const translateY = entrance.interpolate({ inputRange: [0, 1], outputRange: [18, 0] });
+  const scale = flip.interpolate({ inputRange: [0, 1], outputRange: [1, 1.035] });
+
+  return (
+    <Animated.View style={{ flex: 1, minWidth: 88, opacity: entrance, transform: [{ translateY }, { scale }] }}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityState={{ selected }}
+        onPress={onPress}
+        style={({ pressed }) => [
+          styles.articleCard,
+          { backgroundColor: articleLightColors[card.id], borderColor: articleColors[card.id] },
+          selected && styles.articleCardSelected,
+          pressed && styles.pressed,
+        ]}
+      >
+        <Text style={[styles.articleBadge, { color: articleColors[card.id] }]}>{card.id}</Text>
+        <Text style={styles.articleWord}>{card.word}</Text>
+      </Pressable>
+    </Animated.View>
+  );
+}
+
+function DailyPlanMeter({ selectedMinutes }: { selectedMinutes: DailyMinutes | null }) {
+  const progress = useRef(new Animated.Value(0)).current;
+  const target = selectedMinutes === 20 ? 1 : selectedMinutes === 15 ? 0.75 : selectedMinutes === 10 ? 0.5 : selectedMinutes === 5 ? 0.25 : 0.08;
+
+  useEffect(() => {
+    Animated.timing(progress, { toValue: target, duration: 260, useNativeDriver: false }).start();
+  }, [progress, target]);
+
+  const width = progress.interpolate({ inputRange: [0, 1], outputRange: ['8%', '100%'] });
+
+  return (
+    <View style={styles.dailyMeterCard}>
+      <View style={styles.dailyMeterTop}>
+        <Text style={styles.dailyMeterTitle}>Günlük plan</Text>
+        <Text style={styles.dailyMeterValue}>{selectedMinutes ? selectedMinutes + ' dk' : 'seç'}</Text>
+      </View>
+      <View style={styles.dailyMeterTrack}>
+        <Animated.View style={[styles.dailyMeterFill, { width }]} />
+      </View>
+    </View>
+  );
+}
+
+function PlanRevealRoadmap() {
+  const nodes = ['Başlangıç', 'İlk ders', 'Kelime', 'Konuşma', 'Hedef'];
+
+  return (
+    <View style={styles.roadmapCard}>
+      {nodes.map((label, index) => (
+        <RoadmapRevealNode key={label} index={index} label={label} />
+      ))}
+    </View>
+  );
+}
+
+function RoadmapRevealNode({ index, label }: { index: number; label: string }) {
+  const entrance = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    entrance.setValue(0);
+    Animated.timing(entrance, {
+      toValue: 1,
+      duration: 240,
+      delay: index * 90,
+      useNativeDriver: true,
+    }).start();
+  }, [entrance, index]);
+
+  const translateY = entrance.interpolate({ inputRange: [0, 1], outputRange: [12, 0] });
+
+  return (
+    <Animated.View style={[styles.roadmapNodeWrap, { opacity: entrance, transform: [{ translateY }] }]}>
+      <View style={[styles.roadmapNode, index === 0 && styles.roadmapNodeActive]}>
+        {index === 0 ? <Check color={colors.white} size={14} strokeWidth={3} /> : <Map color={colors.royalPurple} size={14} strokeWidth={2.6} />}
+      </View>
+      <Text style={styles.roadmapNodeLabel} numberOfLines={1}>{label}</Text>
+    </Animated.View>
+  );
+}
+
 
 function ValueIllustration() {
   return (
@@ -659,14 +955,16 @@ const styles = StyleSheet.create({
   optionStack: {
     gap: spacing.sm,
   },
+  optionCardWrap: {
+    flexBasis: '47%',
+    flexGrow: 1,
+  },
   optionCard: {
     alignItems: 'center',
     backgroundColor: colors.surface,
     borderColor: colors.border,
     borderRadius: radius.md,
     borderWidth: 1,
-    flexBasis: '47%',
-    flexGrow: 1,
     gap: spacing.sm,
     minHeight: 96,
     padding: spacing.md,
@@ -784,6 +1082,149 @@ const styles = StyleSheet.create({
   readyValue: {
     ...typography.body,
     color: colors.deepViolet,
+    fontWeight: '900',
+  },
+  wolliBubble: {
+    backgroundColor: 'rgba(255,255,255,0.94)',
+    borderColor: 'rgba(255,255,255,0.38)',
+    borderRadius: radius.md,
+    borderWidth: 1,
+    marginTop: spacing.sm,
+    maxWidth: 260,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  wolliBubbleText: {
+    ...typography.small,
+    color: colors.deepViolet,
+    fontWeight: '900',
+    textAlign: 'center',
+  },
+  demoWrap: {
+    gap: spacing.md,
+  },
+  articleGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  articleCard: {
+    alignItems: 'center',
+    borderRadius: radius.md,
+    borderWidth: 2,
+    gap: spacing.xs,
+    minHeight: 112,
+    justifyContent: 'center',
+    padding: spacing.md,
+  },
+  articleCardSelected: {
+    shadowColor: colors.deepViolet,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.14,
+    shadowRadius: 14,
+    elevation: 4,
+  },
+  articleBadge: {
+    ...typography.body,
+    fontWeight: '900',
+  },
+  articleWord: {
+    ...typography.body,
+    color: colors.deepViolet,
+    fontWeight: '900',
+  },
+  demoExplanation: {
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: spacing.sm,
+    padding: spacing.md,
+  },
+  demoArticle: {
+    ...typography.body,
+    fontWeight: '900',
+    minWidth: 34,
+  },
+  demoExplanationText: {
+    ...typography.small,
+    color: colors.deepViolet,
+    flex: 1,
+    fontWeight: '800',
+  },
+  dailyMeterCard: {
+    backgroundColor: colors.deepViolet,
+    borderRadius: radius.md,
+    gap: spacing.sm,
+    padding: spacing.md,
+  },
+  dailyMeterTop: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  dailyMeterTitle: {
+    ...typography.small,
+    color: colors.lavender,
+    fontWeight: '900',
+  },
+  dailyMeterValue: {
+    ...typography.small,
+    color: colors.yellow,
+    fontWeight: '900',
+  },
+  dailyMeterTrack: {
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    borderRadius: radius.pill,
+    height: 8,
+    overflow: 'hidden',
+  },
+  dailyMeterFill: {
+    backgroundColor: colors.yellow,
+    borderRadius: radius.pill,
+    height: 8,
+  },
+  roadmapCard: {
+    backgroundColor: colors.deepViolet,
+    borderRadius: radius.md,
+    flexDirection: 'row',
+    gap: spacing.xs,
+    justifyContent: 'space-between',
+    padding: spacing.md,
+  },
+  roadmapNodeWrap: {
+    alignItems: 'center',
+    flex: 1,
+    gap: spacing.xs,
+  },
+  roadmapNode: {
+    alignItems: 'center',
+    backgroundColor: colors.lavender,
+    borderRadius: radius.pill,
+    height: 30,
+    justifyContent: 'center',
+    width: 30,
+  },
+  roadmapNodeActive: {
+    backgroundColor: colors.green,
+  },
+  roadmapNodeLabel: {
+    ...typography.small,
+    color: colors.white,
+    fontWeight: '900',
+    textAlign: 'center',
+  },
+  footerLink: {
+    alignItems: 'center',
+    minHeight: 36,
+    justifyContent: 'center',
+    marginTop: spacing.xs,
+  },
+  footerLinkText: {
+    ...typography.small,
+    color: colors.lavender,
     fontWeight: '900',
   },
   footer: {

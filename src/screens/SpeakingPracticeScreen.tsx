@@ -47,6 +47,21 @@ type PracticeStatus =
 
 type ActivePrompt = SpeakingPrompt & { id: string };
 
+type SpeechDebugState = {
+  lastStage: string;
+  durationMs: number;
+  audioExtension: string;
+  audioMimeType: string;
+  provider: string;
+  fallback: boolean;
+  hasTranscript: boolean;
+  transcriptLength: number;
+  lastError: string;
+  backendReachable?: boolean;
+  endpointHost: string;
+  httpStatus?: number;
+};
+
 const MIN_RECORDING_MS = 500;
 const CANCEL_DRAG_THRESHOLD = 84;
 const CANCEL_RESET_THRESHOLD = 42;
@@ -150,6 +165,21 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
   const [cancelMessage, setCancelMessage] = useState<string | null>(null);
   const [replaying, setReplaying] = useState(false);
   const [analysisIsSlow, setAnalysisIsSlow] = useState(false);
+  const [speechDebugExpanded, setSpeechDebugExpanded] = useState(false);
+  const [speechDebug, setSpeechDebug] = useState<SpeechDebugState>({
+    lastStage: 'idle',
+    durationMs: 0,
+    audioExtension: '',
+    audioMimeType: '',
+    provider: '',
+    fallback: false,
+    hasTranscript: false,
+    transcriptLength: 0,
+    lastError: '',
+    backendReachable: undefined as boolean | undefined,
+    endpointHost: '',
+    httpStatus: undefined as number | undefined,
+  });
   const durationTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const replayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const analysisTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -214,8 +244,25 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
     }
   };
 
+  const updateSpeechDebug = (patch: Partial<typeof speechDebug>) => {
+    if (!__DEV__ || !mountedRef.current) {
+      return;
+    }
+
+    setSpeechDebug((current) => ({ ...current, ...patch }));
+  };
+
+  const logSpeechUiDebug = (stage: string, details?: Record<string, string | number | boolean | undefined>) => {
+    if (!__DEV__) {
+      return;
+    }
+
+    console.log('[WortWeg Speech UI] ' + stage, details ?? {});
+  };
+
   const setSafeStatus = (nextStatus: PracticeStatus) => {
     statusRef.current = nextStatus;
+    updateSpeechDebug({ lastStage: 'state:' + nextStatus });
 
     if (mountedRef.current) {
       setStatus(nextStatus);
@@ -309,12 +356,38 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
     cancelArmedRef.current = false;
     cancelEventTrackedRef.current = false;
     setAnalysisIsSlow(false);
+    updateSpeechDebug({
+      lastStage: 'idle',
+      durationMs: 0,
+      audioExtension: '',
+      audioMimeType: '',
+      provider: '',
+      fallback: false,
+      hasTranscript: false,
+      transcriptLength: 0,
+      lastError: '',
+      backendReachable: undefined,
+      endpointHost: '',
+      httpStatus: undefined,
+    });
     clearReplayTimer();
     clearAnalysisTimer();
   };
 
   const analyzeRecording = async (recording: RecordingResult) => {
     const analysisStartedAt = Date.now();
+    logSpeechUiDebug('analysis started', {
+      platform: Platform.OS,
+      durationMs: recording.durationMs,
+      hasAudioUri: Boolean(recording.uri),
+    });
+    updateSpeechDebug({
+      lastStage: 'analysis started',
+      durationMs: recording.durationMs,
+      hasTranscript: false,
+      transcriptLength: 0,
+      lastError: '',
+    });
     setSafeStatus('analyzing');
     trackLocalEvent({
       type: 'speech_analysis_started',
@@ -325,15 +398,29 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
     try {
       const nextTranscriptionResult = await transcribeGerman(recording.uri, prompt.expectedText);
 
-      if (__DEV__) {
-        console.log('[WortWeg Speech UI] transcription result', {
-          provider: nextTranscriptionResult.provider,
-          modelUsed: nextTranscriptionResult.modelUsed,
-          fallback: nextTranscriptionResult.fallback,
-          hasTranscript: Boolean(nextTranscriptionResult.transcript),
-          transcriptLength: nextTranscriptionResult.transcript.length,
-        });
-      }
+      logSpeechUiDebug('transcription result', {
+        provider: nextTranscriptionResult.provider,
+        modelUsed: nextTranscriptionResult.modelUsed,
+        fallback: nextTranscriptionResult.fallback,
+        hasTranscript: Boolean(nextTranscriptionResult.transcript),
+        transcriptLength: nextTranscriptionResult.transcript.length,
+        audioExtension: nextTranscriptionResult.audioExtension,
+        audioMimeType: nextTranscriptionResult.audioMimeType,
+        backendReachable: nextTranscriptionResult.backendReachable,
+        httpStatus: nextTranscriptionResult.httpStatus,
+      });
+      updateSpeechDebug({
+        lastStage: 'transcription returned',
+        audioExtension: nextTranscriptionResult.audioExtension ?? '',
+        audioMimeType: nextTranscriptionResult.audioMimeType ?? '',
+        provider: nextTranscriptionResult.provider ?? '',
+        fallback: Boolean(nextTranscriptionResult.fallback),
+        hasTranscript: Boolean(nextTranscriptionResult.transcript),
+        transcriptLength: nextTranscriptionResult.transcript.length,
+        backendReachable: nextTranscriptionResult.backendReachable,
+        endpointHost: nextTranscriptionResult.endpointHost ?? '',
+        httpStatus: nextTranscriptionResult.httpStatus,
+      });
 
       const transcriptionIssue = getTranscriptionIssue(nextTranscriptionResult);
 
@@ -348,6 +435,8 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
 
         if (transcriptionIssue === 'noVoice') {
           setErrorMessage(null);
+          logSpeechUiDebug('analysis state resolved', { state: 'noVoice', platform: Platform.OS });
+          updateSpeechDebug({ lastStage: 'resolved:noVoice' });
           setSafeStatus('noVoice');
           trackLocalEvent({
             type: 'speaking_no_voice_detected',
@@ -362,7 +451,12 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
           return;
         }
 
-        setErrorMessage('Konuşmanı analiz ederken sorun oldu. Tekrar deneyelim.');
+        const friendlyError = nextTranscriptionResult.fallbackReason === 'backend-unreachable'
+          ? 'Analiz sunucusuna ulaşılamadı. Aynı Wi-Fi’da olduğundan emin ol ve tekrar dene.'
+          : 'Analiz tamamlanamadı. Bağlantıyı kontrol edip tekrar deneyelim.';
+        setErrorMessage(friendlyError);
+        logSpeechUiDebug('analysis state resolved', { state: 'error', platform: Platform.OS, reason: nextTranscriptionResult.fallbackReason });
+        updateSpeechDebug({ lastStage: 'resolved:error', lastError: nextTranscriptionResult.fallbackReason ?? 'analysis failed' });
         setSafeStatus('error');
         trackLocalEvent({
           type: 'speech_analysis_failed',
@@ -385,6 +479,8 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
 
       setTranscriptionResult(nextTranscriptionResult);
       setPronunciationResult(nextPronunciationResult);
+      logSpeechUiDebug('analysis state resolved', { state: 'result', platform: Platform.OS });
+      updateSpeechDebug({ lastStage: 'resolved:result' });
       setSafeStatus('result');
       trackLocalEvent({
         type: 'speech_analysis_completed',
@@ -399,9 +495,12 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
           platform: Platform.OS,
         },
       });
-    } catch {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'analysis failed';
+      logSpeechUiDebug('analysis state resolved', { state: 'error', platform: Platform.OS, lastError: message });
+      updateSpeechDebug({ lastStage: 'resolved:error', lastError: message });
       setSafeStatus('error');
-      setErrorMessage('Konuşmanı analiz ederken sorun oldu. Tekrar deneyelim.');
+      setErrorMessage('Analiz tamamlanamadı. Bağlantıyı kontrol edip tekrar deneyelim.');
       trackLocalEvent({
         type: 'speech_analysis_failed',
         screen: 'SpeakingPractice',
@@ -417,6 +516,8 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
     }
 
     actionLockedRef.current = true;
+    logSpeechUiDebug('press started', { platform: Platform.OS });
+    updateSpeechDebug({ lastStage: 'press started', lastError: '' });
     releasePendingRef.current = false;
     cancelArmedRef.current = false;
     cancelEventTrackedRef.current = false;
@@ -468,8 +569,11 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
         const snapshot = getActiveRecordingStatus();
         setDurationMs(snapshot.durationMs);
       }, 150);
-    } catch {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'stop failed';
       clearDurationTimer();
+      logSpeechUiDebug('analysis state resolved', { state: 'error', platform: Platform.OS, lastError: message });
+      updateSpeechDebug({ lastStage: 'resolved:error', lastError: message });
       setSafeStatus('error');
       trackLocalEvent({
         type: 'recording_error',
@@ -522,6 +626,14 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
   const finishPressRecording = async () => {
     const currentStatus = statusRef.current;
 
+    logSpeechUiDebug('release received', {
+      platform: Platform.OS,
+      state: currentStatus,
+      durationMs: Math.max(0, Date.now() - pressStartedAtRef.current),
+      cancelArmed: cancelArmedRef.current,
+    });
+    updateSpeechDebug({ lastStage: 'release received' });
+
     if (currentStatus === 'requestingPermission' || actionLockedRef.current) {
       releasePendingRef.current = true;
       return;
@@ -546,6 +658,16 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
     try {
       const recording = await stopRecording();
       const finalDurationMs = recording.durationMs || heldDurationMs;
+      logSpeechUiDebug('stop completed', {
+        platform: Platform.OS,
+        durationMs: finalDurationMs,
+        hasAudioUri: Boolean(recording.uri),
+        shouldCancel,
+      });
+      updateSpeechDebug({
+        lastStage: 'stop completed',
+        durationMs: finalDurationMs,
+      });
       trackLocalEvent({
         type: 'recording_stopped',
         screen: 'SpeakingPractice',
@@ -576,6 +698,8 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
         setDurationMs(0);
         setAudioUri(null);
         setErrorMessage('Biraz daha uzun söylemeyi dene.');
+        logSpeechUiDebug('analysis state resolved', { state: 'tooShort', platform: Platform.OS, durationMs: finalDurationMs });
+        updateSpeechDebug({ lastStage: 'resolved:tooShort' });
         setSafeStatus('tooShort');
         trackLocalEvent({
           type: 'speaking_too_short',
@@ -711,6 +835,10 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
       return 'Dinliyorum…';
     }
 
+    if (status === 'error') {
+      return 'Analiz tamamlanamadı';
+    }
+
     if (status === 'tooShort') {
       return 'Biraz daha uzun';
     }
@@ -737,6 +865,14 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
 
     if (status === 'analyzing') {
       return analysisIsSlow ? 'Biraz uzun sürdü, devam ediyoruz.' : 'Cümleni karşılaştırıyoruz.';
+    }
+
+    if (status === 'error') {
+      return 'Bağlantıyı kontrol edip tekrar deneyelim.';
+    }
+
+    if (status === 'tooShort') {
+      return 'Mikrofona basılı tutup cümleyi biraz daha uzun söyle.';
     }
 
     if (status === 'noVoice') {
@@ -786,6 +922,18 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
 
           {status === 'noVoice' ? (
             <NoVoiceState onRetry={retryCurrentPrompt} />
+          ) : status === 'error' ? (
+            <RetryState
+              helper={errorMessage ?? 'Bağlantıyı kontrol edip tekrar deneyelim.'}
+              onRetry={retryCurrentPrompt}
+              title="Analiz tamamlanamadı"
+            />
+          ) : status === 'tooShort' ? (
+            <RetryState
+              helper="Biraz daha uzun söylemeyi dene."
+              onRetry={retryCurrentPrompt}
+              title="Biraz daha uzun"
+            />
           ) : status === 'analyzing' ? (
             <AnalysisWave bars={waveBars} />
           ) : (
@@ -821,7 +969,16 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
           ) : null}
           {status !== 'noVoice' ? <Text style={styles.permissionText}>{getPermissionText(permission)}</Text> : null}
           {cancelMessage ? <Text style={styles.cancelMessage}>{cancelMessage}</Text> : null}
-          {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+          {errorMessage && status !== 'error' && status !== 'tooShort' ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+          {__DEV__ ? (
+            <SpeechDebugPanel
+              expanded={speechDebugExpanded}
+              onToggle={() => setSpeechDebugExpanded((value) => !value)}
+              status={status}
+              durationMs={durationMs}
+              debug={speechDebug}
+            />
+          ) : null}
         </View>
 
         {transcriptionResult && pronunciationResult ? (
@@ -839,6 +996,73 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
         ) : null}
       </AppScrollView>
     </Screen>
+  );
+}
+
+function SpeechDebugPanel({
+  debug,
+  durationMs,
+  expanded,
+  onToggle,
+  status,
+}: {
+  debug: SpeechDebugState;
+  durationMs: number;
+  expanded: boolean;
+  onToggle: () => void;
+  status: PracticeStatus;
+}) {
+  if (!__DEV__) {
+    return null;
+  }
+
+  return (
+    <View style={styles.debugPanel}>
+      <Pressable accessibilityRole="button" onPress={onToggle} style={({ pressed }) => [styles.debugHeader, pressed && styles.pressed]}>
+        <Text style={styles.debugTitle}>Speech debug</Text>
+        <Text style={styles.debugToggle}>{expanded ? 'Gizle' : 'Göster'}</Text>
+      </Pressable>
+      {expanded ? (
+        <View style={styles.debugRows}>
+          <DebugRow label="platform" value={Platform.OS} />
+          <DebugRow label="state" value={status} />
+          <DebugRow label="stage" value={debug.lastStage} />
+          <DebugRow label="durationMs" value={String(Math.round(debug.durationMs || durationMs))} />
+          <DebugRow label="extension" value={debug.audioExtension || '-'} />
+          <DebugRow label="mime" value={debug.audioMimeType || '-'} />
+          <DebugRow label="backend" value={debug.backendReachable === undefined ? '-' : String(debug.backendReachable)} />
+          <DebugRow label="host" value={debug.endpointHost || '-'} />
+          <DebugRow label="http" value={debug.httpStatus === undefined ? '-' : String(debug.httpStatus)} />
+          <DebugRow label="provider" value={debug.provider || '-'} />
+          <DebugRow label="fallback" value={String(debug.fallback)} />
+          <DebugRow label="hasTranscript" value={String(debug.hasTranscript)} />
+          <DebugRow label="transcriptLength" value={String(debug.transcriptLength)} />
+          <DebugRow label="lastError" value={debug.lastError || '-'} />
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+function DebugRow({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.debugRow}>
+      <Text style={styles.debugLabel}>{label}</Text>
+      <Text style={styles.debugValue} numberOfLines={1}>{value}</Text>
+    </View>
+  );
+}
+
+function RetryState({ helper, onRetry, title }: { helper: string; onRetry: () => void; title: string }) {
+  return (
+    <View style={styles.retryBox}>
+      <View style={styles.retryIcon}>
+        <RotateCcw color={colors.royalPurple} size={24} strokeWidth={2.7} />
+      </View>
+      <Text style={styles.retryTitle}>{title}</Text>
+      <Text style={styles.retryBody}>{helper}</Text>
+      <AppButton icon={RotateCcw} onPress={onRetry} title="Tekrar dene" />
+    </View>
   );
 }
 
@@ -1163,6 +1387,81 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: colors.red,
     fontWeight: '800',
+    textAlign: 'center',
+  },
+  debugPanel: {
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    marginTop: spacing.sm,
+    overflow: 'hidden',
+    width: '100%',
+  },
+  debugHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    minHeight: 42,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  debugTitle: {
+    ...typography.small,
+    color: colors.deepViolet,
+    fontWeight: '900',
+  },
+  debugToggle: {
+    ...typography.small,
+    color: colors.royalPurple,
+    fontWeight: '900',
+  },
+  debugRows: {
+    borderTopColor: colors.border,
+    borderTopWidth: 1,
+    padding: spacing.md,
+  },
+  debugRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.sm,
+    justifyContent: 'space-between',
+    minHeight: 24,
+  },
+  debugLabel: {
+    ...typography.small,
+    color: colors.muted,
+    fontWeight: '800',
+  },
+  debugValue: {
+    ...typography.small,
+    color: colors.deepViolet,
+    flex: 1,
+    fontWeight: '900',
+    textAlign: 'right',
+  },
+  retryBox: {
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingTop: spacing.md,
+    width: '100%',
+  },
+  retryIcon: {
+    alignItems: 'center',
+    backgroundColor: colors.lavender,
+    borderRadius: radius.pill,
+    height: 64,
+    justifyContent: 'center',
+    width: 64,
+  },
+  retryTitle: {
+    ...typography.heading,
+    color: colors.deepViolet,
+    textAlign: 'center',
+  },
+  retryBody: {
+    ...typography.body,
+    color: colors.muted,
     textAlign: 'center',
   },
   noVoiceBox: {

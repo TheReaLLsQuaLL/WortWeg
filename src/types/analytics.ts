@@ -6,6 +6,8 @@ export type LocalEventType =
   | 'onboarding_started'
   | 'onboarding_step_viewed'
   | 'onboarding_option_selected'
+  | 'onboarding_demo_card_tapped'
+  | 'onboarding_plan_revealed'
   | 'onboarding_completed'
   | 'onboarding_skipped_if_applicable'
   | 'placement_started'
@@ -68,6 +70,9 @@ export type LocalEventMetadata = Partial<{
   hasLearningPlan: boolean;
   stepId: string;
   selectedOptionId: string;
+  demoCardId: string;
+  userGoal: string;
+  selectedLevel: string;
   platform: string;
   audioExtension: string;
   audioMimeType: string;

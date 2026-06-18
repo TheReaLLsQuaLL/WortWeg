@@ -30,7 +30,9 @@ const getRawExtension = (uri: string) => {
 export const inferAudioUploadInfo = (uri: string): AudioUploadInfo => {
   const rawExtension = getRawExtension(uri);
   const extension = supportedExtensions.has(rawExtension) ? rawExtension : 'm4a';
-  const type = mimeByExtension[extension] ?? 'audio/m4a';
+  const type = Platform.OS === 'ios' && extension === 'm4a'
+    ? 'audio/mp4'
+    : mimeByExtension[extension] ?? 'audio/mp4';
 
   return {
     extension,
