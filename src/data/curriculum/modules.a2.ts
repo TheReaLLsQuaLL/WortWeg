@@ -249,251 +249,92 @@ export const modulesA2: CurriculumModule[] = [
     }
   },
   {
-    "id": "a2-05-ev-arama-ve-kontratlar",
+    "id": "a2-05-alisveris-ve-fiyatlar",
     "level": "A2",
     "order": 5,
-    "titleTr": "Ev Arama ve Kontratlar",
-    "titleDe": "Wohnung suchen",
-    "goalTr": "Ev Arama ve Kontratlar konusunda daha bağlı A2 cümleleri kurmak ve pratik görevler çözmek.",
+    "titleTr": "Alışveriş ve Fiyatlar",
+    "titleDe": "Einkaufen und Preise",
+    "goalTr": "Mağazada ürün sormak, fiyat anlamak ve basit satın alma cümleleri kurmak.",
     "cefrCanDoTr": "Tanıdık günlük konularda kısa ve bağlı bilgi alışverişi yapabilirim.",
-    "topics": [
-      "ev ilanı",
-      "kira",
-      "kontrat",
-      "randevu"
-    ],
-    "grammar": [
-      "dativ başlangıcı",
-      "Wechselpräpositionen farkındalığı",
-      "sıfatlı isim girişi"
-    ],
-    "vocabularyThemes": [
-      "ev ilanları",
-      "kira",
-      "mobilya",
-      "kontrat"
-    ],
-    "pronunciationFocus": [
-      "uzun birleşik kelime vurgusu"
-    ],
-    "speakingTasks": [
-      "ev ilanı hakkında iki kısa Almanca cümle söyle.",
-      "Bir soru sor ve kısa cevap ver."
-    ],
-    "listeningTasks": [
-      "ev ilanı bağlamında yavaş bir cümlede ana bilgiyi seç.",
-      "Duyduğun sayı, yer veya kişi bilgisini işaretle."
-    ],
-    "readingTasks": [
-      "ev ilanı ile ilgili kısa not veya mesajdan ana bilgiyi bul.",
-      "Anahtar kelimeleri renkli etiketlerle eşleştir."
-    ],
-    "writingTasks": [
-      "ev ilanı hakkında bir kısa cümle yaz.",
-      "Kısa form veya mesaj boşluğunu doldur."
-    ],
-    "examTasks": [
-      "Kısa okuma veya dinleme bilgisini seç.",
-      "Bir mini konuşma soru-cevap turu yap."
-    ],
-    "turkishLearnerWarnings": [
-      "Türkçedeki esnek kelime dizilişini Almancaya taşımadan fiili ikinci yere koy.",
-      "Artikel kelimeyle birlikte öğrenilir; renk sistemini kullan."
-    ],
+    "topics": ["alışveriş", "fiyatlar", "beden", "mağaza"],
+    "grammar": ["Akkusativ pekiştirme", "der → einen", "Wie viel kostet...?"],
+    "vocabularyThemes": ["kıyafet", "fiyat", "kasa", "beden"],
+    "pronunciationFocus": ["fiyat ve sayı netliği", "uzun ünlüler"],
+    "speakingTasks": ["Mağazada fiyat sor.", "Satın almak istediğin ürünü söyle."],
+    "listeningTasks": ["Kısa mağaza cümlesinde ürün veya fiyat bilgisini seç.", "Duyduğun ürün adını işaretle."],
+    "readingTasks": ["Kısa ürün notundan fiyat veya beden bilgisini bul.", "Artikel renkleriyle ürünleri eşleştir."],
+    "writingTasks": ["Almak istediğin ürünü bir cümleyle yaz.", "Kısa fiyat sorusu yaz."],
+    "examTasks": ["Kısa okuma veya dinleme bilgisini seç.", "Mağaza diyaloğunda doğru cevabı ver."],
+    "turkishLearnerWarnings": ["der kelimeleri Akkusativde einen olur: der Mantel → einen Mantel.", "Artikel kelimeyle birlikte öğrenilir; renk sistemini kullan."],
     "estimatedMinutes": 130,
-    "unlockRequirements": {
-      "minCompletedModules": 4
-    },
-    "trackBoosts": {
-      "family_reunion": 4,
-      "daily_life": 3
-    }
+    "unlockRequirements": { "minCompletedModules": 4 },
+    "trackBoosts": { "daily_life": 4, "travel": 2 }
   },
   {
-    "id": "a2-06-planlar-ve-davetler",
+    "id": "a2-06-saglik-ve-randevu",
     "level": "A2",
     "order": 6,
-    "titleTr": "Planlar ve Davetler",
-    "titleDe": "Pläne und Einladungen",
-    "goalTr": "Planlar ve Davetler konusunda daha bağlı A2 cümleleri kurmak ve pratik görevler çözmek.",
+    "titleTr": "Sağlık ve Randevu",
+    "titleDe": "Gesundheit und Termin",
+    "goalTr": "Basit sağlık şikayetini söylemek ve doktordan kibarca randevu istemek.",
     "cefrCanDoTr": "Tanıdık günlük konularda kısa ve bağlı bilgi alışverişi yapabilirim.",
-    "topics": [
-      "davet",
-      "plan",
-      "neden",
-      "teklif"
-    ],
-    "grammar": [
-      "weil",
-      "möchten/wollen",
-      "zaman yan cümlesi başlangıcı"
-    ],
-    "vocabularyThemes": [
-      "etkinlikler",
-      "davet",
-      "tarih",
-      "nedenler"
-    ],
-    "pronunciationFocus": [
-      "cümle melodisi",
-      "nazik tonlama"
-    ],
-    "speakingTasks": [
-      "davet hakkında iki kısa Almanca cümle söyle.",
-      "Bir soru sor ve kısa cevap ver."
-    ],
-    "listeningTasks": [
-      "davet bağlamında yavaş bir cümlede ana bilgiyi seç.",
-      "Duyduğun sayı, yer veya kişi bilgisini işaretle."
-    ],
-    "readingTasks": [
-      "davet ile ilgili kısa not veya mesajdan ana bilgiyi bul.",
-      "Anahtar kelimeleri renkli etiketlerle eşleştir."
-    ],
-    "writingTasks": [
-      "davet hakkında bir kısa cümle yaz.",
-      "Kısa form veya mesaj boşluğunu doldur."
-    ],
-    "examTasks": [
-      "Kısa okuma veya dinleme bilgisini seç.",
-      "Bir mini konuşma soru-cevap turu yap."
-    ],
-    "turkishLearnerWarnings": [
-      "Türkçedeki esnek kelime dizilişini Almancaya taşımadan fiili ikinci yere koy.",
-      "Artikel kelimeyle birlikte öğrenilir; renk sistemini kullan."
-    ],
+    "topics": ["sağlık", "şikayet", "doktor", "randevu"],
+    "grammar": ["Ich habe ... kalıbı", "brauchen + Akkusativ", "beim Arzt"],
+    "vocabularyThemes": ["şikayetler", "randevu", "muayenehane", "reçete"],
+    "pronunciationFocus": ["ch sesi", "kibar soru tonlaması"],
+    "speakingTasks": ["Bir şikayet söyle.", "Doktordan randevu iste."],
+    "listeningTasks": ["Kısa sağlık cümlesinde şikayeti seç.", "Randevu bilgisini işaretle."],
+    "readingTasks": ["Kısa sağlık mesajından ana bilgiyi bul.", "Şikayet ve randevu kelimelerini eşleştir."],
+    "writingTasks": ["Şikayetini iki kısa cümleyle yaz.", "Randevu isteme mesajı yaz."],
+    "examTasks": ["Kısa okuma veya dinleme bilgisini seç.", "Resmi kısa soru-cevap pratiği yap."],
+    "turkishLearnerWarnings": ["Ağrı için kelime kelime çeviri yerine Ich habe ... kalıbını kullan.", "beim Arzt ifadesini kalıp olarak öğren."],
     "estimatedMinutes": 130,
-    "unlockRequirements": {
-      "minCompletedModules": 5
-    },
-    "trackBoosts": {
-      "speaking_confidence": 4,
-      "daily_life": 2
-    }
+    "unlockRequirements": { "minCompletedModules": 5 },
+    "trackBoosts": { "daily_life": 4, "family_reunion": 3 }
   },
   {
-    "id": "a2-07-alisveris-ve-hizmetler",
+    "id": "a2-07-ev-ve-gunluk-isler",
     "level": "A2",
     "order": 7,
-    "titleTr": "Alışveriş ve Hizmetler",
-    "titleDe": "Einkaufen und Service",
-    "goalTr": "Alışveriş ve Hizmetler konusunda daha bağlı A2 cümleleri kurmak ve pratik görevler çözmek.",
+    "titleTr": "Ev ve Günlük İşler",
+    "titleDe": "Zuhause und Hausarbeit",
+    "goalTr": "Evde yapılan işleri ve bir eşyanın yerini basit A2 cümleleriyle anlatmak.",
     "cefrCanDoTr": "Tanıdık günlük konularda kısa ve bağlı bilgi alışverişi yapabilirim.",
-    "topics": [
-      "mağaza",
-      "iade",
-      "hizmet",
-      "şikayet başlangıcı"
-    ],
-    "grammar": [
-      "komparativ giriş",
-      "dieser/diese/dieses",
-      "akkusativ pekiştirme"
-    ],
-    "vocabularyThemes": [
-      "mağaza",
-      "ürün",
-      "renk/beden",
-      "hizmet"
-    ],
-    "pronunciationFocus": [
-      "final consonants",
-      "net sayı/fiyat"
-    ],
-    "speakingTasks": [
-      "mağaza hakkında iki kısa Almanca cümle söyle.",
-      "Bir soru sor ve kısa cevap ver."
-    ],
-    "listeningTasks": [
-      "mağaza bağlamında yavaş bir cümlede ana bilgiyi seç.",
-      "Duyduğun sayı, yer veya kişi bilgisini işaretle."
-    ],
-    "readingTasks": [
-      "mağaza ile ilgili kısa not veya mesajdan ana bilgiyi bul.",
-      "Anahtar kelimeleri renkli etiketlerle eşleştir."
-    ],
-    "writingTasks": [
-      "mağaza hakkında bir kısa cümle yaz.",
-      "Kısa form veya mesaj boşluğunu doldur."
-    ],
-    "examTasks": [
-      "Kısa okuma veya dinleme bilgisini seç.",
-      "Bir mini konuşma soru-cevap turu yap."
-    ],
-    "turkishLearnerWarnings": [
-      "Türkçedeki esnek kelime dizilişini Almancaya taşımadan fiili ikinci yere koy.",
-      "Artikel kelimeyle birlikte öğrenilir; renk sistemini kullan."
-    ],
+    "topics": ["ev işleri", "mutfak", "eşya yeri", "günlük düzen"],
+    "grammar": ["ayrılabilir fiil tekrarı", "auf dem Tisch", "Dativ yer kalıbı girişi"],
+    "vocabularyThemes": ["ev", "temizlik", "anahtar", "masa"],
+    "pronunciationFocus": ["sch sesi", "ayrılabilir fiilde cümle vurgusu"],
+    "speakingTasks": ["Bir ev işini söyle.", "Bir eşyanın nerede olduğunu anlat."],
+    "listeningTasks": ["Kısa ev işi cümlesinde yapılan işi seç.", "Eşyanın yerini işaretle."],
+    "readingTasks": ["Kısa ev notundan ana bilgiyi bul.", "Ev eşyalarını artikel renkleriyle eşleştir."],
+    "writingTasks": ["Evde yaptığın bir işi yaz.", "Bir eşyanın yerini yaz."],
+    "examTasks": ["Kısa okuma veya dinleme bilgisini seç.", "Yer bildirme cümlesini tamamla."],
+    "turkishLearnerWarnings": ["Nerede? sorusunda der Tisch → auf dem Tisch kalıbını öğren.", "Ayrılabilir fiil parçasını cümlenin sonuna koy."],
     "estimatedMinutes": 130,
-    "unlockRequirements": {
-      "minCompletedModules": 6
-    },
-    "trackBoosts": {
-      "daily_life": 3,
-      "travel": 2
-    }
+    "unlockRequirements": { "minCompletedModules": 6 },
+    "trackBoosts": { "daily_life": 4, "family_reunion": 2 }
   },
   {
-    "id": "a2-08-gecmis-deneyimler",
+    "id": "a2-08-davet-ve-mesaj-yazma",
     "level": "A2",
     "order": 8,
-    "titleTr": "Geçmiş Deneyimler",
-    "titleDe": "Erlebnisse erzählen",
-    "goalTr": "Geçmiş Deneyimler konusunda daha bağlı A2 cümleleri kurmak ve pratik görevler çözmek.",
+    "titleTr": "Davet ve Mesaj Yazma",
+    "titleDe": "Einladen und Nachrichten schreiben",
+    "goalTr": "Birini davet etmek, kısa mesaj yazmak ve basit neden belirtmek.",
     "cefrCanDoTr": "Tanıdık günlük konularda kısa ve bağlı bilgi alışverişi yapabilirim.",
-    "topics": [
-      "biyografi",
-      "tatil",
-      "çocukluk",
-      "olay sırası"
-    ],
-    "grammar": [
-      "Perfekt pekiştirme",
-      "Präteritum war/hatte",
-      "zaman bağlayıcıları"
-    ],
-    "vocabularyThemes": [
-      "biyografi",
-      "seyahat",
-      "etkinlikler",
-      "duygular"
-    ],
-    "pronunciationFocus": [
-      "ge- ritmi",
-      "uzun cevapta nefes"
-    ],
-    "speakingTasks": [
-      "biyografi hakkında iki kısa Almanca cümle söyle.",
-      "Bir soru sor ve kısa cevap ver."
-    ],
-    "listeningTasks": [
-      "biyografi bağlamında yavaş bir cümlede ana bilgiyi seç.",
-      "Duyduğun sayı, yer veya kişi bilgisini işaretle."
-    ],
-    "readingTasks": [
-      "biyografi ile ilgili kısa not veya mesajdan ana bilgiyi bul.",
-      "Anahtar kelimeleri renkli etiketlerle eşleştir."
-    ],
-    "writingTasks": [
-      "biyografi hakkında bir kısa cümle yaz.",
-      "Kısa form veya mesaj boşluğunu doldur."
-    ],
-    "examTasks": [
-      "Kısa okuma veya dinleme bilgisini seç.",
-      "Bir mini konuşma soru-cevap turu yap."
-    ],
-    "turkishLearnerWarnings": [
-      "Türkçedeki esnek kelime dizilişini Almancaya taşımadan fiili ikinci yere koy.",
-      "Artikel kelimeyle birlikte öğrenilir; renk sistemini kullan."
-    ],
+    "topics": ["davet", "mesaj", "neden", "plan"],
+    "grammar": ["weil yan cümlesi", "deshalb", "einladen ayrılabilir fiili"],
+    "vocabularyThemes": ["davet", "parti", "mesaj", "neden-sonuç"],
+    "pronunciationFocus": ["cümle melodisi", "nazik tonlama"],
+    "speakingTasks": ["Birini davet et.", "Geç kalma nedenini söyle."],
+    "listeningTasks": ["Kısa mesajda davet veya nedeni seç.", "Duyduğun zamanı işaretle."],
+    "readingTasks": ["Kısa davet mesajından ana bilgiyi bul.", "weil/deshalb cümlelerini ayır."],
+    "writingTasks": ["Kısa davet mesajı yaz.", "weil ile bir neden ekle."],
+    "examTasks": ["Kısa okuma veya dinleme bilgisini seç.", "Kısa mesaj boşluğunu doldur."],
+    "turkishLearnerWarnings": ["weil cümlesinde çekimli fiil sona gider.", "deshalb yeni cümle başlatır; fiil ikinci yerde kalır."],
     "estimatedMinutes": 130,
-    "unlockRequirements": {
-      "minCompletedModules": 7
-    },
-    "trackBoosts": {
-      "fast_track": 3,
-      "balanced": 3
-    }
+    "unlockRequirements": { "minCompletedModules": 7 },
+    "trackBoosts": { "speaking_confidence": 3, "daily_life": 3, "work_german": 1 }
   },
   {
     "id": "a2-09-modal-fiiller-ve-zorunluluk",

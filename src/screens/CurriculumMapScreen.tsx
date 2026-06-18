@@ -68,6 +68,7 @@ export function CurriculumMapScreen({ navigation, userState }: CurriculumMapScre
           const modules = getModulesForLevel(level.id);
           const completedCount = getCompletedModuleCount(userState, level.id);
           const activeLevel = plan?.currentLevel === level.id;
+          const previewModuleCount = level.id === 'A2' ? Math.max(4, getLessonsForLevel(level.id).length) : 4;
 
           return (
             <View key={level.id} style={[styles.levelSection, activeLevel && styles.activeLevel]}>
@@ -82,7 +83,7 @@ export function CurriculumMapScreen({ navigation, userState }: CurriculumMapScre
                 <MapPinned color={activeLevel ? colors.yellow : colors.royalPurple} size={20} />
               </Pressable>
 
-              {modules.slice(0, level.isPlaceholder ? 1 : 4).map((module, index) => {
+              {modules.slice(0, level.isPlaceholder ? 1 : previewModuleCount).map((module, index) => {
                 const playableLesson = getPlayableLessonByModuleId(module.id);
                 const unlocked = Boolean(playableLesson) ? index <= completedCount : false;
                 const completed = playableLesson ? userState.completedLessons.includes(playableLesson.id) : false;
