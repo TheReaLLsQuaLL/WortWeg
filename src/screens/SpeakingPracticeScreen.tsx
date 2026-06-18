@@ -464,7 +464,7 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
           <View style={styles.feedbackCard}>
             <Text style={styles.sectionTitle}>Geri bildirim hazırlanıyor</Text>
             <Text style={styles.body}>
-              Önce söylediğin cümle yazıya çevrilecek. Telaffuz puanı bu sürümde mock kalacak.
+              Önce söylediğin cümle yazıya çevrilecek. Sonra hedef cümleyle karşılaştıracağız.
             </Text>
           </View>
         ) : null}
@@ -474,6 +474,11 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
             <View style={styles.feedbackHeader}>
               <CheckCircle2 color={colors.green} size={24} />
               <Text style={styles.sectionTitle}>Sonuç</Text>
+            </View>
+
+            <View style={styles.resultSection}>
+              <Text style={styles.sectionTitle}>Beklenen cümle</Text>
+              <Text style={styles.expectedResultText}>{prompt.expectedText}</Text>
             </View>
 
             <View style={styles.resultSection}>
@@ -500,17 +505,19 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
             </View>
 
             <View style={styles.resultSection}>
-              <Text style={styles.sectionTitle}>Beklenen cümle</Text>
-              <Text style={styles.expectedResultText}>{prompt.expectedText}</Text>
-            </View>
-
-            <View style={styles.resultSection}>
               <View style={styles.comparisonHeaderRow}>
-                <View>
+                <View style={styles.flexCopy}>
                   <Text style={styles.sectionTitle}>Hedefe yakınlık</Text>
                   <Text style={styles.body}>{pronunciationResult.comparison.shortFeedbackTr}</Text>
                 </View>
-                <Text style={styles.similarityScore}>{pronunciationResult.comparison.similarityScore}</Text>
+                <Text style={[
+                  styles.similarityScore,
+                  pronunciationResult.comparison.similarityBucket === 'high'
+                    ? styles.similarityHigh
+                    : pronunciationResult.comparison.similarityBucket === 'medium'
+                      ? styles.similarityMedium
+                      : styles.similarityLow,
+                ]}>{pronunciationResult.comparison.similarityScore}</Text>
               </View>
               <View style={styles.wordGroup}>
                 <Text style={styles.wordGroupTitle}>Eşleşen</Text>
@@ -524,65 +531,61 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
                   )}
                 </View>
               </View>
-              <View style={styles.wordGroup}>
-                <Text style={styles.wordGroupTitle}>Eksik</Text>
-                <View style={styles.wordChipRow}>
-                  {pronunciationResult.comparison.missingWords.length > 0 ? pronunciationResult.comparison.missingWords.map((word, index) => (
-                    <View key={'missing-' + word + '-' + index} style={[styles.wordChip, styles.missingChip]}>
-                      <Text style={styles.wordChipText}>{word}</Text>
-                    </View>
-                  )) : (
-                    <Text style={styles.emptyChipText}>Eksik kelime yok</Text>
-                  )}
+              {pronunciationResult.comparison.missingWords.length > 0 ? (
+                <View style={styles.wordGroup}>
+                  <Text style={styles.wordGroupTitle}>Eksik</Text>
+                  <View style={styles.wordChipRow}>
+                    {pronunciationResult.comparison.missingWords.map((word, index) => (
+                      <View key={'missing-' + word + '-' + index} style={[styles.wordChip, styles.missingChip]}>
+                        <Text style={styles.wordChipText}>{word}</Text>
+                      </View>
+                    ))}
+                  </View>
                 </View>
-              </View>
-              <View style={styles.wordGroup}>
-                <Text style={styles.wordGroupTitle}>Ekstra</Text>
-                <View style={styles.wordChipRow}>
-                  {pronunciationResult.comparison.extraWords.length > 0 ? pronunciationResult.comparison.extraWords.map((word, index) => (
-                    <View key={'extra-' + word + '-' + index} style={[styles.wordChip, styles.extraChip]}>
-                      <Text style={styles.wordChipText}>{word}</Text>
-                    </View>
-                  )) : (
-                    <Text style={styles.emptyChipText}>Ekstra kelime yok</Text>
-                  )}
+              ) : null}
+              {pronunciationResult.comparison.extraWords.length > 0 ? (
+                <View style={styles.wordGroup}>
+                  <Text style={styles.wordGroupTitle}>Ekstra</Text>
+                  <View style={styles.wordChipRow}>
+                    {pronunciationResult.comparison.extraWords.map((word, index) => (
+                      <View key={'extra-' + word + '-' + index} style={[styles.wordChip, styles.extraChip]}>
+                        <Text style={styles.wordChipText}>{word}</Text>
+                      </View>
+                    ))}
+                  </View>
                 </View>
-              </View>
+              ) : null}
             </View>
 
             <View style={styles.resultSection}>
               <View style={styles.pronunciationHeaderRow}>
-                <Text style={styles.sectionTitle}>Telaffuz geri bildirimi</Text>
+                <Text style={styles.sectionTitle}>Pratik geri bildirimi</Text>
                 {__DEV__ && pronunciationResult.isMock ? (
                   <View style={styles.mockTag}>
-                    <Text style={styles.mockTagText}>Mock</Text>
+                    <Text style={styles.mockTagText}>DEV</Text>
                   </View>
                 ) : null}
               </View>
               {__DEV__ && pronunciationResult.isMock ? (
-                <Text style={styles.devFallback}>Telaffuz skoru şu an mock.</Text>
+                <Text style={styles.devFallback}>pronunciation: mock</Text>
               ) : null}
-              <View style={styles.resultRow}>
-                <Text style={styles.scoreValue}>{pronunciationResult.pronunciationScore}</Text>
-                <View style={styles.resultCopy}>
-                  <Text style={styles.scoreLabel}>Telaffuz puanı</Text>
-                  <Text style={styles.body}>{pronunciationResult.feedbackTr}</Text>
+              <Text style={styles.feedbackText}>{pronunciationResult.feedbackTr}</Text>
+              {__DEV__ ? (
+                <View style={styles.scoreGrid}>
+                  <View style={styles.scorePill}>
+                    <Text style={styles.scorePillValue}>{pronunciationResult.pronunciationScore}</Text>
+                    <Text style={styles.scorePillLabel}>DEV puan</Text>
+                  </View>
+                  <View style={styles.scorePill}>
+                    <Text style={styles.scorePillValue}>{pronunciationResult.accuracyScore}</Text>
+                    <Text style={styles.scorePillLabel}>Eşleşme</Text>
+                  </View>
+                  <View style={styles.scorePill}>
+                    <Text style={styles.scorePillValue}>{pronunciationResult.completenessScore}</Text>
+                    <Text style={styles.scorePillLabel}>Tamlık</Text>
+                  </View>
                 </View>
-              </View>
-              <View style={styles.scoreGrid}>
-                <View style={styles.scorePill}>
-                  <Text style={styles.scorePillValue}>{pronunciationResult.accuracyScore}</Text>
-                  <Text style={styles.scorePillLabel}>Doğruluk</Text>
-                </View>
-                <View style={styles.scorePill}>
-                  <Text style={styles.scorePillValue}>{pronunciationResult.fluencyScore}</Text>
-                  <Text style={styles.scorePillLabel}>Akıcılık</Text>
-                </View>
-                <View style={styles.scorePill}>
-                  <Text style={styles.scorePillValue}>{pronunciationResult.completenessScore}</Text>
-                  <Text style={styles.scorePillLabel}>Tamlık</Text>
-                </View>
-              </View>
+              ) : null}
               {pronunciationResult.wordFeedback.map((item) => (
                 <View key={item.word} style={styles.wordFeedback}>
                   <Text style={styles.wordTitle}>{item.word}</Text>
@@ -592,12 +595,18 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
               ))}
             </View>
 
-            <AppButton
-              icon={RotateCcw}
-              onPress={retryCurrentPrompt}
-              title="Tekrar dene"
-              variant="secondary"
-            />
+            <View style={styles.resultActions}>
+              <AppButton
+                icon={RotateCcw}
+                onPress={retryCurrentPrompt}
+                title="Tekrar dene"
+              />
+              <AppButton
+                onPress={nextPrompt}
+                title="Başka cümle"
+                variant="secondary"
+              />
+            </View>
           </View>
         ) : null}
       </AppScrollView>
@@ -622,6 +631,9 @@ const styles = StyleSheet.create({
     width: 44,
   },
   headerCopy: {
+    flex: 1,
+  },
+  flexCopy: {
     flex: 1,
   },
   kicker: {
@@ -831,6 +843,18 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     letterSpacing: 0,
     lineHeight: 48,
+  },
+  similarityHigh: {
+    color: colors.green,
+  },
+  similarityMedium: {
+    color: '#A66500',
+  },
+  similarityLow: {
+    color: colors.red,
+  },
+  resultActions: {
+    gap: spacing.sm,
   },
   wordGroup: {
     gap: spacing.xs,

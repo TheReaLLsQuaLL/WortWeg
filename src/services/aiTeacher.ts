@@ -408,7 +408,7 @@ export const gradeSpeaking = async (
     score,
     maxScore,
     feedbackTr: withTextDebug(
-      'Bu şu an mock konuşma değerlendirmesi. Gerçek sürümde ses kaydı ve telaffuz puanı backend üzerinden gelir.',
+      'Bu geri bildirim yazıya dökülen cümle üzerinden hazırlanır. Gerçek fonetik telaffuz puanı daha sonra eklenecek.',
       fallbackReason,
     ),
     pronunciationTips: [
@@ -466,7 +466,7 @@ export const generateExamQuestion = async (
     examA1Questions[0];
 
   if (!question) {
-    throw new Error('No mock exam question is available.');
+    throw new Error('No local exam practice question is available.');
   }
 
   return question;

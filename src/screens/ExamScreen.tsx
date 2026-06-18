@@ -237,7 +237,7 @@ export function ExamScreen({
         <TopBar
           streak={userState.streak}
           subtitle={String(currentIndex + 1) + '/' + questions.length + ' soru'}
-          title="A1 sınav pratiği"
+          title="A1 sınav tarzı pratik"
           xp={userState.xp}
         />
         <ScrollView
@@ -285,7 +285,7 @@ export function ExamScreen({
           ) : question.section === 'speaking' ? (
             <View style={styles.speakingBox}>
               <Text style={styles.body}>
-                Cümleyi yüksek sesle oku. Kayıt gerçektir; transcript ve telaffuz puanı şimdilik mock döner.
+                Cümleyi yüksek sesle oku. Kaydın yazıya çevrilir ve hedef cümleyle karşılaştırılır.
               </Text>
               <Text style={styles.recordingTime}>
                 Süre: {Math.floor(recordingDurationMs / 1000)} sn

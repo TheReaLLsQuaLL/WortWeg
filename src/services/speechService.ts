@@ -327,7 +327,7 @@ export const stopRecording = async (): Promise<RecordingResult> => {
       logAndroidAudio('stop completed', {
         id: recorderId,
         durationMs,
-        audioUri: uri,
+        hasAudioUri: Boolean(uri),
       });
 
       return { uri, durationMs };
@@ -394,7 +394,7 @@ export const replayRecording = async (audioUri: string): Promise<void> => {
   try {
     await setPlaybackMode();
     const player = createAudioPlayer({ uri: audioUri });
-    logAndroidAudio('replay started', { audioUri });
+    logAndroidAudio('replay started', { hasAudioUri: Boolean(audioUri) });
     player.play();
 
     setTimeout(() => {
@@ -409,7 +409,7 @@ export const replayRecording = async (audioUri: string): Promise<void> => {
     }, 30_000);
   } catch (error) {
     logAndroidAudio('replay error', {
-      audioUri,
+      hasAudioUri: Boolean(audioUri),
       errorMessage: error instanceof Error ? error.message : String(error),
     });
     throw error;
@@ -608,7 +608,7 @@ export const scorePronunciation = async (
   if (wordFeedback.length === 0) {
     wordFeedback.push({
       word: 'Akıcılık',
-      issue: 'Bu bölüm gerçek telaffuz analizi değil, hedef-transcript karşılaştırmasına dayalı mock geri bildirimdir.',
+      issue: 'Bu geri bildirim hedef cümleyle yazıya dökülen cümleyi karşılaştırır; gerçek fonetik telaffuz analizi değildir.',
       suggestionTr: 'Cümleyi bir kez daha daha doğal hızda söyle.',
     });
   }

@@ -147,7 +147,7 @@ export const examA1Questions: ExamQuestion[] = [
     sampleAnswer:
       'Ich heiße Selin. Ich komme aus der Türkei. Ich wohne in Berlin. Ich lerne Deutsch.',
     explanationTr:
-      'A1 seviyesinde kısa, doğru ve net cümleler yeterlidir. Bu bölüm şu an mock AI ile değerlendirilir.',
+      'A1 seviyesinde kısa, doğru ve net cümleler yeterlidir. Cevabın yapı ve anlam açısından kontrol edilir.',
     xp: 15,
   },
   {
@@ -155,11 +155,11 @@ export const examA1Questions: ExamQuestion[] = [
     section: 'speaking',
     cefrLevel: 'A1',
     title: 'Sesli tekrar',
-    promptTr: 'Cümleyi sesli oku. Şimdilik telaffuz puanı mock döner.',
+    promptTr: 'Cümleyi sesli oku. Kaydın yazıya çevrilir ve hedef cümleyle karşılaştırılır.',
     questionTr: 'Aşağıdaki cümleyi söyle.',
     expectedText: 'Ich lerne Deutsch jeden Tag.',
     explanationTr:
-      'Gerçek telaffuz puanlama daha sonra Azure Pronunciation Assessment ile bağlanacak.',
+      'Bu sürümde geri bildirim, yazıya dökülen cümlenin hedef cümleye yakınlığına göre verilir.',
     xp: 15,
   },
 ];

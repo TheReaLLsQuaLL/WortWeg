@@ -369,7 +369,7 @@ export const getTodayRecommendedActions = (
       id: 'speaking-prompt',
       type: 'speaking',
       titleTr: 'Günün konuşma cümlesi',
-      descriptionTr: 'Kısa Almanca cümleyi dinle, kaydet ve mock geri bildirim al.',
+      descriptionTr: 'Kısa Almanca cümleyi dinle, kaydet ve hedef cümleyle karşılaştır.',
       estimatedMinutes: 3,
     });
   }

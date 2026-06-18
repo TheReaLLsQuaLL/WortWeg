@@ -626,7 +626,7 @@ export const lessonsA1: Lesson[] = [
     titleTr: 'A1 Sınav Tarzı Pratik',
     titleDe: 'A1 Prüfungstraining',
     subtitleTr: 'Okuma, dinleme tarzı metin, form, kısa mesaj ve konuşma',
-    goalTr: 'A1 sınav tarzı görev formatlarını resmi iddia olmadan pratik etmek.',
+    goalTr: 'A1 sınav tarzı görevleri özgün örneklerle pratik etmek.',
     descriptionTr: 'Bu ders, A1 seviyesinde kısa bildirim, mesaj, form doldurma, kısa yazma ve kendini tanıtma görevlerini özgün örneklerle birleştirir.',
     estimatedMinutes: 18,
     objectives: ['Kısa duyurudan bilgi bulma', 'Mesajdan saat/yer seçme', 'Form alanı doldurma', 'Kısa e-posta/mesaj yazma', 'Kendini sözlü tanıtma'],
@@ -641,7 +641,7 @@ export const lessonsA1: Lesson[] = [
       { id: 'sprechen', german: 'sprechen', turkish: 'konuşmak', exampleDe: 'Ich spreche langsam.', exampleTr: 'Yavaş konuşuyorum.', tags: ['skill'] },
     ],
     grammar: [
-      grammarTip('Sınav tarzı ama resmi değil', 'WortWeg burada özgün A1 görev formatlarıyla pratik yaptırır. Amaç kısa bilgiyi bulmak ve basit cevap vermek.', [
+      grammarTip('Sınav tarzı pratik', 'WortWeg burada özgün A1 görevleriyle pratik yaptırır. Amaç kısa bilgiyi bulmak ve basit cevap vermek.', [
         { german: 'Die Prüfung ist am Montag.', turkish: 'Sınav pazartesi.' },
       ]),
       grammarTip('Kısa yazma stratejisi', 'A1 yazmada uzun cümle değil, net bilgi önemlidir: selam, neden yazdığın, saat/yer, kapanış.', [
@@ -655,7 +655,7 @@ export const lessonsA1: Lesson[] = [
     commonMistakeTr: 'Sınav tarzı pratikte uzun ve karmaşık cümle kurmaya çalışma; A1 için kısa, doğru ve net cümleler daha güvenlidir.',
     speakingPrompt: { titleTr: 'Kendini tanıt', promptDe: 'Ich heiße Ece. Ich komme aus der Türkei. Ich wohne in Izmir. Ich lerne Deutsch.', promptTr: 'Kendi bilgilerinle dört cümle oku.' },
     writingPrompt: { titleTr: 'Kısa mesaj yaz', promptTr: 'Bir arkadaşına yarın saat 10’da gelemeyeceğini ve özür dilediğini yaz.', sampleAnswerDe: 'Hallo Mina, ich komme morgen nicht um 10 Uhr. Entschuldigung. Viele Grüße, Ece' },
-    reviewSummaryTr: 'A1 sınav tarzı pratikte kısa metin, dinleme tarzı metin, form, mesaj ve speaking tanıtımı gördün.',
+    reviewSummaryTr: 'A1 sınav tarzı pratikte kısa metin, dinleme tarzı metin, form, mesaj ve konuşma tanıtımı gördün.',
     steps: promptSteps('A1 sınav tarzı pratikte kısa ve net bilgiye odaklan.'),
     baseExercises: [
       choiceExercise({ id: 'ex-a1-12-a1-sinav-tarzi-pratik-01', lessonId: 'a1-12-a1-sinav-tarzi-pratik', skill: 'reading', prompt: 'Kısa duyuruyu oku.', question: 'Deutschgruppe: Wir treffen uns am Dienstag um 17 Uhr im Raum 2. Ne zaman buluşuluyor?', correct: 'Salı saat 17.00', distractors: ['Pazartesi saat 17.00', 'Salı saat 7.00', 'Oda 17'], explanation: 'am Dienstag salı, um 17 Uhr saat 17.00 demektir.' }),

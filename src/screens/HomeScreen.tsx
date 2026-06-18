@@ -83,7 +83,7 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
     ? nextLesson.cefr + ' · ' + nextLesson.estimatedMinutes + ' dk'
     : dueCards.length > 0
       ? dueCards.length + ' kart hazır'
-      : 'A1 konuşma · mock değerlendirme';
+      : 'A1 konuşma · cümle eşleşmesi';
   const primaryButton = nextLesson ? 'Derse başla' : dueCards.length > 0 ? 'Tekrar et' : 'Sesli pratik aç';
 
   return (
@@ -141,7 +141,7 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
 
         {plan ? (
           <Pressable onPress={() => navigation.navigate('PlanOverview')} style={({ pressed }) => [styles.planStrip, pressed && styles.pressed]}>
-            <Text style={styles.planTitle}>{plan.titleTr}</Text>
+            <Text style={styles.planTitle}>Planın</Text>
             <Text style={styles.planText}>{plan.currentLevel} → {plan.targetLevel} · {plan.dailyMinutes} dk/gün</Text>
           </Pressable>
         ) : null}
@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
   },
   content: {
     backgroundColor: colors.surface,
-    gap: spacing.lg,
+    gap: spacing.md,
     padding: spacing.lg,
   },
   todayCard: {
@@ -258,14 +258,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.white,
     borderColor: colors.border,
-    borderRadius: radius.md,
+    borderRadius: radius.pill,
     borderWidth: 1,
-    flexBasis: '22%',
+    flexBasis: '46%',
+    flexDirection: 'row',
     flexGrow: 1,
     gap: spacing.xs,
-    minHeight: 76,
+    minHeight: 48,
     justifyContent: 'center',
-    padding: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
   },
   quickLabel: {
     ...typography.small,
@@ -279,7 +281,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     borderWidth: 1,
     gap: 2,
-    padding: spacing.md,
+    padding: spacing.sm,
   },
   planTitle: {
     ...typography.body,
