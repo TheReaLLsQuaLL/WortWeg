@@ -622,7 +622,7 @@ export function OnboardingScreen({ navigation, onComplete }: OnboardingScreenPro
   };
 
   return (
-    <LinearGradient colors={[colors.gradientStart, colors.deepViolet]} style={styles.gradient}>
+    <LinearGradient colors={[colors.paperLavender, colors.lavenderBackground, '#EEE9FF']} style={styles.gradient}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={0}
@@ -682,6 +682,8 @@ function StepPanel({ children, helper, title }: { children: ReactNode; helper: s
   return (
     <AnimatedCard>
       <View style={styles.panel}>
+        <View style={styles.panelBurstLarge} />
+        <View style={styles.panelBurstSmall} />
         <Text style={styles.title}>{title}</Text>
         <Text style={styles.helper}>{helper}</Text>
         {children}
@@ -934,13 +936,35 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   panel: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.paper,
     borderColor: colors.comicBorderColor,
-    borderRadius: radius.lg,
+    borderRadius: radius.xl,
     borderWidth: colors.comicBorderWidth,
     gap: spacing.lg,
-    padding: spacing.lg,
-    ...shadows.comic,
+    overflow: 'visible',
+    padding: spacing.xl,
+    position: 'relative',
+    ...shadows.lift,
+  },
+  panelBurstLarge: {
+    backgroundColor: colors.comicYellowWash,
+    borderRadius: 999,
+    height: 126,
+    opacity: 0.66,
+    position: 'absolute',
+    right: -48,
+    top: -54,
+    width: 126,
+  },
+  panelBurstSmall: {
+    backgroundColor: colors.comicBlueWash,
+    borderRadius: 999,
+    bottom: -42,
+    height: 92,
+    left: -36,
+    opacity: 0.55,
+    position: 'absolute',
+    width: 92,
   },
   title: {
     ...typography.title,
@@ -966,7 +990,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.white,
     borderColor: colors.comicBorderColor,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: colors.comicBorderWidth,
     gap: spacing.sm,
     minHeight: 96,
@@ -976,12 +1000,13 @@ const styles = StyleSheet.create({
   optionCardSelected: {
     backgroundColor: colors.primaryPurple,
     borderColor: colors.comicBorderColor,
+    ...shadows.comic,
   },
   optionIcon: {
     alignItems: 'center',
-    backgroundColor: colors.softLavenderPanel,
+    backgroundColor: colors.paperLavender,
     borderColor: colors.comicBorderColor,
-    borderRadius: radius.sm,
+    borderRadius: radius.md,
     borderWidth: colors.comicBorderWidth,
     height: 38,
     justifyContent: 'center',
@@ -1012,11 +1037,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.primaryPurple,
     borderColor: colors.comicBorderColor,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: colors.comicBorderWidth,
     flexDirection: 'row',
     gap: spacing.md,
     padding: spacing.md,
+    ...shadows.comicSmall,
   },
   valueIcon: {
     alignItems: 'center',
@@ -1071,12 +1097,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
   },
   readyCard: {
-    backgroundColor: colors.softLavenderPanel,
+    backgroundColor: colors.paperLavender,
     borderColor: colors.comicBorderColor,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: colors.comicBorderWidth,
     gap: spacing.sm,
     padding: spacing.md,
+    ...shadows.comicSmall,
   },
   readyRow: {
     alignItems: 'center',
@@ -1118,15 +1145,16 @@ const styles = StyleSheet.create({
   },
   articleCard: {
     alignItems: 'center',
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: 2,
     gap: spacing.xs,
     minHeight: 112,
     justifyContent: 'center',
     padding: spacing.md,
+    ...shadows.paper,
   },
   articleCardSelected: {
-    ...shadows.comicSmall,
+    ...shadows.comic,
   },
   articleBadge: {
     ...typography.body,
@@ -1139,13 +1167,14 @@ const styles = StyleSheet.create({
   },
   demoExplanation: {
     alignItems: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: colors.paper,
     borderColor: colors.comicBorderColor,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: colors.comicBorderWidth,
     flexDirection: 'row',
     gap: spacing.sm,
     padding: spacing.md,
+    ...shadows.comicSmall,
   },
   demoArticle: {
     ...typography.body,

@@ -34,7 +34,7 @@ export function OnboardingProgressHeader({
           pressed && canGoBack && styles.pressed,
         ]}
       >
-        {canGoBack ? <ArrowLeft color={colors.white} size={20} /> : null}
+        {canGoBack ? <ArrowLeft color={colors.comicBorderColor} size={20} /> : null}
       </Pressable>
 
       <View style={styles.progressWrap}>
@@ -61,8 +61,10 @@ const styles = StyleSheet.create({
   },
   backButton: {
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.14)',
+    backgroundColor: colors.paper,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.sm,
+    borderWidth: colors.comicBorderWidth,
     height: 44,
     justifyContent: 'center',
     width: 44,
@@ -81,25 +83,27 @@ const styles = StyleSheet.create({
   },
   stepText: {
     ...typography.small,
-    color: colors.white,
+    color: colors.comicBorderColor,
     fontWeight: '900',
   },
   caption: {
     ...typography.small,
-    color: colors.lavender,
+    color: colors.muted,
     fontWeight: '800',
   },
   track: {
-    backgroundColor: 'rgba(255,255,255,0.18)',
+    backgroundColor: colors.white,
+    borderColor: colors.comicBorderColor,
+    borderWidth: 2,
     borderRadius: radius.pill,
     flexDirection: 'row',
-    height: 8,
+    height: 10,
     overflow: 'hidden',
   },
   fill: {
-    backgroundColor: colors.yellow,
+    backgroundColor: colors.yellowCta,
     borderRadius: radius.pill,
-    height: 8,
+    height: 10,
   },
   pressed: {
     opacity: 0.78,

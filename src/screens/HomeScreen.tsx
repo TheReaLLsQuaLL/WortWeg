@@ -97,10 +97,14 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
       />
       <AppScrollView contentContainerStyle={styles.content} style={styles.scroll}>
         <AnimatedCard>
-          <AppCard tone="violet" style={styles.todayCard}>
+          <AppCard style={styles.todayCard}>
+          <View style={styles.missionBurst} />
+          <View style={styles.missionSticker}>
+            <Text style={styles.missionStickerText}>W</Text>
+          </View>
           <View style={styles.todayHeader}>
             <View style={styles.todayIcon}>
-              <Sparkles color={colors.yellow} size={24} strokeWidth={2.6} />
+              <Sparkles color={colors.comicBorderColor} size={24} strokeWidth={2.6} />
             </View>
             <View style={styles.flexCopy}>
               <ProgressPill label="Bugünkü adım" tone="yellow" />
@@ -177,10 +181,41 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
   },
   todayCard: {
-    backgroundColor: colors.deepViolet,
-    borderRadius: radius.lg,
+    backgroundColor: colors.paper,
+    borderRadius: radius.xl,
     gap: spacing.lg,
+    overflow: 'visible',
     padding: spacing.lg,
+    position: 'relative',
+  },
+  missionBurst: {
+    backgroundColor: colors.comicYellowWash,
+    borderRadius: 999,
+    height: 150,
+    opacity: 0.9,
+    position: 'absolute',
+    right: -42,
+    top: -58,
+    width: 150,
+  },
+  missionSticker: {
+    alignItems: 'center',
+    backgroundColor: colors.primaryPurple,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.pill,
+    borderWidth: colors.comicBorderWidth,
+    height: 34,
+    justifyContent: 'center',
+    position: 'absolute',
+    right: spacing.lg,
+    top: spacing.md,
+    width: 34,
+    ...shadows.comicSmall,
+  },
+  missionStickerText: {
+    ...typography.small,
+    color: colors.white,
+    fontWeight: '900',
   },
   todayHeader: {
     alignItems: 'center',
@@ -191,11 +226,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.yellowCta,
     borderColor: colors.comicBorderColor,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: colors.comicBorderWidth,
-    height: 52,
+    height: 56,
     justifyContent: 'center',
-    width: 52,
+    width: 56,
+    ...shadows.comicSmall,
   },
   flexCopy: {
     flex: 1,
@@ -208,28 +244,28 @@ const styles = StyleSheet.create({
   },
   todayTitle: {
     ...typography.heading,
-    color: colors.white,
+    color: colors.deepViolet,
   },
   todayMeta: {
     ...typography.small,
-    color: colors.lavender,
+    color: colors.muted,
   },
   goalBar: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.paperLavender,
     borderColor: colors.comicBorderColor,
     borderRadius: radius.pill,
     borderWidth: colors.comicBorderWidth,
     flexDirection: 'row',
-    height: 8,
+    height: 10,
     overflow: 'hidden',
   },
   goalFill: {
     backgroundColor: colors.yellow,
   },
   section: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.paper,
     borderColor: colors.comicBorderColor,
-    borderRadius: radius.lg,
+    borderRadius: radius.xl,
     borderWidth: colors.comicBorderWidth,
     gap: spacing.md,
     padding: spacing.lg,
@@ -251,13 +287,14 @@ const styles = StyleSheet.create({
   },
   textButton: {
     alignItems: 'center',
-    backgroundColor: colors.softLavenderPanel,
+    backgroundColor: colors.comicYellowWash,
     borderColor: colors.comicBorderColor,
-    borderRadius: radius.sm,
+    borderRadius: radius.pill,
     borderWidth: colors.comicBorderWidth,
     minHeight: 40,
     justifyContent: 'center',
     paddingHorizontal: spacing.md,
+    ...shadows.comicSmall,
   },
   textButtonLabel: {
     ...typography.small,
@@ -271,15 +308,15 @@ const styles = StyleSheet.create({
   },
   quickAction: {
     alignItems: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: colors.paper,
     borderColor: colors.comicBorderColor,
-    borderRadius: radius.pill,
+    borderRadius: radius.lg,
     borderWidth: colors.comicBorderWidth,
     flexBasis: '46%',
     flexDirection: 'row',
     flexGrow: 1,
     gap: spacing.xs,
-    minHeight: 48,
+    minHeight: 52,
     justifyContent: 'center',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
@@ -307,13 +344,13 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
   planStrip: {
-    backgroundColor: colors.white,
-    borderColor: colors.comicBorderColor,
-    borderRadius: radius.md,
-    borderWidth: colors.comicBorderWidth,
+    backgroundColor: colors.paperLavender,
+    borderColor: colors.border,
+    borderRadius: radius.lg,
+    borderWidth: 1,
     gap: 2,
-    padding: spacing.sm,
-    ...shadows.comicSmall,
+    padding: spacing.md,
+    ...shadows.paper,
   },
   planTitle: {
     ...typography.body,

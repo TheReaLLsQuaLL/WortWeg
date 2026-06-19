@@ -24,7 +24,7 @@ const styles = StyleSheet.create({
     minHeight: 30,
     justifyContent: 'center',
     paddingHorizontal: spacing.md,
-    ...shadows.comicSmall,
+    ...shadows.paper,
   },
   purple: { backgroundColor: colors.softLavenderPanel },
   green: { backgroundColor: '#DFF7EB' },

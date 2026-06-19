@@ -33,9 +33,9 @@ export function ArticleWord({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.paper,
     borderColor: colors.comicBorderColor,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: colors.comicBorderWidth,
     gap: spacing.sm,
     padding: spacing.md,

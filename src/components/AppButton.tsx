@@ -99,10 +99,12 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
   secondary: {
-    backgroundColor: colors.softLavenderPanel,
+    backgroundColor: colors.paperLavender,
+    ...shadows.comicSmall,
   },
   ghost: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.paper,
+    borderColor: colors.border,
     shadowOpacity: 0,
     elevation: 0,
   },

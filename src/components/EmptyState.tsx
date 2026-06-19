@@ -33,9 +33,9 @@ export function EmptyState({ actionTitle, body, framed = true, icon: Icon, onAct
 const styles = StyleSheet.create({
   card: {
     alignItems: 'flex-start',
-    backgroundColor: colors.white,
+    backgroundColor: colors.paper,
     borderColor: colors.comicBorderColor,
-    borderRadius: radius.lg,
+    borderRadius: radius.xl,
     borderWidth: colors.comicBorderWidth,
     gap: spacing.sm,
     padding: spacing.lg,

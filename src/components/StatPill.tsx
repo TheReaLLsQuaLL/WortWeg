@@ -25,7 +25,7 @@ export function StatPill({ icon: Icon, label, tone = 'white' }: StatPillProps) {
 const styles = StyleSheet.create({
   base: {
     alignItems: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: colors.paper,
     borderColor: colors.comicBorderColor,
     borderRadius: radius.pill,
     borderWidth: colors.comicBorderWidth,
@@ -33,6 +33,11 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     minHeight: 34,
     paddingHorizontal: spacing.md,
+    shadowColor: colors.comicShadowTint,
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
   },
   yellow: {
     backgroundColor: colors.yellowCta,

@@ -19,16 +19,17 @@ export function AppCard({ children, tone = 'default', style }: AppCardProps) {
 
 const styles = StyleSheet.create({
   base: {
-    backgroundColor: colors.card,
+    backgroundColor: colors.paper,
     borderColor: colors.comicBorderColor,
-    borderRadius: radius.lg,
+    borderRadius: radius.xl,
     borderWidth: colors.comicBorderWidth,
     gap: spacing.md,
     padding: spacing.lg,
     ...shadows.comic,
   },
   muted: {
-    backgroundColor: colors.cardMuted,
+    backgroundColor: colors.paperLavender,
+    ...shadows.paper,
   },
   violet: {
     backgroundColor: colors.primaryPurple,

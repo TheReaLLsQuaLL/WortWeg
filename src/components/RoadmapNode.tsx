@@ -26,13 +26,13 @@ export function RoadmapNode({ completed, current, locked }: RoadmapNodeProps) {
 const styles = StyleSheet.create({
   node: {
     alignItems: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: colors.paper,
     borderColor: colors.comicBorderColor,
     borderRadius: radius.pill,
     borderWidth: colors.comicBorderWidth,
-    height: 38,
+    height: 42,
     justifyContent: 'center',
-    width: 38,
+    width: 42,
     ...shadows.comicSmall,
   },
   current: {
@@ -43,5 +43,6 @@ const styles = StyleSheet.create({
   },
   locked: {
     backgroundColor: colors.surfaceStrong,
+    borderColor: colors.border,
   },
 });

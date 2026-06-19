@@ -39,6 +39,8 @@ export function TopBar({ title, subtitle, xp, streak }: TopBarProps) {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: colors.deepViolet,
+    borderBottomColor: colors.comicBorderColor,
+    borderBottomWidth: 2,
     gap: spacing.md,
     paddingBottom: spacing.xl,
     paddingHorizontal: spacing.lg,
