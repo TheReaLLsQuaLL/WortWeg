@@ -1,7 +1,8 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { articleColors, colors, radius, spacing, typography } from '../data/theme';
+import { colors, radius, shadows, spacing, typography } from '../data/theme';
 import type { Article } from '../types/lesson';
+import { ArticleBadge } from './ArticleBadge';
 
 type ArticleWordProps = {
   article?: Article;
@@ -19,16 +20,7 @@ export function ArticleWord({
   return (
     <View style={styles.card}>
       <View style={styles.row}>
-        {article ? (
-          <View
-            style={[
-              styles.article,
-              { backgroundColor: articleColors[article] },
-            ]}
-          >
-            <Text style={styles.articleText}>{article}</Text>
-          </View>
-        ) : null}
+        {article ? <ArticleBadge article={article} /> : null}
         <View style={styles.copy}>
           <Text style={styles.german}>{german}</Text>
           <Text style={styles.turkish}>{turkish}</Text>
@@ -42,29 +34,17 @@ export function ArticleWord({
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.white,
-    borderColor: colors.border,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.md,
-    borderWidth: 1,
+    borderWidth: colors.comicBorderWidth,
     gap: spacing.sm,
     padding: spacing.md,
+    ...shadows.comicSmall,
   },
   row: {
     alignItems: 'center',
     flexDirection: 'row',
     gap: spacing.md,
-  },
-  article: {
-    alignItems: 'center',
-    borderRadius: radius.sm,
-    height: 34,
-    justifyContent: 'center',
-    minWidth: 48,
-    paddingHorizontal: spacing.sm,
-  },
-  articleText: {
-    ...typography.small,
-    color: colors.white,
-    fontWeight: '900',
   },
   copy: {
     flex: 1,

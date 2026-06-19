@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { colors, radius, spacing, typography } from '../data/theme';
+import { colors, radius, shadows, spacing, typography } from '../data/theme';
 
 type ProgressPillProps = {
   label: string;
@@ -10,7 +10,7 @@ type ProgressPillProps = {
 export function ProgressPill({ label, tone = 'purple' }: ProgressPillProps) {
   return (
     <View style={[styles.base, styles[tone]]}>
-      <Text style={[styles.text, tone === 'yellow' && styles.yellowText]}>{label}</Text>
+      <Text style={styles.text}>{label}</Text>
     </View>
   );
 }
@@ -18,21 +18,21 @@ export function ProgressPill({ label, tone = 'purple' }: ProgressPillProps) {
 const styles = StyleSheet.create({
   base: {
     alignItems: 'center',
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.pill,
-    minHeight: 28,
+    borderWidth: colors.comicBorderWidth,
+    minHeight: 30,
     justifyContent: 'center',
     paddingHorizontal: spacing.md,
+    ...shadows.comicSmall,
   },
-  purple: { backgroundColor: colors.lavender },
+  purple: { backgroundColor: colors.softLavenderPanel },
   green: { backgroundColor: '#DFF7EB' },
-  yellow: { backgroundColor: '#FFF2C4' },
-  plain: { backgroundColor: colors.surfaceStrong },
+  yellow: { backgroundColor: colors.yellowCta },
+  plain: { backgroundColor: colors.white },
   text: {
     ...typography.small,
-    color: colors.deepViolet,
+    color: colors.comicBorderColor,
     fontWeight: '900',
-  },
-  yellowText: {
-    color: '#7A5600',
   },
 });

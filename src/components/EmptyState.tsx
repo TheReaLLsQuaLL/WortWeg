@@ -1,7 +1,7 @@
 import type { ComponentType } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { colors, radius, spacing, typography } from '../data/theme';
+import { colors, radius, shadows, spacing, typography } from '../data/theme';
 import { AppButton } from './AppButton';
 
 type IconProps = { color?: string; size?: number; strokeWidth?: number };
@@ -34,11 +34,12 @@ const styles = StyleSheet.create({
   card: {
     alignItems: 'flex-start',
     backgroundColor: colors.white,
-    borderColor: colors.border,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.lg,
-    borderWidth: 1,
+    borderWidth: colors.comicBorderWidth,
     gap: spacing.sm,
     padding: spacing.lg,
+    ...shadows.comic,
   },
   unframed: {
     backgroundColor: 'transparent',
@@ -47,8 +48,10 @@ const styles = StyleSheet.create({
   },
   iconWrap: {
     alignItems: 'center',
-    backgroundColor: colors.lavender,
+    backgroundColor: colors.softLavenderPanel,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.md,
+    borderWidth: colors.comicBorderWidth,
     height: 44,
     justifyContent: 'center',
     width: 44,

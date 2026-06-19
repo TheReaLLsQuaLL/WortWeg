@@ -9,7 +9,6 @@ import {
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 
 import { colors, motion, radius, shadows, spacing, typography } from '../data/theme';
 
@@ -36,38 +35,19 @@ export function AppButton({
   style,
   ...pressableProps
 }: AppButtonProps) {
-  const isPrimary = variant === 'primary';
-  const contentColor =
-    variant === 'primary' || variant === 'danger' ? colors.white : colors.deepViolet;
-
-  const content = (
-    <View style={styles.content}>
-      {loading ? (
-        <ActivityIndicator color={contentColor} />
-      ) : (
-        <>
-          {Icon ? <Icon color={contentColor} size={18} strokeWidth={2.6} /> : null}
-          <Text style={[styles.label, { color: contentColor }]} numberOfLines={1}>
-            {title}
-          </Text>
-        </>
-      )}
-    </View>
-  );
+  const contentColor = variant === 'danger' ? colors.white : colors.comicBorderColor;
 
   return (
     <Pressable
       accessibilityRole="button"
       android_ripple={{
-        color:
-          variant === 'primary' || variant === 'danger'
-            ? 'rgba(255,255,255,0.18)'
-            : 'rgba(91,69,246,0.12)',
+        color: variant === 'danger' ? 'rgba(255,255,255,0.18)' : 'rgba(26,26,46,0.08)',
         foreground: true,
       }}
       disabled={disabled || loading}
       style={({ pressed }) => [
         styles.base,
+        variant === 'primary' && styles.primary,
         variant === 'secondary' && styles.secondary,
         variant === 'ghost' && styles.ghost,
         variant === 'danger' && styles.danger,
@@ -77,34 +57,34 @@ export function AppButton({
       ]}
       {...pressableProps}
     >
-      {isPrimary ? (
-        <LinearGradient
-          colors={[colors.gradientStart, colors.gradientEnd]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.gradient}
-        >
-          {content}
-        </LinearGradient>
-      ) : (
-        content
-      )}
+      <View style={styles.content}>
+        {loading ? (
+          <ActivityIndicator color={contentColor} />
+        ) : (
+          <>
+            {Icon ? <Icon color={contentColor} size={18} strokeWidth={2.8} /> : null}
+            <Text style={[styles.label, { color: contentColor }]} numberOfLines={1}>
+              {title}
+            </Text>
+          </>
+        )}
+      </View>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   base: {
-    minHeight: 52,
+    backgroundColor: colors.yellowCta,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.md,
-    overflow: 'hidden',
+    borderWidth: colors.comicBorderWidth,
     justifyContent: 'center',
-    ...shadows.soft,
-  },
-  gradient: {
     minHeight: 52,
-    justifyContent: 'center',
-    paddingHorizontal: spacing.lg,
+    ...shadows.comic,
+  },
+  primary: {
+    backgroundColor: colors.yellowCta,
   },
   content: {
     alignItems: 'center',
@@ -116,24 +96,24 @@ const styles = StyleSheet.create({
   },
   label: {
     ...typography.body,
-    fontWeight: '800',
+    fontWeight: '900',
   },
   secondary: {
-    backgroundColor: colors.lavender,
-    borderColor: colors.border,
-    borderWidth: 1,
+    backgroundColor: colors.softLavenderPanel,
   },
   ghost: {
-    backgroundColor: 'transparent',
+    backgroundColor: colors.white,
+    shadowOpacity: 0,
+    elevation: 0,
   },
   danger: {
-    backgroundColor: colors.red,
+    backgroundColor: colors.errorCoral,
   },
   disabled: {
-    opacity: 0.52,
+    opacity: 0.5,
   },
   pressed: {
-    opacity: 0.9,
-    transform: [{ scale: motion.pressScale }],
+    opacity: 0.96,
+    transform: [{ translateX: colors.comicShadowOffset / 2 }, { translateY: colors.comicShadowOffset / 2 }, { scale: motion.pressScale }],
   },
 });

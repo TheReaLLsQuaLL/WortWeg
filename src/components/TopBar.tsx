@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { colors, spacing, typography } from '../data/theme';
 import { Mascot } from './Mascot';
+import { StatPill } from './StatPill';
 
 type TopBarProps = {
   title: string;
@@ -28,14 +29,8 @@ export function TopBar({ title, subtitle, xp, streak }: TopBarProps) {
         </View>
       </View>
       <View style={styles.stats}>
-        <View style={styles.stat}>
-          <Star color={colors.yellow} size={16} fill={colors.yellow} />
-          <Text style={styles.statText}>{xp ?? 0}</Text>
-        </View>
-        <View style={styles.stat}>
-          <Flame color={colors.yellow} size={16} />
-          <Text style={styles.statText}>{streak ?? 0}</Text>
-        </View>
+        <StatPill icon={Star} label={String(xp ?? 0)} tone="yellow" />
+        <StatPill icon={Flame} label={String(streak ?? 0)} tone="purple" />
       </View>
     </View>
   );
@@ -68,18 +63,5 @@ const styles = StyleSheet.create({
   stats: {
     flexDirection: 'row',
     gap: spacing.sm,
-  },
-  stat: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    borderRadius: 999,
-    flexDirection: 'row',
-    gap: spacing.xs,
-    minHeight: 34,
-    paddingHorizontal: spacing.md,
-  },
-  statText: {
-    ...typography.small,
-    color: colors.white,
   },
 });

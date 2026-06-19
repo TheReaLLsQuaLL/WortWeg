@@ -9,7 +9,7 @@ import { AppScrollView, Screen } from '../components/layout';
 import { TopBar } from '../components/TopBar';
 import { ALPHA_BUILD_DATE, APP_NAME, APP_VERSION } from '../data/constants';
 import { getLessonById, getPlayableLessonsForPlan } from '../data/lessons';
-import { colors, radius, spacing, typography } from '../data/theme';
+import { colors, radius, shadows, spacing, typography } from '../data/theme';
 import { getKnownReviewCardCount, getReviewCoverage } from '../lib/srs';
 import { shouldShowOnboarding } from '../lib/storage';
 import type { CommitUserState, RootNavigation } from '../navigation/AppNavigator';
@@ -552,10 +552,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scroll: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.lavenderBackground,
   },
   content: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.lavenderBackground,
     gap: spacing.lg,
     padding: spacing.lg,
   },
@@ -566,15 +566,16 @@ const styles = StyleSheet.create({
   },
   statCard: {
     backgroundColor: colors.white,
-    borderColor: colors.border,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.md,
-    borderWidth: 1,
+    borderWidth: colors.comicBorderWidth,
     flexBasis: '47%',
     flexGrow: 1,
     gap: spacing.xs,
     minHeight: 96,
     justifyContent: 'center',
     padding: spacing.md,
+    ...shadows.comicSmall,
   },
   statValue: {
     ...typography.heading,
@@ -586,17 +587,21 @@ const styles = StyleSheet.create({
   },
   section: {
     backgroundColor: colors.white,
-    borderColor: colors.border,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.lg,
-    borderWidth: 1,
+    borderWidth: colors.comicBorderWidth,
     gap: spacing.sm,
     padding: spacing.lg,
+    ...shadows.comic,
   },
   heroSection: {
-    backgroundColor: colors.deepViolet,
+    backgroundColor: colors.primaryPurple,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.lg,
+    borderWidth: colors.comicBorderWidth,
     gap: spacing.sm,
     padding: spacing.lg,
+    ...shadows.comic,
   },
   heroTitle: {
     ...typography.heading,
@@ -619,8 +624,10 @@ const styles = StyleSheet.create({
   },
   countPill: {
     ...typography.small,
-    backgroundColor: colors.yellow,
+    backgroundColor: colors.yellowCta,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.pill,
+    borderWidth: colors.comicBorderWidth,
     color: colors.deepViolet,
     fontWeight: '900',
     minWidth: 28,
@@ -654,10 +661,10 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   devStatusBox: {
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
+    backgroundColor: colors.softLavenderPanel,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.md,
-    borderWidth: 1,
+    borderWidth: colors.comicBorderWidth,
     gap: spacing.xs,
     padding: spacing.md,
   },
@@ -682,10 +689,13 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
   mistakeCard: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.white,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.md,
+    borderWidth: colors.comicBorderWidth,
     gap: spacing.xs,
     padding: spacing.md,
+    ...shadows.comicSmall,
   },
   mistakePrompt: {
     ...typography.body,
@@ -698,8 +708,10 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   badge: {
-    backgroundColor: colors.lavender,
+    backgroundColor: colors.softLavenderPanel,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.sm,
+    borderWidth: colors.comicBorderWidth,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
   },
@@ -723,11 +735,14 @@ const styles = StyleSheet.create({
   },
   debugModal: {
     backgroundColor: colors.white,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.lg,
+    borderWidth: colors.comicBorderWidth,
     gap: spacing.md,
     maxWidth: 520,
     padding: spacing.lg,
     width: '100%',
+    ...shadows.comic,
   },
   debugText: {
     ...typography.small,
@@ -736,10 +751,10 @@ const styles = StyleSheet.create({
   },
   testerInfoBox: {
     ...typography.small,
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
+    backgroundColor: colors.lavenderBackground,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.md,
-    borderWidth: 1,
+    borderWidth: colors.comicBorderWidth,
     color: colors.deepViolet,
     minHeight: 260,
     padding: spacing.md,

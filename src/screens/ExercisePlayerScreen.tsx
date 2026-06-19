@@ -23,7 +23,7 @@ import { SpeakerButton } from '../components/SpeakerButton';
 import { XP } from '../data/constants';
 import { getChoiceText, shuffleWithSeed, withShuffledExerciseChoices } from '../lib/choiceUtils';
 import { getLessonById, getNextPlayableLesson } from '../data/lessons';
-import { articleColors, colors, radius, spacing, typography } from '../data/theme';
+import { articleColors, colors, radius, shadows, spacing, typography } from '../data/theme';
 import {
   buildExercisesForLesson,
   checkExerciseAnswer,
@@ -646,18 +646,19 @@ const styles = StyleSheet.create({
     color: colors.lavender,
   },
   content: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.lavenderBackground,
     flexGrow: 1,
     gap: spacing.lg,
     padding: spacing.lg,
   },
   promptCard: {
     backgroundColor: colors.white,
-    borderColor: colors.border,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.lg,
-    borderWidth: 1,
+    borderWidth: colors.comicBorderWidth,
     gap: spacing.md,
     padding: spacing.lg,
+    ...shadows.comic,
   },
   prompt: {
     ...typography.small,
@@ -696,10 +697,10 @@ const styles = StyleSheet.create({
   buildTray: {
     alignContent: 'flex-start',
     backgroundColor: colors.white,
-    borderColor: colors.border,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.md,
     borderStyle: 'dashed',
-    borderWidth: 2,
+    borderWidth: colors.comicBorderWidth,
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing.sm,
@@ -711,8 +712,10 @@ const styles = StyleSheet.create({
     color: colors.muted,
   },
   selectedWord: {
-    backgroundColor: colors.royalPurple,
+    backgroundColor: colors.primaryPurple,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.sm,
+    borderWidth: colors.comicBorderWidth,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
   },
@@ -728,9 +731,9 @@ const styles = StyleSheet.create({
   },
   bankWord: {
     backgroundColor: colors.white,
-    borderColor: colors.border,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.sm,
-    borderWidth: 1,
+    borderWidth: colors.comicBorderWidth,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
   },
@@ -748,12 +751,13 @@ const styles = StyleSheet.create({
   },
   option: {
     backgroundColor: colors.white,
-    borderColor: colors.border,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.md,
-    borderWidth: 1,
+    borderWidth: colors.comicBorderWidth,
     minHeight: 58,
     justifyContent: 'center',
     paddingHorizontal: spacing.lg,
+    ...shadows.comicSmall,
   },
   optionText: {
     ...typography.body,
@@ -763,9 +767,9 @@ const styles = StyleSheet.create({
   textArea: {
     ...typography.body,
     backgroundColor: colors.white,
-    borderColor: colors.border,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.md,
-    borderWidth: 1,
+    borderWidth: colors.comicBorderWidth,
     color: colors.deepViolet,
     minHeight: 132,
     padding: spacing.md,
@@ -773,8 +777,8 @@ const styles = StyleSheet.create({
   },
   footer: {
     backgroundColor: colors.white,
-    borderTopColor: colors.border,
-    borderTopWidth: 1,
+    borderTopColor: colors.comicBorderColor,
+    borderTopWidth: colors.comicBorderWidth,
     bottom: 0,
     elevation: 10,
     left: 0,
@@ -804,18 +808,19 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   completionContent: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.lavenderBackground,
     flexGrow: 1,
     gap: spacing.md,
     padding: spacing.lg,
   },
   completionCard: {
     backgroundColor: colors.white,
-    borderColor: colors.border,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.lg,
-    borderWidth: 1,
+    borderWidth: colors.comicBorderWidth,
     gap: spacing.sm,
     padding: spacing.lg,
+    ...shadows.comic,
   },
   completionCardTitle: {
     ...typography.body,
@@ -841,7 +846,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   center: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.lavenderBackground,
     flex: 1,
     gap: spacing.lg,
     justifyContent: 'center',

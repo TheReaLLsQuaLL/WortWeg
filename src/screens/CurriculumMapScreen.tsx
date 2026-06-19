@@ -5,7 +5,7 @@ import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { AppScrollView, Screen } from '../components/layout';
 import { curriculumLevels, getModulesForLevel } from '../data/curriculum';
 import { getLessonsForLevel, getPlayableLessonByModuleId } from '../data/lessons';
-import { colors, radius, spacing, typography } from '../data/theme';
+import { colors, radius, shadows, spacing, typography } from '../data/theme';
 import type { RootNavigation } from '../navigation/AppNavigator';
 import { trackLocalEvent } from '../services/localEventLog';
 import type { TrackId } from '../types/curriculum';
@@ -155,44 +155,52 @@ const styles = StyleSheet.create({
   headerCopy: { flex: 1 },
   kicker: { ...typography.small, color: colors.yellow },
   headerTitle: { ...typography.heading, color: colors.white },
-  scroll: { backgroundColor: colors.surface },
-  content: { backgroundColor: colors.surface, gap: spacing.lg, padding: spacing.lg },
+  scroll: { backgroundColor: colors.lavenderBackground },
+  content: { backgroundColor: colors.lavenderBackground, gap: spacing.lg, padding: spacing.lg },
   levelSection: {
     backgroundColor: colors.white,
-    borderColor: colors.border,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.lg,
-    borderWidth: 1,
+    borderWidth: colors.comicBorderWidth,
     gap: spacing.md,
     padding: spacing.md,
+    ...shadows.comic,
   },
-  activeLevel: { borderColor: colors.royalPurple },
+  activeLevel: { backgroundColor: colors.softLavenderPanel, borderColor: colors.primaryPurple },
   levelHeader: { alignItems: 'center', flexDirection: 'row', gap: spacing.md, minHeight: 72 },
   levelBadge: {
     alignItems: 'center',
-    backgroundColor: colors.deepViolet,
+    backgroundColor: colors.yellowCta,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.md,
+    borderWidth: colors.comicBorderWidth,
     height: 48,
     justifyContent: 'center',
     width: 48,
   },
-  levelBadgeText: { ...typography.body, color: colors.white, fontWeight: '900' },
+  levelBadgeText: { ...typography.body, color: colors.comicBorderColor, fontWeight: '900' },
   levelCopy: { flex: 1, gap: 2 },
   levelTitle: { ...typography.body, color: colors.deepViolet, fontWeight: '900' },
   muted: { ...typography.small, color: colors.muted },
   moduleRow: {
     alignItems: 'center',
-    backgroundColor: colors.surface,
+    backgroundColor: colors.white,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.md,
+    borderWidth: colors.comicBorderWidth,
     flexDirection: 'row',
     gap: spacing.md,
     minHeight: 92,
     padding: spacing.md,
+    ...shadows.comicSmall,
   },
   lockedModule: { opacity: 0.56 },
   moduleIcon: {
     alignItems: 'center',
-    backgroundColor: colors.lavender,
+    backgroundColor: colors.softLavenderPanel,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.sm,
+    borderWidth: colors.comicBorderWidth,
     height: 38,
     justifyContent: 'center',
     width: 38,
@@ -203,8 +211,10 @@ const styles = StyleSheet.create({
   tags: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
   tag: {
     ...typography.small,
-    backgroundColor: colors.lavender,
+    backgroundColor: colors.softLavenderPanel,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.sm,
+    borderWidth: colors.comicBorderWidth,
     color: colors.deepViolet,
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,

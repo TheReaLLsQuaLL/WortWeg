@@ -2,7 +2,7 @@ import type { ComponentType } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { CheckCircle2, Lock, PlayCircle } from 'lucide-react-native';
 
-import { colors, radius } from '../data/theme';
+import { colors, radius, shadows } from '../data/theme';
 
 type IconProps = { color?: string; size?: number; strokeWidth?: number };
 
@@ -14,11 +14,11 @@ type RoadmapNodeProps = {
 
 export function RoadmapNode({ completed, current, locked }: RoadmapNodeProps) {
   const Icon: ComponentType<IconProps> = completed ? CheckCircle2 : locked ? Lock : PlayCircle;
-  const iconColor = completed ? colors.green : current ? colors.royalPurple : colors.muted;
+  const iconColor = completed ? colors.comicBorderColor : current ? colors.comicBorderColor : colors.muted;
 
   return (
-    <View style={[styles.node, current && styles.current, completed && styles.done]}>
-      <Icon color={iconColor} size={18} strokeWidth={2.6} />
+    <View style={[styles.node, current && styles.current, completed && styles.done, locked && styles.locked]}>
+      <Icon color={iconColor} size={18} strokeWidth={2.8} />
     </View>
   );
 }
@@ -26,20 +26,22 @@ export function RoadmapNode({ completed, current, locked }: RoadmapNodeProps) {
 const styles = StyleSheet.create({
   node: {
     alignItems: 'center',
-    backgroundColor: colors.surfaceStrong,
-    borderColor: colors.border,
+    backgroundColor: colors.white,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.pill,
-    borderWidth: 1,
-    height: 34,
+    borderWidth: colors.comicBorderWidth,
+    height: 38,
     justifyContent: 'center',
-    width: 34,
+    width: 38,
+    ...shadows.comicSmall,
   },
   current: {
-    backgroundColor: colors.lavender,
-    borderColor: colors.royalPurple,
+    backgroundColor: colors.yellowCta,
   },
   done: {
-    backgroundColor: '#DFF7EB',
-    borderColor: '#B7EBCF',
+    backgroundColor: colors.successGreen,
+  },
+  locked: {
+    backgroundColor: colors.surfaceStrong,
   },
 });

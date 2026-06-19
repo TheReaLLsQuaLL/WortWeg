@@ -63,14 +63,14 @@ const styles = StyleSheet.create({
     width: 36,
   },
   railTop: {
-    backgroundColor: colors.border,
+    backgroundColor: colors.comicBorderColor,
     flex: 1,
-    width: 2,
+    width: 3,
   },
   railBottom: {
-    backgroundColor: colors.border,
+    backgroundColor: colors.comicBorderColor,
     flex: 1,
-    width: 2,
+    width: 3,
   },
   railSpacer: {
     flex: 1,
@@ -78,9 +78,9 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: colors.white,
-    borderColor: colors.border,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.md,
-    borderWidth: 1,
+    borderWidth: colors.comicBorderWidth,
     flex: 1,
     gap: 2,
     justifyContent: 'center',
@@ -88,11 +88,11 @@ const styles = StyleSheet.create({
     marginLeft: spacing.sm,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    ...shadows.soft,
+    ...shadows.comicSmall,
   },
   cardCurrent: {
-    backgroundColor: colors.lavender,
-    borderColor: colors.royalPurple,
+    backgroundColor: colors.softLavenderPanel,
+    borderColor: colors.primaryPurple,
   },
   cardLocked: {
     opacity: 0.62,
@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
   titleCurrent: {
-    color: colors.royalPurple,
+    color: colors.primaryPurple,
   },
   meta: {
     ...typography.small,

@@ -9,7 +9,7 @@ import { ArticleWord } from '../components/ArticleWord';
 import { SpeakerButton } from '../components/SpeakerButton';
 import { TopBar } from '../components/TopBar';
 import { XP } from '../data/constants';
-import { colors, radius, spacing, typography } from '../data/theme';
+import { colors, radius, shadows, spacing, typography } from '../data/theme';
 import {
   answerReviewCard,
   getDueReviewCards,
@@ -188,20 +188,21 @@ export function VocabScreen({ navigation, userState, onUpdateState }: VocabScree
 
 const styles = StyleSheet.create({
   scroll: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.lavenderBackground,
   },
   content: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.lavenderBackground,
     gap: spacing.lg,
     padding: spacing.lg,
   },
   reviewCard: {
     backgroundColor: colors.white,
-    borderColor: colors.border,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.lg,
-    borderWidth: 1,
+    borderWidth: colors.comicBorderWidth,
     gap: spacing.lg,
     padding: spacing.lg,
+    ...shadows.comic,
   },
   reviewHeader: {
     alignItems: 'center',
@@ -223,8 +224,10 @@ const styles = StyleSheet.create({
     color: colors.deepViolet,
   },
   answerBox: {
-    backgroundColor: colors.lavender,
+    backgroundColor: colors.softLavenderPanel,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.md,
+    borderWidth: colors.comicBorderWidth,
     gap: spacing.sm,
     padding: spacing.md,
   },
@@ -242,11 +245,12 @@ const styles = StyleSheet.create({
   doneCard: {
     alignItems: 'center',
     backgroundColor: colors.white,
-    borderColor: colors.border,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.lg,
-    borderWidth: 1,
+    borderWidth: colors.comicBorderWidth,
     gap: spacing.md,
     padding: spacing.lg,
+    ...shadows.comic,
   },
   doneTitle: {
     ...typography.title,

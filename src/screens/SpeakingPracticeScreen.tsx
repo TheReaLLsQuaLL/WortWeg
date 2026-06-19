@@ -6,7 +6,7 @@ import { ArrowLeft, CheckCircle2, Mic, Play, RotateCcw, Trash2 } from 'lucide-re
 import { AppButton } from '../components/AppButton';
 import { AppScrollView, Screen } from '../components/layout';
 import { SpeakerButton } from '../components/SpeakerButton';
-import { colors, radius, spacing, typography } from '../data/theme';
+import { colors, radius, shadows, spacing, typography } from '../data/theme';
 import { getSpeakingPromptById, speakingPromptsA1, type SpeakingPrompt } from '../data/speaking.a1';
 import type { RootNavigation, RootStackParamList } from '../navigation/AppNavigator';
 import {
@@ -1245,20 +1245,21 @@ const styles = StyleSheet.create({
     color: colors.white,
   },
   scroll: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.lavenderBackground,
   },
   content: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.lavenderBackground,
     gap: spacing.lg,
     padding: spacing.lg,
   },
   promptCard: {
     backgroundColor: colors.white,
-    borderColor: colors.border,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.lg,
-    borderWidth: 1,
+    borderWidth: colors.comicBorderWidth,
     gap: spacing.md,
     padding: spacing.lg,
+    ...shadows.comic,
   },
   promptTopRow: {
     alignItems: 'center',
@@ -1289,11 +1290,12 @@ const styles = StyleSheet.create({
   recorderCard: {
     alignItems: 'center',
     backgroundColor: colors.white,
-    borderColor: colors.border,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.lg,
-    borderWidth: 1,
+    borderWidth: colors.comicBorderWidth,
     gap: spacing.sm,
     padding: spacing.lg,
+    ...shadows.comic,
   },
   recordingCard: {
     borderColor: colors.red,
@@ -1337,16 +1339,14 @@ const styles = StyleSheet.create({
   },
   recordButton: {
     alignItems: 'center',
-    backgroundColor: colors.royalPurple,
+    backgroundColor: colors.primaryPurple,
+    borderColor: colors.comicBorderColor,
     borderRadius: 76,
-    elevation: 8,
+    borderWidth: colors.comicBorderWidth,
     height: 144,
     justifyContent: 'center',
-    shadowColor: colors.deepViolet,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.18,
-    shadowRadius: 16,
     width: 144,
+    ...shadows.comic,
   },
   recordButtonActive: {
     backgroundColor: colors.red,
@@ -1361,7 +1361,9 @@ const styles = StyleSheet.create({
   cancelHint: {
     alignItems: 'center',
     backgroundColor: '#FFE7E7',
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.pill,
+    borderWidth: colors.comicBorderWidth,
     flexDirection: 'row',
     gap: spacing.xs,
     paddingHorizontal: spacing.md,
@@ -1396,10 +1398,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   debugPanel: {
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
+    backgroundColor: colors.lavenderBackground,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.md,
-    borderWidth: 1,
+    borderWidth: colors.comicBorderWidth,
     marginTop: spacing.sm,
     overflow: 'hidden',
     width: '100%',
@@ -1515,11 +1517,12 @@ const styles = StyleSheet.create({
   },
   feedbackCard: {
     backgroundColor: colors.white,
-    borderColor: colors.border,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.lg,
-    borderWidth: 1,
+    borderWidth: colors.comicBorderWidth,
     gap: spacing.md,
     padding: spacing.lg,
+    ...shadows.comic,
   },
   resultHero: {
     alignItems: 'center',
@@ -1544,8 +1547,10 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   sentenceCard: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.softLavenderPanel,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.md,
+    borderWidth: colors.comicBorderWidth,
     gap: spacing.xs,
     padding: spacing.md,
   },
@@ -1574,8 +1579,10 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   debugChip: {
-    backgroundColor: colors.lavender,
+    backgroundColor: colors.softLavenderPanel,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.sm,
+    borderWidth: colors.comicBorderWidth,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
   },
@@ -1598,7 +1605,9 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   wordChip: {
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.sm,
+    borderWidth: colors.comicBorderWidth,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
   },
@@ -1614,8 +1623,10 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
   feedbackNote: {
-    backgroundColor: colors.lavender,
+    backgroundColor: colors.softLavenderPanel,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.md,
+    borderWidth: colors.comicBorderWidth,
     gap: spacing.xs,
     padding: spacing.md,
   },

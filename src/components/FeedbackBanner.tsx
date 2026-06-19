@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { CheckCircle2, Info, XCircle } from 'lucide-react-native';
 
-import { colors, radius, spacing, typography } from '../data/theme';
+import { colors, radius, shadows, spacing, typography } from '../data/theme';
 
 type FeedbackBannerProps = {
   tone: 'success' | 'error' | 'info';
@@ -28,10 +28,13 @@ export function FeedbackBanner({ children, title, tone }: FeedbackBannerProps) {
 const styles = StyleSheet.create({
   banner: {
     alignItems: 'flex-start',
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.md,
+    borderWidth: colors.comicBorderWidth,
     flexDirection: 'row',
     gap: spacing.md,
     padding: spacing.md,
+    ...shadows.comicSmall,
   },
   success: { backgroundColor: '#DFF7EB' },
   error: { backgroundColor: '#FFE5E5' },

@@ -10,7 +10,7 @@ import { AppScrollView, Screen } from '../components/layout';
 import { RoadmapPath, type RoadmapPathItem } from '../components/RoadmapPath';
 import { TopBar } from '../components/TopBar';
 import { getNextPlayableLesson, getPlayableLessonsForPlan, isLessonUnlocked } from '../data/lessons';
-import { colors, radius, spacing, typography } from '../data/theme';
+import { colors, radius, shadows, spacing, typography } from '../data/theme';
 import { getDueReviewCards, getReviewCoverage } from '../lib/srs';
 import type { RootNavigation } from '../navigation/AppNavigator';
 import { trackLocalEvent } from '../services/localEventLog';
@@ -169,10 +169,10 @@ function QuickAction({ badgeCount = 0, icon: Icon, label, onPress }: { badgeCoun
 
 const styles = StyleSheet.create({
   scroll: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.lavenderBackground,
   },
   content: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.lavenderBackground,
     gap: spacing.md,
     padding: spacing.lg,
   },
@@ -189,8 +189,10 @@ const styles = StyleSheet.create({
   },
   todayIcon: {
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: colors.yellowCta,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.md,
+    borderWidth: colors.comicBorderWidth,
     height: 52,
     justifyContent: 'center',
     width: 52,
@@ -213,8 +215,10 @@ const styles = StyleSheet.create({
     color: colors.lavender,
   },
   goalBar: {
-    backgroundColor: 'rgba(255,255,255,0.14)',
+    backgroundColor: colors.white,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.pill,
+    borderWidth: colors.comicBorderWidth,
     flexDirection: 'row',
     height: 8,
     overflow: 'hidden',
@@ -224,11 +228,12 @@ const styles = StyleSheet.create({
   },
   section: {
     backgroundColor: colors.white,
-    borderColor: colors.border,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.lg,
-    borderWidth: 1,
+    borderWidth: colors.comicBorderWidth,
     gap: spacing.md,
     padding: spacing.lg,
+    ...shadows.comic,
   },
   sectionHeader: {
     alignItems: 'center',
@@ -246,8 +251,10 @@ const styles = StyleSheet.create({
   },
   textButton: {
     alignItems: 'center',
-    backgroundColor: colors.lavender,
+    backgroundColor: colors.softLavenderPanel,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.sm,
+    borderWidth: colors.comicBorderWidth,
     minHeight: 40,
     justifyContent: 'center',
     paddingHorizontal: spacing.md,
@@ -265,9 +272,9 @@ const styles = StyleSheet.create({
   quickAction: {
     alignItems: 'center',
     backgroundColor: colors.white,
-    borderColor: colors.border,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.pill,
-    borderWidth: 1,
+    borderWidth: colors.comicBorderWidth,
     flexBasis: '46%',
     flexDirection: 'row',
     flexGrow: 1,
@@ -276,6 +283,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
+    ...shadows.comicSmall,
   },
   quickLabel: {
     ...typography.small,
@@ -285,8 +293,10 @@ const styles = StyleSheet.create({
   },
   quickBadge: {
     alignItems: 'center',
-    backgroundColor: colors.yellow,
+    backgroundColor: colors.yellowCta,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.pill,
+    borderWidth: colors.comicBorderWidth,
     minWidth: 24,
     paddingHorizontal: spacing.xs,
     paddingVertical: 2,
@@ -298,11 +308,12 @@ const styles = StyleSheet.create({
   },
   planStrip: {
     backgroundColor: colors.white,
-    borderColor: colors.border,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.md,
-    borderWidth: 1,
+    borderWidth: colors.comicBorderWidth,
     gap: 2,
     padding: spacing.sm,
+    ...shadows.comicSmall,
   },
   planTitle: {
     ...typography.body,
