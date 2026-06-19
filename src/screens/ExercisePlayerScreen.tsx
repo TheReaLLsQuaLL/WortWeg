@@ -657,8 +657,9 @@ const styles = StyleSheet.create({
   content: {
     backgroundColor: colors.lavenderBackground,
     flexGrow: 1,
-    gap: spacing.lg,
-    padding: spacing.lg,
+    gap: spacing.md,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
   },
   promptCard: {
     backgroundColor: colors.white,
@@ -666,10 +667,10 @@ const styles = StyleSheet.create({
     borderRadius: radius.xl,
     borderWidth: colors.comicBorderWidth,
     borderTopColor: colors.yellowCta,
-    borderTopWidth: 10,
-    gap: spacing.md,
+    borderTopWidth: 8,
+    gap: spacing.sm,
     overflow: 'hidden',
-    padding: spacing.xl,
+    padding: spacing.lg,
     ...shadows.lift,
   },
   prompt: {
@@ -694,16 +695,16 @@ const styles = StyleSheet.create({
   questionRow: {
     alignItems: 'center',
     flexDirection: 'row',
-    gap: spacing.md,
+    gap: spacing.sm,
   },
   question: {
-    ...typography.title,
+    ...typography.heading,
     color: colors.deepViolet,
     flex: 1,
     fontWeight: '900',
   },
   options: {
-    gap: spacing.md,
+    gap: spacing.sm,
   },
   buildArea: {
     gap: spacing.md,
@@ -770,9 +771,10 @@ const styles = StyleSheet.create({
     borderColor: colors.comicBorderColor,
     borderRadius: radius.xl,
     borderWidth: colors.comicBorderWidth,
-    minHeight: 66,
+    minHeight: 58,
     justifyContent: 'center',
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
     ...shadows.comic,
   },
   optionText: {

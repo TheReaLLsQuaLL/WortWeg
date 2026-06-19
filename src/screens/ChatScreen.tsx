@@ -30,6 +30,21 @@ type ChatScreenProps = {
 };
 
 const starterChips = ['Mir geht es gut!', 'Wie heißt du?', 'Guten Morgen!', 'Danke!'];
+const INTERNAL_AI_COPY_PATTERN = /(dev debug|mock|fallback|provider|modelused|model:|endpoint|backend url|timeout|network request failed|fetch-failed|http status|localhost|127\.0\.0\.1|192\.168|https?:\/\/)/i;
+const OFFLINE_WOLLI_TEXT = 'Wolli şu anda çevrimdışı. Yine de kısa A1 cümlelerle pratik yapabiliriz.';
+
+const sanitizeTeacherMessage = (text: string) => {
+  const normalizedText = text.replace(
+    /Şu an canlı AI bağlantısı yerine yerel Wolli yanıtı kullanılıyor\./g,
+    'Wolli şu anda çevrimdışı.',
+  );
+  const visibleBlocks = normalizedText
+    .split(/\n{2,}/)
+    .map((block) => block.trim())
+    .filter((block) => block && !INTERNAL_AI_COPY_PATTERN.test(block));
+
+  return visibleBlocks.length > 0 ? visibleBlocks.join('\n\n') : OFFLINE_WOLLI_TEXT;
+};
 
 export function ChatScreen({ userState, onUpdateState }: ChatScreenProps) {
   const [message, setMessage] = useState('');
@@ -149,24 +164,28 @@ export function ChatScreen({ userState, onUpdateState }: ChatScreenProps) {
               </View>
             </View>
           ) : (
-            userState.chatMessages.map((item) => (
-              <View
-                key={item.id}
-                style={[
-                  styles.bubble,
-                  item.role === 'user' ? styles.userBubble : styles.teacherBubble,
-                ]}
-              >
-                <Text
+            userState.chatMessages.map((item) => {
+              const visibleText = item.role === 'teacher' ? sanitizeTeacherMessage(item.text) : item.text;
+
+              return (
+                <View
+                  key={item.id}
                   style={[
-                    styles.bubbleText,
-                    item.role === 'user' && styles.userBubbleText,
+                    styles.bubble,
+                    item.role === 'user' ? styles.userBubble : styles.teacherBubble,
                   ]}
                 >
-                  {item.text}
-                </Text>
-              </View>
-            ))
+                  <Text
+                    style={[
+                      styles.bubbleText,
+                      item.role === 'user' && styles.userBubbleText,
+                    ]}
+                  >
+                    {visibleText}
+                  </Text>
+                </View>
+              );
+            })
           )}
         </ScrollView>
         <View style={styles.composer}>

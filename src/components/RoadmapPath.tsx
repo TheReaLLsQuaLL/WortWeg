@@ -50,7 +50,7 @@ export function RoadmapPath({ items }: RoadmapPathProps) {
               >
                 {item.current ? <HalftoneAccent opacity={0.09} size="small" style={styles.cardTexture} /> : null}
                 {item.current ? <Text style={styles.currentBadge}>Şimdi</Text> : null}
-                <Text style={[styles.title, item.current && styles.titleCurrent]} numberOfLines={1}>{item.title}</Text>
+                <Text style={[styles.title, item.current && styles.titleCurrent]} numberOfLines={2}>{item.title}</Text>
                 {item.meta ? <Text style={styles.meta} numberOfLines={1}>{item.meta}</Text> : null}
                 {item.comingSoon ? <Text style={styles.badge}>Yakında</Text> : null}
               </View>
@@ -64,9 +64,10 @@ export function RoadmapPath({ items }: RoadmapPathProps) {
 
 const styles = StyleSheet.create({
   container: {
-    minHeight: 420,
+    minHeight: 492,
     overflow: 'hidden',
-    paddingVertical: spacing.lg,
+    paddingBottom: spacing.xxxl,
+    paddingTop: spacing.xxxl,
     position: 'relative',
   },
   mapTexture: {
@@ -81,25 +82,26 @@ const styles = StyleSheet.create({
     borderColor: colors.comicBorderColor,
     borderRadius: radius.pill,
     borderWidth: colors.comicBorderWidth,
-    bottom: spacing.xl,
+    bottom: spacing.xxxl,
     left: '50%',
     marginLeft: -4,
     position: 'absolute',
-    top: spacing.xl,
+    top: spacing.xxxl,
     width: 8,
+    zIndex: 0,
   },
   stop: {
-    minHeight: 118,
+    minHeight: 132,
     position: 'relative',
     justifyContent: 'center',
   },
   nodeSlot: {
     alignItems: 'center',
     left: '50%',
-    marginLeft: -38,
+    marginLeft: -34,
     position: 'absolute',
-    top: 22,
-    width: 76,
+    top: 30,
+    width: 68,
     zIndex: 3,
   },
   card: {
@@ -112,8 +114,10 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
-    width: '56%',
+    minHeight: 76,
+    width: '41%',
     ...shadows.comicSmall,
+    zIndex: 1,
   },
   cardLeft: {
     alignSelf: 'flex-start',
@@ -127,7 +131,8 @@ const styles = StyleSheet.create({
   },
   cardCurrent: {
     backgroundColor: colors.yellowCta,
-    minHeight: 78,
+    minHeight: 88,
+    width: '44%',
     ...shadows.comic,
   },
   cardDone: {
@@ -155,6 +160,7 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: colors.deepViolet,
     fontWeight: '900',
+    lineHeight: 21,
   },
   titleCurrent: {
     color: colors.comicBorderColor,

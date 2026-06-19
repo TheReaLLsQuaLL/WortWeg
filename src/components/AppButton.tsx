@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.errorCoral,
   },
   disabled: {
-    backgroundColor: '#F5F0D8',
+    backgroundColor: colors.paperLavender,
     borderColor: colors.border,
     elevation: 0,
     shadowOpacity: 0,

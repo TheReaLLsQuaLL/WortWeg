@@ -20,9 +20,10 @@ export function OnboardingProgressHeader({
   const insets = useSafeAreaInsets();
   const safeCurrent = Math.min(Math.max(current, 1), total);
   const progress = total > 0 ? safeCurrent / total : 0;
+  const topPadding = Math.max(insets.top + spacing.md, spacing.xl);
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top + spacing.sm }]}>
+    <View style={[styles.container, { paddingTop: topPadding }]}>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="Geri"
@@ -54,9 +55,10 @@ export function OnboardingProgressHeader({
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
+    backgroundColor: colors.lavenderBackground,
     flexDirection: 'row',
     gap: spacing.md,
-    paddingBottom: spacing.sm,
+    paddingBottom: spacing.md,
     paddingHorizontal: spacing.lg,
   },
   backButton: {

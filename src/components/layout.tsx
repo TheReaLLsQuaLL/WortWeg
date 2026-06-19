@@ -64,7 +64,7 @@ export function AppScrollView({
 }: AppScrollViewProps) {
   const insets = useSafeAreaInsets();
   const paddingBottom =
-    spacing.xxl + bottomInset + (includeSafeAreaBottom ? insets.bottom : 0);
+    spacing.xxxl + bottomInset + (includeSafeAreaBottom ? insets.bottom : 0);
 
   return (
     <ScrollView
@@ -101,7 +101,7 @@ export function useDetailFooterSpacing() {
 
   return {
     contentPaddingBottom:
-      layout.detailFooterBaseHeight + insets.bottom + spacing.xl,
+      layout.detailFooterBaseHeight + insets.bottom + spacing.xxxl,
     footerPaddingBottom,
   };
 }

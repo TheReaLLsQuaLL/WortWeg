@@ -112,51 +112,35 @@ const isAiBackendResponse = (value: unknown): value is AiBackendResponse => {
   );
 };
 
-const formatFallbackDebug = (reason?: AiBackendFallbackReason) => {
-  if (!isDevelopment || !reason) {
-    return '';
-  }
-
-  return [
-    'Dev debug: Mock AI fallback kullanıldı.',
-    `Sebep: ${reason.reason}.`,
-    `Mode: ${reason.mode}.`,
-    reason.endpoint
-      ? `Endpoint: ${reason.endpoint}.`
-      : reason.backendUrl
-        ? `Backend URL: ${reason.backendUrl}.`
-        : 'Backend URL eksik.',
-    typeof reason.status === 'number' ? `HTTP status: ${reason.status}.` : '',
-    typeof reason.timeoutMs === 'number' ? `Timeout: ${reason.timeoutMs}ms.` : '',
-    typeof reason.responseTimeMs === 'number'
-      ? `Yanıt süresi: ${reason.responseTimeMs}ms.`
-      : '',
-    reason.errorMessage ? `Hata: ${reason.errorMessage}.` : '',
-  ]
-    .filter(Boolean)
-    .join(' ');
-};
-
 const withTeacherReplyDebug = (
   reply: TeacherReply,
   reason?: AiBackendFallbackReason,
 ): TeacherReply => {
-  const debug = formatFallbackDebug(reason);
-
-  if (!debug) {
-    return reply;
+  if (reason) {
+    logAiDebug('Reply uses local teacher copy', {
+      mode: reason.mode,
+      reason: reason.reason,
+      status: reason.status,
+      timeoutMs: reason.timeoutMs,
+      responseTimeMs: reason.responseTimeMs,
+    });
   }
 
-  return {
-    ...reply,
-    suggestions: [...reply.suggestions, debug],
-  };
+  return reply;
 };
 
 const withTextDebug = (text: string, reason?: AiBackendFallbackReason) => {
-  const debug = formatFallbackDebug(reason);
+  if (reason) {
+    logAiDebug('Text feedback uses local copy', {
+      mode: reason.mode,
+      reason: reason.reason,
+      status: reason.status,
+      timeoutMs: reason.timeoutMs,
+      responseTimeMs: reason.responseTimeMs,
+    });
+  }
 
-  return debug ? `${text}\n\n${debug}` : text;
+  return text;
 };
 
 const requestAiTeacher = async (
@@ -177,7 +161,7 @@ const requestAiTeacher = async (
       reason: 'missing-backend-url',
       timeoutMs,
     };
-    logAiDebug('Fallback/mock used', fallbackReason);
+    logAiDebug('Local response used', fallbackReason);
     return { response: null, fallbackReason };
   }
 
@@ -230,7 +214,7 @@ const requestAiTeacher = async (
         timeoutMs,
         responseTimeMs,
       };
-      logAiDebug('Fallback/mock used', fallbackReason);
+      logAiDebug('Local response used', fallbackReason);
       return { response: null, fallbackReason };
     }
 
@@ -246,7 +230,7 @@ const requestAiTeacher = async (
         timeoutMs,
         responseTimeMs,
       };
-      logAiDebug('Fallback/mock used', fallbackReason);
+      logAiDebug('Local response used', fallbackReason);
       return { response: null, fallbackReason };
     }
 
@@ -275,15 +259,15 @@ const requestAiTeacher = async (
     };
 
     logAiDebug(isTimeout ? 'Request timed out' : 'Fetch error', fallbackReason);
-    logAiDebug('Fallback/mock used', fallbackReason);
+    logAiDebug('Local response used', fallbackReason);
     return { response: null, fallbackReason };
   } finally {
     clearTimeout(timeout);
   }
 };
 
-const mockTeacherReply = (message: string): TeacherReply => ({
-  text: `Şu an canlı AI bağlantısı yerine yerel Wolli yanıtı kullanılıyor. A1 seviyesinde kısa cümlelerle ilerleyelim: "${message}" ifadesinden sonra "Ich lerne Deutsch." gibi net bir cümle kurabilirsin.`,
+const localTeacherReply = (message: string): TeacherReply => ({
+  text: `Wolli şu anda çevrimdışı. Yine de kısa A1 cümlelerle pratik yapabiliriz: "${message}" ifadesinden sonra "Ich lerne Deutsch." gibi net bir cümle kurabilirsin.`,
   corrections:
     message.trim().length > 0
       ? ['Cümleni Almanca yazarsan kelime sırası ve artikel için geri bildirim verebilirim.']
@@ -328,7 +312,7 @@ export const generateTeacherReply = async (
   }
 
   await wait(350);
-  return withTeacherReplyDebug(mockTeacherReply(input.message), fallbackReason);
+  return withTeacherReplyDebug(localTeacherReply(input.message), fallbackReason);
 };
 
 export const gradeWriting = async (

@@ -265,6 +265,10 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
     statusRef.current = nextStatus;
     updateSpeechDebug({ lastStage: 'state:' + nextStatus });
 
+    if (__DEV__ && ['error', 'idle', 'requestingPermission', 'recording', 'analyzing', 'tooShort', 'noVoice'].includes(nextStatus)) {
+      setSpeechDebugExpanded(false);
+    }
+
     if (mountedRef.current) {
       setStatus(nextStatus);
     }
@@ -353,6 +357,7 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
   }, []);
 
   const clearFeedback = () => {
+    setSpeechDebugExpanded(false);
     setAudioUri(null);
     setDurationMs(0);
     setTranscriptionResult(null);
@@ -937,7 +942,7 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
             <NoVoiceState onRetry={retryCurrentPrompt} />
           ) : status === 'error' ? (
             <RetryState
-              helper={errorMessage ?? 'Bağlantıyı kontrol edip tekrar deneyelim.'}
+              helper="Bağlantıyı kontrol edip tekrar deneyelim."
               onRetry={retryCurrentPrompt}
               title="Analiz tamamlanamadı"
             />
@@ -980,9 +985,9 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
               </Text>
             </View>
           ) : null}
-          {status !== 'noVoice' ? <Text style={styles.permissionText}>{getPermissionText(permission)}</Text> : null}
+          {showRecorderIntro ? <Text style={styles.permissionText}>{getPermissionText(permission)}</Text> : null}
           {cancelMessage ? <Text style={styles.cancelMessage}>{cancelMessage}</Text> : null}
-          {errorMessage && status !== 'error' && status !== 'tooShort' ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+          {errorMessage && showRecorderIntro ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
           {__DEV__ ? (
             <SpeechDebugPanel
               expanded={speechDebugExpanded}
@@ -1032,8 +1037,8 @@ function SpeechDebugPanel({
   return (
     <View style={styles.debugPanel}>
       <Pressable accessibilityRole="button" onPress={onToggle} style={({ pressed }) => [styles.debugHeader, pressed && styles.pressed]}>
-        <Text style={styles.debugTitle}>Speech debug</Text>
-        <Text style={styles.debugToggle}>{expanded ? 'Gizle' : 'Göster'}</Text>
+        <Text style={styles.debugTitle}>Teknik ayrıntı</Text>
+        <Text style={styles.debugToggle}>{expanded ? 'Gizle' : 'Aç'}</Text>
       </Pressable>
       {expanded ? (
         <View style={styles.debugRows}>
@@ -1160,24 +1165,6 @@ function ResultCard({
           <Text style={styles.transcriptText}>{transcriptionResult.transcript || 'Metin alınamadı.'}</Text>
           {transcriptionResult.fallback ? (
             <Text style={styles.fallbackText}>Şimdilik yerel tahmin kullanıldı.</Text>
-          ) : null}
-          {__DEV__ ? (
-            <View style={styles.debugChipRow}>
-              <View style={styles.debugChip}>
-                <Text style={styles.debugChipText}>STT: {transcriptionResult.provider ?? 'unknown'}</Text>
-              </View>
-              <View style={styles.debugChip}>
-                <Text style={styles.debugChipText}>model: {transcriptionResult.modelUsed ?? 'unknown'}</Text>
-              </View>
-              <View style={styles.debugChip}>
-                <Text style={styles.debugChipText}>fallback: {String(transcriptionResult.fallback ?? false)}</Text>
-              </View>
-              {pronunciationResult.isMock ? (
-                <View style={styles.debugChip}>
-                  <Text style={styles.debugChipText}>pronunciation: mock</Text>
-                </View>
-              ) : null}
-            </View>
           ) : null}
         </View>
       </View>
@@ -1430,10 +1417,10 @@ const styles = StyleSheet.create({
   debugPanel: {
     backgroundColor: colors.paperLavender,
     borderColor: colors.border,
-    borderRadius: radius.lg,
+    borderRadius: radius.md,
     borderWidth: 1,
-    marginTop: spacing.sm,
-    opacity: 0.86,
+    marginTop: spacing.xs,
+    opacity: 0.72,
     overflow: 'hidden',
     width: '100%',
   },
@@ -1441,17 +1428,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    minHeight: 42,
+    minHeight: 34,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.xs,
   },
   debugTitle: {
-    ...typography.small,
+    ...typography.micro,
     color: colors.deepViolet,
     fontWeight: '900',
   },
   debugToggle: {
-    ...typography.small,
+    ...typography.micro,
     color: colors.royalPurple,
     fontWeight: '900',
   },
