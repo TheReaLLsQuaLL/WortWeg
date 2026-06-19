@@ -5,7 +5,7 @@ import type { RouteProp } from '@react-navigation/native';
 import { AppScrollView, Screen } from '../components/layout';
 import { curriculumLevels, getModulesForLevel } from '../data/curriculum';
 import { getPlayableLessonByModuleId } from '../data/lessons';
-import { colors, radius, spacing, typography } from '../data/theme';
+import { colors, radius, shadows, spacing, typography } from '../data/theme';
 import type { RootNavigation, RootStackParamList } from '../navigation/AppNavigator';
 
  type LevelOverviewScreenProps = {
@@ -26,6 +26,8 @@ const skillLabels = {
 export function LevelOverviewScreen({ navigation, route }: LevelOverviewScreenProps) {
   const level = curriculumLevels.find((item) => item.id === route.params.levelId) ?? curriculumLevels[1]!;
   const modules = getModulesForLevel(level.id);
+  const playableCount = modules.filter((module) => getPlayableLessonByModuleId(module.id)).length;
+  const comingSoonCount = Math.max(0, modules.length - playableCount);
 
   const openModule = (moduleId: string) => {
     const playableLesson = getPlayableLessonByModuleId(moduleId);
@@ -39,10 +41,10 @@ export function LevelOverviewScreen({ navigation, route }: LevelOverviewScreenPr
   };
 
   return (
-    <Screen backgroundColor={colors.deepViolet}>
+    <Screen backgroundColor={colors.lavenderBackground}>
       <View style={styles.header}>
         <Pressable accessibilityRole="button" onPress={() => navigation.goBack()} style={styles.iconButton}>
-          <ArrowLeft color={colors.white} size={22} />
+          <ArrowLeft color={colors.deepViolet} size={22} />
         </Pressable>
         <View style={styles.headerCopy}>
           <Text style={styles.kicker}>{level.titleDe}</Text>
@@ -54,7 +56,11 @@ export function LevelOverviewScreen({ navigation, route }: LevelOverviewScreenPr
         <View style={styles.heroCard}>
           <Text style={styles.heroTitle}>{level.id}</Text>
           <Text style={styles.heroText}>{level.descriptionTr}</Text>
-          <Text style={styles.heroMeta}>{level.isPlaceholder ? 'Yakında' : 'Tahmini ' + level.estimatedWeeks + ' hafta'}</Text>
+          <View style={styles.heroStats}>
+            <Text style={styles.heroMeta}>{level.isPlaceholder ? 'Yakında' : 'Tahmini ' + level.estimatedWeeks + ' hafta'}</Text>
+            <Text style={styles.heroMeta}>{playableCount} oynanabilir</Text>
+            {comingSoonCount > 0 ? <Text style={styles.heroMetaMuted}>{comingSoonCount} yakında</Text> : null}
+          </View>
         </View>
 
         <View style={styles.section}>
@@ -76,6 +82,7 @@ export function LevelOverviewScreen({ navigation, route }: LevelOverviewScreenPr
           <Text style={styles.sectionTitle}>Modüller</Text>
           {modules.map((module) => {
             const playableLesson = getPlayableLessonByModuleId(module.id);
+            const moduleStatus = playableLesson ? 'Oynanabilir' : 'Yakında';
 
             return (
               <Pressable
@@ -95,19 +102,21 @@ export function LevelOverviewScreen({ navigation, route }: LevelOverviewScreenPr
                     <Text style={styles.moduleTitle}>{module.order}. {module.titleTr}</Text>
                     <Text style={styles.muted}>{module.titleDe}</Text>
                   </View>
+                  <View style={[styles.statusPill, !playableLesson && styles.statusPillLocked]}>
+                    <Text style={[styles.statusText, !playableLesson && styles.statusTextLocked]}>{moduleStatus}</Text>
+                  </View>
                   <View style={styles.timePill}>
                     <Clock color={colors.royalPurple} size={14} />
                     <Text style={styles.timeText}>{module.estimatedMinutes} dk</Text>
                   </View>
                 </View>
                 <Text style={styles.body}>{module.goalTr}</Text>
-                {!playableLesson ? <Text style={styles.comingSoon}>Yakında oynanabilir olacak.</Text> : null}
-                <Text style={styles.warning}>{module.turkishLearnerWarnings[0]}</Text>
+                <View style={styles.warningStrip}>
+                  <Text style={styles.warning}>{!playableLesson ? 'Bu modül yakında oynanabilir olacak.' : module.turkishLearnerWarnings[0]}</Text>
+                </View>
                 <View style={styles.taskGrid}>
                   <TaskBlock title="Konuşma" items={module.speakingTasks} />
-                  <TaskBlock title="Okuma" items={module.readingTasks} />
                   <TaskBlock title="Yazma" items={module.writingTasks} />
-                  <TaskBlock title="Sınav" items={module.examTasks} />
                 </View>
                 <View style={styles.tags}>
                   {module.topics.slice(0, 5).map((topic) => <Text key={topic} style={styles.tag}>{topic}</Text>)}
@@ -133,55 +142,126 @@ function TaskBlock({ items, title }: { items: string[]; title: string }) {
 const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
-    backgroundColor: colors.deepViolet,
+    backgroundColor: colors.paper,
+    borderBottomColor: colors.comicBorderColor,
+    borderBottomWidth: colors.comicBorderWidth,
     flexDirection: 'row',
     gap: spacing.md,
     padding: spacing.lg,
   },
   iconButton: {
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    borderRadius: radius.sm,
-    height: 44,
+    backgroundColor: colors.white,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.md,
+    borderWidth: colors.comicBorderWidth,
+    height: 46,
     justifyContent: 'center',
-    width: 44,
+    width: 46,
+    ...shadows.comicSmall,
   },
   headerCopy: { flex: 1 },
-  kicker: { ...typography.small, color: colors.yellow },
-  headerTitle: { ...typography.heading, color: colors.white },
-  scroll: { backgroundColor: colors.surface },
-  content: { backgroundColor: colors.surface, gap: spacing.lg, padding: spacing.lg },
-  heroCard: { backgroundColor: colors.deepViolet, borderRadius: radius.lg, gap: spacing.sm, padding: spacing.lg },
-  heroTitle: { color: colors.yellow, fontSize: 42, fontWeight: '900', letterSpacing: 0, lineHeight: 48 },
-  heroText: { ...typography.body, color: colors.lavender },
-  heroMeta: { ...typography.small, color: colors.yellow },
-  section: {
-    backgroundColor: colors.white,
-    borderColor: colors.border,
-    borderRadius: radius.lg,
-    borderWidth: 1,
+  kicker: { ...typography.small, color: colors.royalPurple, fontWeight: '900' },
+  headerTitle: { ...typography.heading, color: colors.deepViolet, fontWeight: '900' },
+  scroll: { backgroundColor: colors.lavenderBackground },
+  content: { backgroundColor: colors.lavenderBackground, gap: spacing.lg, padding: spacing.lg },
+  heroCard: {
+    backgroundColor: colors.deepViolet,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.xl,
+    borderWidth: colors.comicBorderWidth,
     gap: spacing.md,
     padding: spacing.lg,
+    ...shadows.comic,
+  },
+  heroTitle: { color: colors.yellow, fontSize: 42, fontWeight: '900', letterSpacing: 0, lineHeight: 48 },
+  heroText: { ...typography.body, color: colors.lavender },
+  heroStats: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  heroMeta: {
+    ...typography.small,
+    backgroundColor: colors.yellowCta,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.pill,
+    borderWidth: colors.comicBorderWidth,
+    color: colors.deepViolet,
+    fontWeight: '900',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
+  },
+  heroMetaMuted: {
+    ...typography.small,
+    backgroundColor: colors.paperLavender,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.pill,
+    borderWidth: colors.comicBorderWidth,
+    color: colors.deepViolet,
+    fontWeight: '900',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
+  },
+  section: {
+    backgroundColor: colors.white,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.xl,
+    borderWidth: colors.comicBorderWidth,
+    gap: spacing.md,
+    padding: spacing.lg,
+    ...shadows.comicSmall,
   },
   sectionTitle: { ...typography.body, color: colors.deepViolet, fontWeight: '900' },
   body: { ...typography.body, color: colors.muted },
   muted: { ...typography.small, color: colors.muted },
   warning: { ...typography.small, color: colors.deepViolet, fontWeight: '800' },
-  comingSoon: { ...typography.small, color: colors.royalPurple, fontWeight: '900' },
-  skillRow: { backgroundColor: colors.surface, borderRadius: radius.md, gap: spacing.xs, padding: spacing.md },
+  skillRow: { backgroundColor: colors.paperLavender, borderRadius: radius.md, gap: spacing.xs, padding: spacing.md },
   skillName: { ...typography.small, color: colors.royalPurple, fontWeight: '900' },
-  moduleCard: { backgroundColor: colors.surface, borderRadius: radius.md, gap: spacing.md, padding: spacing.md },
-  placeholderCard: { opacity: 0.7 },
-  moduleHeader: { alignItems: 'center', flexDirection: 'row', gap: spacing.md },
-  moduleIcon: { alignItems: 'center', backgroundColor: colors.lavender, borderRadius: radius.sm, height: 38, justifyContent: 'center', width: 38 },
+  moduleCard: {
+    backgroundColor: colors.white,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.xl,
+    borderWidth: colors.comicBorderWidth,
+    gap: spacing.md,
+    padding: spacing.md,
+    ...shadows.comicSmall,
+  },
+  placeholderCard: { backgroundColor: colors.paperLavender, opacity: 0.82, ...shadows.none },
+  moduleHeader: { alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  moduleIcon: {
+    alignItems: 'center',
+    backgroundColor: colors.comicYellowWash,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.lg,
+    borderWidth: colors.comicBorderWidth,
+    height: 42,
+    justifyContent: 'center',
+    width: 42,
+  },
   moduleCopy: { flex: 1, gap: 2 },
   moduleTitle: { ...typography.body, color: colors.deepViolet, fontWeight: '900' },
+  statusPill: {
+    backgroundColor: colors.comicYellowWash,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.pill,
+    borderWidth: colors.comicBorderWidth,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
+  },
+  statusPillLocked: {
+    backgroundColor: colors.white,
+    borderColor: colors.border,
+  },
+  statusText: { ...typography.small, color: colors.deepViolet, fontWeight: '900' },
+  statusTextLocked: { color: colors.muted },
   timePill: { alignItems: 'center', flexDirection: 'row', gap: spacing.xs },
   timeText: { ...typography.small, color: colors.royalPurple },
+  warningStrip: {
+    backgroundColor: colors.paperLavender,
+    borderRadius: radius.md,
+    padding: spacing.sm,
+  },
   taskGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  taskBlock: { backgroundColor: colors.white, borderRadius: radius.sm, flexBasis: '47%', flexGrow: 1, gap: spacing.xs, padding: spacing.sm },
+  taskBlock: { backgroundColor: colors.paperLavender, borderRadius: radius.md, flexBasis: '47%', flexGrow: 1, gap: spacing.xs, padding: spacing.sm },
   taskTitle: { ...typography.small, color: colors.deepViolet, fontWeight: '900' },
   tags: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
-  tag: { ...typography.small, backgroundColor: colors.lavender, borderRadius: radius.sm, color: colors.deepViolet, paddingHorizontal: spacing.sm, paddingVertical: 2 },
+  tag: { ...typography.small, backgroundColor: colors.lavender, borderRadius: radius.sm, color: colors.deepViolet, fontWeight: '800', paddingHorizontal: spacing.sm, paddingVertical: 2 },
   pressed: { opacity: 0.82 },
 });

@@ -4,8 +4,9 @@ import { ArrowLeft, ArrowRight, CheckCircle2 } from 'lucide-react-native';
 
 import { AppButton } from '../components/AppButton';
 import { AppScrollView, Screen } from '../components/layout';
+import { HalftoneAccent } from '../components/HalftoneAccent';
 import { TopBar } from '../components/TopBar';
-import { colors, radius, spacing, typography } from '../data/theme';
+import { colors, radius, shadows, spacing, typography } from '../data/theme';
 import type { RootNavigation } from '../navigation/AppNavigator';
 import { getPlacementQuestions, scorePlacementTest, type PlacementAnswerMap } from '../services/placementService';
 import { trackLocalEvent } from '../services/localEventLog';
@@ -62,12 +63,19 @@ export function PlacementTestScreen({ navigation, route }: PlacementTestScreenPr
     <Screen backgroundColor={colors.deepViolet}>
       <TopBar subtitle="Kısa yerel test" title="Seviye kontrolü" />
       <AppScrollView contentContainerStyle={styles.content} style={styles.scroll}>
-        <View style={styles.progressShell}>
-          <View style={[styles.progressFill, { width: progressWidth }]} />
+        <View style={styles.progressCard}>
+          <View style={styles.progressRow}>
+            <Text style={styles.progressLabel}>Soru {currentIndex + 1}/{questions.length}</Text>
+            <Text style={styles.progressMeta}>{question.levelSignal}</Text>
+          </View>
+          <View style={styles.progressShell}>
+            <View style={[styles.progressFill, { width: progressWidth }]} />
+          </View>
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.kicker}>Soru {currentIndex + 1}/{questions.length} · {question.levelSignal}</Text>
+          <HalftoneAccent color={colors.yellowCta} opacity={0.08} size="small" style={styles.cardTexture} />
+          <Text style={styles.kicker}>Kısa kontrol</Text>
           <Text style={styles.prompt}>{question.promptTr}</Text>
           {question.promptDe ? <Text style={styles.promptDe}>{question.promptDe}</Text> : null}
 
@@ -87,7 +95,7 @@ export function PlacementTestScreen({ navigation, route }: PlacementTestScreenPr
                   ]}
                 >
                   <View style={[styles.radio, selected && styles.radioSelected]}>
-                    {selected ? <CheckCircle2 color={colors.white} size={16} strokeWidth={2.8} /> : null}
+                    {selected ? <CheckCircle2 color={colors.deepViolet} size={16} strokeWidth={2.8} /> : null}
                   </View>
                   <Text style={[styles.choiceText, selected && styles.choiceTextSelected]}>{choice.text}</Text>
                 </Pressable>
@@ -124,28 +132,63 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
   },
   content: {
-    backgroundColor: colors.surface,
-    gap: spacing.lg,
+    backgroundColor: colors.lavenderBackground,
+    gap: spacing.md,
     padding: spacing.lg,
   },
+  progressCard: {
+    backgroundColor: colors.white,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.xl,
+    borderWidth: colors.comicBorderWidth,
+    gap: spacing.sm,
+    padding: spacing.md,
+    ...shadows.comicSmall,
+  },
+  progressRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  progressLabel: {
+    ...typography.small,
+    color: colors.deepViolet,
+    fontWeight: '900',
+  },
+  progressMeta: {
+    ...typography.small,
+    color: colors.royalPurple,
+    fontWeight: '900',
+  },
   progressShell: {
-    backgroundColor: colors.surfaceStrong,
+    backgroundColor: colors.white,
+    borderColor: colors.comicBorderColor,
+    borderWidth: colors.comicBorderWidth,
     borderRadius: radius.pill,
-    height: 10,
+    height: 18,
     overflow: 'hidden',
   },
   progressFill: {
-    backgroundColor: colors.green,
+    backgroundColor: colors.yellowCta,
     borderRadius: radius.pill,
-    height: 10,
+    height: '100%',
   },
   card: {
     backgroundColor: colors.white,
-    borderColor: colors.border,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    gap: spacing.lg,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.xl,
+    borderWidth: colors.comicBorderWidth,
+    gap: spacing.md,
+    overflow: 'hidden',
     padding: spacing.lg,
+    ...shadows.comic,
+  },
+  cardTexture: {
+    height: 108,
+    position: 'absolute',
+    right: -16,
+    top: -16,
+    width: 132,
   },
   kicker: {
     ...typography.small,
@@ -155,28 +198,30 @@ const styles = StyleSheet.create({
   prompt: {
     ...typography.heading,
     color: colors.deepViolet,
+    fontWeight: '900',
   },
   promptDe: {
     ...typography.body,
     color: colors.muted,
   },
   choices: {
-    gap: spacing.md,
+    gap: spacing.sm,
   },
   choice: {
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    borderWidth: 1,
+    backgroundColor: colors.white,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.xl,
+    borderWidth: colors.comicBorderWidth,
     flexDirection: 'row',
     gap: spacing.md,
-    minHeight: 56,
+    minHeight: 58,
     padding: spacing.md,
+    ...shadows.comicSmall,
   },
   choiceSelected: {
-    backgroundColor: colors.lavender,
-    borderColor: colors.royalPurple,
+    backgroundColor: colors.primaryPurple,
+    borderColor: colors.comicBorderColor,
   },
   radio: {
     alignItems: 'center',
@@ -188,8 +233,8 @@ const styles = StyleSheet.create({
     width: 24,
   },
   radioSelected: {
-    backgroundColor: colors.royalPurple,
-    borderColor: colors.royalPurple,
+    backgroundColor: colors.yellowCta,
+    borderColor: colors.comicBorderColor,
   },
   choiceText: {
     ...typography.body,
@@ -197,6 +242,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   choiceTextSelected: {
+    color: colors.white,
     fontWeight: '900',
   },
   navRow: {

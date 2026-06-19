@@ -64,6 +64,19 @@ export function CurriculumMapScreen({ navigation, userState }: CurriculumMapScre
           const modules = getModulesForLevel(level.id);
           const activeLevel = plan?.currentLevel === level.id;
           const previewModuleCount = level.id === 'A2' ? Math.max(4, getLessonsForLevel(level.id).length) : 4;
+          const playableModules = modules
+            .map((module) => getPlayableLessonByModuleId(module.id))
+            .filter(Boolean);
+          const completedPlayableCount = playableModules.filter((lesson) => userState.completedLessons.includes(lesson!.id)).length;
+          const levelProgress = playableModules.length
+            ? Math.round((completedPlayableCount / playableModules.length) * 100)
+            : 0;
+          const progressWidth = ((playableModules.length ? Math.max(4, levelProgress) : 0) + '%') as `${number}%`;
+          const levelStatus = level.isPlaceholder
+            ? 'Yakında'
+            : playableModules.length
+              ? playableModules.length + ' oynanabilir ders'
+              : 'Yakında';
 
           return (
             <View key={level.id} style={[styles.levelSection, activeLevel && styles.activeLevel]}>
@@ -72,8 +85,14 @@ export function CurriculumMapScreen({ navigation, userState }: CurriculumMapScre
                   <Text style={styles.levelBadgeText}>{level.id}</Text>
                 </View>
                 <View style={styles.levelCopy}>
-                  <Text style={styles.levelTitle}>{level.titleTr}</Text>
+                  <View style={styles.levelTitleRow}>
+                    <Text style={styles.levelTitle}>{level.titleTr}</Text>
+                    <Text style={[styles.levelStatusBadge, level.isPlaceholder && styles.levelStatusLocked]}>{levelStatus}</Text>
+                  </View>
                   <Text style={styles.muted} numberOfLines={2}>{level.descriptionTr}</Text>
+                  <View style={styles.levelProgressTrack}>
+                    <View style={[styles.levelProgressFill, { width: progressWidth }]} />
+                  </View>
                 </View>
                 <MapPinned color={activeLevel ? colors.yellow : colors.royalPurple} size={20} />
               </Pressable>
@@ -92,8 +111,15 @@ export function CurriculumMapScreen({ navigation, userState }: CurriculumMapScre
                 const unlocked = Boolean(playableLesson) ? index === 0 || completed || previousCompleted : false;
                 const labels = Object.entries(module.trackBoosts)
                   .sort((a, b) => b[1] - a[1])
-                  .slice(0, 3)
+                  .slice(0, 2)
                   .map(([track]) => trackLabels[track as TrackId]);
+                const moduleStatus = !playableLesson
+                  ? 'Yakında'
+                  : completed
+                    ? 'Tamamlandı'
+                    : unlocked
+                      ? 'Oynanabilir'
+                      : 'Kilitli';
 
                 return (
                   <Pressable
@@ -112,7 +138,10 @@ export function CurriculumMapScreen({ navigation, userState }: CurriculumMapScre
                       {completed ? <CheckCircle2 color={colors.green} size={20} /> : unlocked ? <Text style={styles.moduleNumber}>{module.order}</Text> : <Lock color={colors.muted} size={18} />}
                     </View>
                     <View style={styles.moduleCopy}>
-                      <Text style={styles.moduleTitle}>{module.titleTr}</Text>
+                      <View style={styles.moduleTitleRow}>
+                        <Text style={styles.moduleTitle}>{module.titleTr}</Text>
+                        <Text style={[styles.moduleStatus, !unlocked && styles.moduleStatusLocked]}>{moduleStatus}</Text>
+                      </View>
                       <Text style={styles.muted} numberOfLines={2}>{module.goalTr}</Text>
                       <View style={styles.tags}>
                         {labels.map((label) => <Text key={label} style={styles.tag}>{label}</Text>)}
@@ -186,7 +215,42 @@ const styles = StyleSheet.create({
   },
   levelBadgeText: { ...typography.body, color: colors.comicBorderColor, fontWeight: '900' },
   levelCopy: { flex: 1, gap: 2 },
+  levelTitleRow: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.xs,
+    justifyContent: 'space-between',
+  },
   levelTitle: { ...typography.heading, color: colors.deepViolet, fontWeight: '900' },
+  levelStatusBadge: {
+    ...typography.small,
+    backgroundColor: colors.yellowCta,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.pill,
+    borderWidth: colors.comicBorderWidth,
+    color: colors.deepViolet,
+    fontWeight: '900',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
+  },
+  levelStatusLocked: {
+    backgroundColor: colors.paperLavender,
+    color: colors.muted,
+  },
+  levelProgressTrack: {
+    backgroundColor: colors.white,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.pill,
+    borderWidth: colors.comicBorderWidth,
+    height: 12,
+    marginTop: spacing.xs,
+    overflow: 'hidden',
+  },
+  levelProgressFill: {
+    backgroundColor: colors.yellowCta,
+    height: '100%',
+  },
   muted: { ...typography.small, color: colors.muted },
   moduleRow: {
     alignItems: 'center',
@@ -196,7 +260,7 @@ const styles = StyleSheet.create({
     borderWidth: colors.comicBorderWidth,
     flexDirection: 'row',
     gap: spacing.md,
-    minHeight: 100,
+    minHeight: 92,
     padding: spacing.md,
     ...shadows.comicSmall,
   },
@@ -214,7 +278,29 @@ const styles = StyleSheet.create({
   },
   moduleNumber: { ...typography.small, color: colors.white, fontWeight: '900' },
   moduleCopy: { flex: 1, gap: spacing.xs },
+  moduleTitleRow: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.xs,
+    justifyContent: 'space-between',
+  },
   moduleTitle: { ...typography.body, color: colors.deepViolet, fontWeight: '900' },
+  moduleStatus: {
+    ...typography.small,
+    backgroundColor: colors.comicYellowWash,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.pill,
+    borderWidth: 2,
+    color: colors.deepViolet,
+    fontWeight: '900',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+  },
+  moduleStatusLocked: {
+    backgroundColor: colors.paperLavender,
+    color: colors.muted,
+  },
   tags: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
   tag: {
     ...typography.small,
