@@ -18,7 +18,6 @@ import { AppButton } from '../components/AppButton';
 import { FeedbackBanner } from '../components/FeedbackBanner';
 import { HalftoneAccent } from '../components/HalftoneAccent';
 import { LessonProgressBar } from '../components/LessonProgressBar';
-import { ProgressPill } from '../components/ProgressPill';
 import { useDetailFooterSpacing } from '../components/layout';
 import { SpeakerButton } from '../components/SpeakerButton';
 import { XP } from '../data/constants';
@@ -311,119 +310,139 @@ export function ExercisePlayerScreen({
     const goVocab = () => navigation.navigate('Main', { initialTab: 'vocab' });
     const goMistakes = () => navigation.navigate('Main', { initialTab: 'profile' });
     const goA2Review = () => navigation.navigate('LessonIntro', { lessonId: 'a2-01-gunluk-planlar' });
+    const goSpeakingPrompt = () => navigation.navigate('SpeakingPractice', {
+      source: 'lesson_completion',
+      promptId: lesson.id + '-speaking',
+      topicTitle: lesson.speakingPrompt?.titleTr,
+      expectedText: lesson.speakingPrompt?.promptDe,
+      meaningTr: lesson.speakingPrompt?.promptTr,
+      tipTr: 'Dersi bitirdin. Şimdi cümleyi sesli dene.',
+    });
 
     return (
       <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
-        <View style={styles.completionHeader}>
-          <CheckCircle2 color={colors.green} size={42} strokeWidth={2.6} />
-          <AnimatedCard>
-            <Text style={styles.completionTitle}>Ders tamamlandı</Text>
-            <Text style={styles.completionSubtitle}>{lesson.title}</Text>
-          </AnimatedCard>
-        </View>
-
         <ScrollView contentContainerStyle={styles.completionContent}>
-          <View style={styles.completionCard}>
-            <HalftoneAccent color={colors.yellowCta} opacity={0.12} size="medium" style={styles.completionTexture} />
-            <Text style={styles.completionCardTitle}>{isA2PathComplete ? 'A2 yolu tamamlandı' : 'Sıradaki en iyi adım'}</Text>
-            <View style={styles.completionPills}>
-              <ProgressPill label={completion.correctAnswers + '/' + completion.totalAnswers + ' doğru'} tone="green" />
-              <ProgressPill label={'+' + completion.xpEarned + ' XP'} tone="yellow" />
-              <ProgressPill label={completion.newReviewCards + ' kelime'} tone="purple" />
-            </View>
-            {isA2PathComplete ? (
-              <Text style={styles.completionText}>A2 yolunun ilk paketi tamamlandı. B1 yakında.</Text>
-            ) : hasMistakes ? (
-              <Text style={styles.completionText}>{completion.mistakeCount} hata defterine eklendi. Önce kısa bir tekrar iyi olur.</Text>
-            ) : (
-              <Text style={styles.completionText}>Hata yok. Sıradaki derse geçebilirsin.</Text>
-            )}
-            {isA2PathComplete && hasMistakes ? (
-              <Text style={styles.completionText}>{completion.mistakeCount} hata defterine eklendi. İstersen kısa tekrar yap.</Text>
-            ) : null}
-            {completion.newReviewCards > 0 ? (
-              <Text style={styles.completionText}>{completion.newReviewCards} kelime tekrar listene eklendi.</Text>
-            ) : null}
-            {isA2PathComplete ? (
-              <Text style={styles.completionText}>Kelime tekrarı, hatalar veya A2 tekrar ile devam edebilirsin.</Text>
-            ) : completion.nextLessonTitle ? (
-              <Text style={styles.completionText}>Sıradaki ders: {completion.nextLessonTitle}</Text>
-            ) : (
-              <Text style={styles.completionText}>Bu seviyedeki oynanabilir dersleri bitirdin. Haritadan yakında açılacak modülleri görebilirsin.</Text>
-            )}
-          </View>
-
           {isA2PathComplete ? (
-            <AppButton
-              icon={RotateCcw}
-              onPress={() => selectCompletionAction('vocab_review', goVocab)}
-              title="Kelime tekrarı"
-            />
-          ) : hasMistakes ? (
-            <AppButton
-              icon={NotebookTabs}
-              onPress={() => selectCompletionAction('mistakes_review', goMistakes)}
-              title="Hatalarını tekrar et"
-            />
+            <View style={styles.a2CompletionHero}>
+              <HalftoneAccent color={colors.yellowCta} opacity={0.12} size="medium" style={styles.completionTexture} />
+              <View style={styles.completionIconBadge}>
+                <CheckCircle2 color={colors.green} size={36} strokeWidth={2.8} />
+              </View>
+              <Text style={styles.completionTitle}>A2 tamamlandı!</Text>
+              <Text style={styles.completionSubtitle}>B1 yakında. Şimdilik A2 tekrarına dönebilirsin.</Text>
+              <View style={styles.comingSoonPill}>
+                <Text style={styles.comingSoonText}>B1 yakında</Text>
+              </View>
+            </View>
           ) : (
-            <AppButton
-              icon={hasNextLesson ? BookOpen : Home}
-              onPress={() => selectCompletionAction(hasNextLesson ? 'next_lesson' : 'home', goNextOrHome)}
-              title={hasNextLesson ? 'Sıradaki ders' : 'Ana sayfaya dön'}
-            />
+            <View style={styles.completionHero}>
+              <HalftoneAccent color={colors.yellowCta} opacity={0.12} size="medium" style={styles.completionTexture} />
+              <View style={styles.completionIconBadge}>
+                <CheckCircle2 color={colors.green} size={36} strokeWidth={2.8} />
+              </View>
+              <Text style={styles.completionTitle}>Harika iş!</Text>
+              <Text style={styles.completionSubtitle}>{lesson.title}</Text>
+              <View style={styles.completionStatsRow}>
+                <View style={styles.completionStatCard}>
+                  <Text style={styles.completionStatValue}>+{completion.xpEarned}</Text>
+                  <Text style={styles.completionStatLabel}>XP</Text>
+                </View>
+                <View style={styles.completionStatCard}>
+                  <Text style={styles.completionStatValue}>{completion.newReviewCards}</Text>
+                  <Text style={styles.completionStatLabel}>kelime</Text>
+                </View>
+                <View style={styles.completionStatCard}>
+                  <Text style={styles.completionStatValue}>{completion.mistakeCount}</Text>
+                  <Text style={styles.completionStatLabel}>hata</Text>
+                </View>
+              </View>
+              <View style={styles.completionHintStrip}>
+                <Text style={styles.completionHintText}>
+                  {hasMistakes
+                    ? completion.mistakeCount + ' hata defterine eklendi. Kısa tekrar iyi olur.'
+                    : completion.nextLessonTitle
+                      ? 'Sıradaki ders: ' + completion.nextLessonTitle
+                      : 'Bu seviyedeki oynanabilir dersleri bitirdin.'}
+                </Text>
+              </View>
+            </View>
           )}
 
-          <View style={styles.secondaryActions}>
-            {isA2PathComplete ? (
-              <>
-                <AppButton
-                  icon={NotebookTabs}
-                  onPress={() => selectCompletionAction('mistakes_review', goMistakes)}
-                  title="Hatalar"
-                  variant="secondary"
-                  style={styles.secondaryButton}
-                />
-                <AppButton
-                  icon={Home}
-                  onPress={() => selectCompletionAction('home', goHome)}
-                  title="Ana sayfa"
-                  variant="secondary"
-                  style={styles.secondaryButton}
-                />
-                <AppButton
-                  icon={BookOpen}
-                  onPress={() => selectCompletionAction('a2_review', goA2Review)}
-                  title="A2 tekrar"
-                  variant="secondary"
-                  style={styles.secondaryButton}
-                />
-              </>
-            ) : lesson.speakingPrompt ? (
+          {isA2PathComplete ? (
+            <View style={styles.a2ActionGrid}>
               <AppButton
-                icon={Mic}
-                onPress={() => selectCompletionAction('speaking_prompt', () => navigation.navigate('SpeakingPractice', {
-                  source: 'lesson_completion',
-                  promptId: lesson.id + '-speaking',
-                  topicTitle: lesson.speakingPrompt?.titleTr,
-                  expectedText: lesson.speakingPrompt?.promptDe,
-                  meaningTr: lesson.speakingPrompt?.promptTr,
-                  tipTr: 'Dersi bitirdin. Şimdi cümleyi sesli dene.',
-                }))}
-                title="Bu cümleyi sesli dene"
-                variant="secondary"
-                style={styles.secondaryButton}
+                icon={RotateCcw}
+                onPress={() => selectCompletionAction('vocab_review', goVocab)}
+                title="Kelime tekrarı"
+                style={styles.gridActionButton}
               />
-            ) : null}
-            {!isA2PathComplete && hasMistakes ? (
+              <AppButton
+                icon={NotebookTabs}
+                onPress={() => selectCompletionAction('mistakes_review', goMistakes)}
+                title="Hatalar"
+                variant="secondary"
+                style={styles.gridActionButton}
+              />
+              <AppButton
+                icon={Home}
+                onPress={() => selectCompletionAction('home', goHome)}
+                title="Ana sayfa"
+                variant="secondary"
+                style={styles.gridActionButton}
+              />
+              <AppButton
+                icon={BookOpen}
+                onPress={() => selectCompletionAction('a2_review', goA2Review)}
+                title="A2 tekrar"
+                variant="secondary"
+                style={styles.gridActionButton}
+              />
+            </View>
+          ) : (
+            <>
               <AppButton
                 icon={hasNextLesson ? BookOpen : Home}
                 onPress={() => selectCompletionAction(hasNextLesson ? 'next_lesson' : 'home', goNextOrHome)}
                 title={hasNextLesson ? 'Sıradaki ders' : 'Ana sayfa'}
-                variant="secondary"
-                style={styles.secondaryButton}
               />
-            ) : null}
-          </View>
+              <View style={styles.secondaryActions}>
+                <AppButton
+                  icon={RotateCcw}
+                  onPress={() => selectCompletionAction('vocab_review', goVocab)}
+                  title="Kelime tekrarı"
+                  variant="secondary"
+                  style={styles.secondaryButton}
+                />
+                {hasMistakes ? (
+                  <AppButton
+                    icon={NotebookTabs}
+                    onPress={() => selectCompletionAction('mistakes_review', goMistakes)}
+                    title="Hatalar"
+                    variant="secondary"
+                    style={styles.secondaryButton}
+                  />
+                ) : lesson.speakingPrompt ? (
+                  <AppButton
+                    icon={Mic}
+                    onPress={() => selectCompletionAction('speaking_prompt', goSpeakingPrompt)}
+                    title="Sesli dene"
+                    variant="secondary"
+                    style={styles.secondaryButton}
+                  />
+                ) : null}
+              </View>
+              {hasMistakes && lesson.speakingPrompt ? (
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => selectCompletionAction('speaking_prompt', goSpeakingPrompt)}
+                  style={({ pressed }) => [styles.completionMiniAction, pressed && styles.pressed]}
+                >
+                  <Mic color={colors.royalPurple} size={18} strokeWidth={2.8} />
+                  <Text style={styles.completionMiniActionText}>Sesli pratik de hazır</Text>
+                </Pressable>
+              ) : null}
+            </>
+          )}
         </ScrollView>
       </SafeAreaView>
     );
@@ -819,53 +838,122 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.12,
     shadowRadius: 0,
   },
-  completionHeader: {
+  completionHero: {
     alignItems: 'center',
-    backgroundColor: colors.deepViolet,
-    gap: spacing.sm,
+    backgroundColor: colors.white,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.xl,
+    borderWidth: colors.comicBorderWidth,
+    gap: spacing.md,
+    overflow: 'hidden',
+    padding: spacing.lg,
+    ...shadows.comic,
+  },
+  a2CompletionHero: {
+    alignItems: 'center',
+    backgroundColor: colors.comicYellowWash,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.xl,
+    borderWidth: colors.comicBorderWidth,
+    gap: spacing.md,
+    overflow: 'hidden',
     padding: spacing.xl,
+    ...shadows.comic,
+  },
+  completionIconBadge: {
+    alignItems: 'center',
+    backgroundColor: colors.white,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.pill,
+    borderWidth: colors.comicBorderWidth,
+    height: 76,
+    justifyContent: 'center',
+    width: 76,
+    ...shadows.comicSmall,
   },
   completionTitle: {
     ...typography.heading,
-    color: colors.white,
+    color: colors.deepViolet,
+    fontWeight: '900',
     textAlign: 'center',
   },
   completionSubtitle: {
     ...typography.body,
-    color: colors.lavender,
+    color: colors.muted,
+    fontWeight: '800',
     textAlign: 'center',
   },
   completionContent: {
     backgroundColor: colors.lavenderBackground,
     flexGrow: 1,
-    gap: spacing.md,
+    gap: spacing.lg,
     padding: spacing.lg,
   },
-  completionCard: {
+  completionStatsRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    width: '100%',
+  },
+  completionStatCard: {
+    alignItems: 'center',
     backgroundColor: colors.white,
     borderColor: colors.comicBorderColor,
-    borderRadius: radius.xl,
+    borderRadius: radius.lg,
     borderWidth: colors.comicBorderWidth,
-    borderTopColor: colors.yellowCta,
-    borderTopWidth: 10,
-    gap: spacing.sm,
-    overflow: 'hidden',
-    padding: spacing.lg,
-    ...shadows.lift,
+    flex: 1,
+    gap: 2,
+    justifyContent: 'center',
+    minHeight: 82,
+    padding: spacing.sm,
+    ...shadows.comicSmall,
   },
-  completionCardTitle: {
-    ...typography.body,
+  completionStatValue: {
+    fontSize: 24,
+    lineHeight: 28,
     color: colors.deepViolet,
     fontWeight: '900',
   },
-  completionText: {
+  completionStatLabel: {
+    ...typography.small,
+    color: colors.muted,
+    fontWeight: '900',
+  },
+  completionHintStrip: {
+    backgroundColor: colors.paperLavender,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.lg,
+    borderWidth: colors.comicBorderWidth,
+    padding: spacing.md,
+    width: '100%',
+  },
+  completionHintText: {
     ...typography.body,
     color: colors.muted,
+    fontWeight: '800',
+    textAlign: 'center',
   },
-  completionPills: {
+  comingSoonPill: {
+    backgroundColor: colors.primaryPurple,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.pill,
+    borderWidth: colors.comicBorderWidth,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    ...shadows.comicSmall,
+  },
+  comingSoonText: {
+    ...typography.small,
+    color: colors.white,
+    fontWeight: '900',
+  },
+  a2ActionGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing.sm,
+  },
+  gridActionButton: {
+    flexBasis: '47%',
+    flexGrow: 1,
   },
   secondaryActions: {
     flexDirection: 'row',
@@ -875,6 +963,25 @@ const styles = StyleSheet.create({
   secondaryButton: {
     flexBasis: '47%',
     flexGrow: 1,
+  },
+  completionMiniAction: {
+    alignItems: 'center',
+    alignSelf: 'center',
+    backgroundColor: colors.paperLavender,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.pill,
+    borderWidth: colors.comicBorderWidth,
+    flexDirection: 'row',
+    gap: spacing.xs,
+    minHeight: 44,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    ...shadows.comicSmall,
+  },
+  completionMiniActionText: {
+    ...typography.small,
+    color: colors.deepViolet,
+    fontWeight: '900',
   },
   center: {
     backgroundColor: colors.lavenderBackground,

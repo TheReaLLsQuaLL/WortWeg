@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, PanResponder, Platform, Pressable, StyleSheet, Text, View, type GestureResponderEvent } from 'react-native';
 import type { RouteProp } from '@react-navigation/native';
-import { ArrowLeft, CheckCircle2, Mic, Play, RotateCcw, Trash2 } from 'lucide-react-native';
+import { ArrowLeft, CheckCircle2, Mic, MicOff, Play, RotateCcw, Trash2, WifiOff } from 'lucide-react-native';
 
 import { AppButton } from '../components/AppButton';
 import { AppScrollView, Screen } from '../components/layout';
@@ -1074,8 +1074,9 @@ function DebugRow({ label, value }: { label: string; value: string }) {
 function RetryState({ helper, onRetry, title }: { helper: string; onRetry: () => void; title: string }) {
   return (
     <View style={styles.retryBox}>
+      <HalftoneAccent color={colors.errorCoral} opacity={0.08} size="small" style={styles.stateTexture} />
       <View style={styles.retryIcon}>
-        <RotateCcw color={colors.royalPurple} size={24} strokeWidth={2.7} />
+        <WifiOff color={colors.red} size={28} strokeWidth={2.7} />
       </View>
       <Text style={styles.retryTitle}>{title}</Text>
       <Text style={styles.retryBody}>{helper}</Text>
@@ -1087,8 +1088,9 @@ function RetryState({ helper, onRetry, title }: { helper: string; onRetry: () =>
 function NoVoiceState({ onRetry }: { onRetry: () => void }) {
   return (
     <View style={styles.noVoiceBox}>
+      <HalftoneAccent color={colors.primaryPurple} opacity={0.08} size="small" style={styles.stateTexture} />
       <View style={styles.noVoiceIcon}>
-        <Text style={styles.noVoiceIconText}>W</Text>
+        <MicOff color={colors.royalPurple} size={32} strokeWidth={2.8} />
       </View>
       <Text style={styles.noVoiceTitle}>Sesini duyamadık</Text>
       <Text style={styles.noVoiceBody}>Mikrofona biraz daha yakın konuşup tekrar dene.</Text>
@@ -1468,19 +1470,25 @@ const styles = StyleSheet.create({
   },
   retryBox: {
     alignItems: 'center',
-    gap: spacing.sm,
-    paddingTop: spacing.md,
+    backgroundColor: colors.white,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.xl,
+    borderWidth: colors.comicBorderWidth,
+    gap: spacing.md,
+    overflow: 'hidden',
+    padding: spacing.lg,
     width: '100%',
+    ...shadows.comic,
   },
   retryIcon: {
     alignItems: 'center',
-    backgroundColor: colors.comicYellowWash,
+    backgroundColor: '#FFE1E1',
     borderColor: colors.comicBorderColor,
     borderRadius: radius.pill,
     borderWidth: colors.comicBorderWidth,
-    height: 64,
+    height: 72,
     justifyContent: 'center',
-    width: 64,
+    width: 72,
     ...shadows.comicSmall,
   },
   retryTitle: {
@@ -1495,9 +1503,15 @@ const styles = StyleSheet.create({
   },
   noVoiceBox: {
     alignItems: 'center',
-    gap: spacing.sm,
-    paddingTop: spacing.md,
+    backgroundColor: colors.white,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.xl,
+    borderWidth: colors.comicBorderWidth,
+    gap: spacing.md,
+    overflow: 'hidden',
+    padding: spacing.lg,
     width: '100%',
+    ...shadows.comic,
   },
   noVoiceIcon: {
     alignItems: 'center',
@@ -1505,16 +1519,10 @@ const styles = StyleSheet.create({
     borderColor: colors.comicBorderColor,
     borderRadius: radius.pill,
     borderWidth: colors.comicBorderWidth,
-    height: 64,
+    height: 72,
     justifyContent: 'center',
-    width: 64,
+    width: 72,
     ...shadows.comicSmall,
-  },
-  noVoiceIconText: {
-    color: colors.royalPurple,
-    fontSize: 28,
-    fontWeight: '900',
-    letterSpacing: 0,
   },
   noVoiceTitle: {
     ...typography.heading,
@@ -1525,6 +1533,13 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: colors.muted,
     textAlign: 'center',
+  },
+  stateTexture: {
+    bottom: 0,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
   },
   waveWrap: {
     alignItems: 'center',
