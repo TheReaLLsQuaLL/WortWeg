@@ -16,6 +16,7 @@ import { ArrowLeft, BookOpen, Check, CheckCircle2, Home, Mic, NotebookTabs, Rota
 import { AnimatedCard } from '../components/AnimatedCard';
 import { AppButton } from '../components/AppButton';
 import { FeedbackBanner } from '../components/FeedbackBanner';
+import { HalftoneAccent } from '../components/HalftoneAccent';
 import { LessonProgressBar } from '../components/LessonProgressBar';
 import { ProgressPill } from '../components/ProgressPill';
 import { useDetailFooterSpacing } from '../components/layout';
@@ -323,6 +324,7 @@ export function ExercisePlayerScreen({
 
         <ScrollView contentContainerStyle={styles.completionContent}>
           <View style={styles.completionCard}>
+            <HalftoneAccent color={colors.yellowCta} opacity={0.12} size="medium" style={styles.completionTexture} />
             <Text style={styles.completionCardTitle}>{isA2PathComplete ? 'A2 yolu tamamlandı' : 'Sıradaki en iyi adım'}</Text>
             <View style={styles.completionPills}>
               <ProgressPill label={completion.correctAnswers + '/' + completion.totalAnswers + ' doğru'} tone="green" />
@@ -455,7 +457,7 @@ export function ExercisePlayerScreen({
             onPress={() => navigation.goBack()}
             style={styles.iconButton}
           >
-            <ArrowLeft color={colors.white} size={22} />
+            <ArrowLeft color={colors.deepViolet} size={22} />
           </Pressable>
           <View style={styles.headerCopy}>
             <Text style={styles.kicker}>{lesson.title}</Text>
@@ -469,6 +471,7 @@ export function ExercisePlayerScreen({
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.promptCard}>
+            <HalftoneAccent opacity={0.08} size="small" style={styles.promptTexture} />
             <View style={styles.promptMeta}>
               <Text style={styles.prompt}>{exercise.prompt}</Text>
               {exercise.isRetry ? <Text style={styles.retryLabel}>Tekrar</Text> : null}
@@ -555,12 +558,12 @@ export function ExercisePlayerScreen({
                       styles.option,
                       selected && {
                         borderColor: result ? (result.correct ? colors.green : colors.red) : articleColor,
-                        backgroundColor: result ? (result.correct ? '#E3FAEE' : '#FFE5E5') : colors.comicYellowWash,
+                        backgroundColor: result ? (result.correct ? '#DFFFD7' : '#FFE1E1') : colors.primaryPurple,
                       },
                       pressed && styles.pressed,
                     ]}
                   >
-                    <Text style={styles.optionText}>{choice.text}</Text>
+                    <Text style={[styles.optionText, selected && !result && styles.optionTextSelected, selected && result && result.correct && styles.optionTextCorrect, selected && result && !result.correct && styles.optionTextWrong]}>{choice.text}</Text>
                   </Pressable>
                 );
               })}
@@ -616,7 +619,7 @@ export function ExercisePlayerScreen({
 
 const styles = StyleSheet.create({
   safeArea: {
-    backgroundColor: colors.deepViolet,
+    backgroundColor: colors.lavenderBackground,
     flex: 1,
   },
   keyboard: {
@@ -624,18 +627,23 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    backgroundColor: colors.deepViolet,
+    backgroundColor: colors.paper,
+    borderBottomColor: colors.comicBorderColor,
+    borderBottomWidth: colors.comicBorderWidth,
     flexDirection: 'row',
     gap: spacing.md,
     padding: spacing.lg,
   },
   iconButton: {
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    borderRadius: radius.sm,
-    height: 44,
+    backgroundColor: colors.white,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.md,
+    borderWidth: colors.comicBorderWidth,
+    height: 46,
     justifyContent: 'center',
-    width: 44,
+    width: 46,
+    ...shadows.comicSmall,
   },
   headerCopy: {
     flex: 1,
@@ -643,7 +651,8 @@ const styles = StyleSheet.create({
   },
   kicker: {
     ...typography.small,
-    color: colors.lavender,
+    color: colors.deepViolet,
+    fontWeight: '900',
   },
   content: {
     backgroundColor: colors.lavenderBackground,
@@ -652,19 +661,21 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
   },
   promptCard: {
-    backgroundColor: colors.paper,
+    backgroundColor: colors.white,
     borderColor: colors.comicBorderColor,
     borderRadius: radius.xl,
     borderWidth: colors.comicBorderWidth,
     borderTopColor: colors.yellowCta,
-    borderTopWidth: 8,
+    borderTopWidth: 10,
     gap: spacing.md,
-    padding: spacing.lg,
+    overflow: 'hidden',
+    padding: spacing.xl,
     ...shadows.lift,
   },
   prompt: {
     ...typography.small,
     color: colors.royalPurple,
+    fontWeight: '900',
   },
   promptMeta: {
     alignItems: 'center',
@@ -689,6 +700,7 @@ const styles = StyleSheet.create({
     ...typography.title,
     color: colors.deepViolet,
     flex: 1,
+    fontWeight: '900',
   },
   options: {
     gap: spacing.md,
@@ -698,7 +710,7 @@ const styles = StyleSheet.create({
   },
   buildTray: {
     alignContent: 'flex-start',
-    backgroundColor: colors.paperLavender,
+    backgroundColor: colors.white,
     borderColor: colors.comicBorderColor,
     borderRadius: radius.lg,
     borderStyle: 'dashed',
@@ -706,7 +718,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing.sm,
-    minHeight: 82,
+    minHeight: 92,
     padding: spacing.md,
   },
   buildPlaceholder: {
@@ -716,7 +728,7 @@ const styles = StyleSheet.create({
   selectedWord: {
     backgroundColor: colors.primaryPurple,
     borderColor: colors.comicBorderColor,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: colors.comicBorderWidth,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
@@ -733,7 +745,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   bankWord: {
-    backgroundColor: colors.paper,
+    backgroundColor: colors.white,
     borderColor: colors.comicBorderColor,
     borderRadius: radius.md,
     borderWidth: colors.comicBorderWidth,
@@ -754,23 +766,32 @@ const styles = StyleSheet.create({
     color: 'transparent',
   },
   option: {
-    backgroundColor: colors.paper,
+    backgroundColor: colors.white,
     borderColor: colors.comicBorderColor,
-    borderRadius: radius.lg,
+    borderRadius: radius.xl,
     borderWidth: colors.comicBorderWidth,
-    minHeight: 60,
+    minHeight: 66,
     justifyContent: 'center',
     paddingHorizontal: spacing.lg,
-    ...shadows.comicSmall,
+    ...shadows.comic,
   },
   optionText: {
     ...typography.body,
     color: colors.deepViolet,
-    fontWeight: '800',
+    fontWeight: '900',
+  },
+  optionTextSelected: {
+    color: colors.white,
+  },
+  optionTextCorrect: {
+    color: colors.comicBorderColor,
+  },
+  optionTextWrong: {
+    color: colors.comicBorderColor,
   },
   textArea: {
     ...typography.body,
-    backgroundColor: colors.paper,
+    backgroundColor: colors.white,
     borderColor: colors.comicBorderColor,
     borderRadius: radius.lg,
     borderWidth: colors.comicBorderWidth,
@@ -793,8 +814,8 @@ const styles = StyleSheet.create({
     right: 0,
     shadowColor: colors.deepViolet,
     shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
+    shadowOpacity: 0.12,
+    shadowRadius: 0,
   },
   completionHeader: {
     alignItems: 'center',
@@ -819,13 +840,14 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
   },
   completionCard: {
-    backgroundColor: colors.paper,
+    backgroundColor: colors.white,
     borderColor: colors.comicBorderColor,
     borderRadius: radius.xl,
     borderWidth: colors.comicBorderWidth,
     borderTopColor: colors.yellowCta,
-    borderTopWidth: 8,
+    borderTopWidth: 10,
     gap: spacing.sm,
+    overflow: 'hidden',
     padding: spacing.lg,
     ...shadows.lift,
   },
@@ -865,5 +887,19 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.78,
+  },
+  promptTexture: {
+    height: 110,
+    position: 'absolute',
+    right: -14,
+    top: -14,
+    width: 132,
+  },
+  completionTexture: {
+    height: 132,
+    position: 'absolute',
+    right: -20,
+    top: -20,
+    width: 160,
   },
 });

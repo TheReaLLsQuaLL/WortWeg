@@ -13,10 +13,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Check, Mic, Square } from 'lucide-react-native';
 
 import { AppButton } from '../components/AppButton';
+import { HalftoneAccent } from '../components/HalftoneAccent';
 import { useDetailFooterSpacing } from '../components/layout';
 import { SpeakerButton } from '../components/SpeakerButton';
 import { TopBar } from '../components/TopBar';
-import { colors, radius, spacing, typography } from '../data/theme';
+import { colors, radius, shadows, spacing, typography } from '../data/theme';
 import { withShuffledExamChoices } from '../lib/choiceUtils';
 import { getLocalDateKey } from '../lib/date';
 import { awardXpForStudy } from '../lib/storage';
@@ -246,6 +247,7 @@ export function ExamScreen({
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.card}>
+            <HalftoneAccent opacity={0.07} size="small" style={styles.cardTexture} />
             <Text style={styles.kicker}>{question.title}</Text>
             <Text style={styles.prompt}>{question.promptTr}</Text>
             {question.text ? (
@@ -267,20 +269,33 @@ export function ExamScreen({
 
           {question.choices ? (
             <View style={styles.options}>
-              {question.choices.map((choice) => (
-                <Pressable
-                  disabled={result !== null}
-                  key={choice.id}
-                  onPress={() => setAnswer(choice.id)}
-                  style={({ pressed }) => [
-                    styles.option,
-                    answer === choice.id && styles.selectedOption,
-                    pressed && styles.pressed,
-                  ]}
-                >
-                  <Text style={styles.optionText}>{choice.text}</Text>
-                </Pressable>
-              ))}
+              {question.choices.map((choice) => {
+                const selected = answer === choice.id;
+                return (
+                  <Pressable
+                    disabled={result !== null}
+                    key={choice.id}
+                    onPress={() => setAnswer(choice.id)}
+                    style={({ pressed }) => [
+                      styles.option,
+                      selected && !result && styles.selectedOption,
+                      selected && result?.correct && styles.correctOption,
+                      selected && result && !result.correct && styles.wrongOption,
+                      pressed && styles.pressed,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.optionText,
+                        selected && !result && styles.selectedOptionText,
+                        selected && result && styles.resultOptionText,
+                      ]}
+                    >
+                      {choice.text}
+                    </Text>
+                  </Pressable>
+                );
+              })}
             </View>
           ) : question.section === 'speaking' ? (
             <View style={styles.speakingBox}>
@@ -350,7 +365,7 @@ export function ExamScreen({
 
 const styles = StyleSheet.create({
   safeArea: {
-    backgroundColor: colors.deepViolet,
+    backgroundColor: colors.lavenderBackground,
     flex: 1,
   },
   keyboard: {
@@ -363,11 +378,20 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: colors.white,
-    borderColor: colors.border,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.lg,
-    borderWidth: 1,
+    borderWidth: colors.comicBorderWidth,
     gap: spacing.md,
+    overflow: 'hidden',
     padding: spacing.lg,
+    ...shadows.comic,
+  },
+  cardTexture: {
+    height: 100,
+    position: 'absolute',
+    right: -14,
+    top: -14,
+    width: 130,
   },
   kicker: {
     ...typography.small,
@@ -380,7 +404,9 @@ const styles = StyleSheet.create({
   textBox: {
     alignItems: 'center',
     backgroundColor: colors.surface,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.md,
+    borderWidth: colors.comicBorderWidth,
     flexDirection: 'row',
     gap: spacing.md,
     padding: spacing.md,
@@ -399,29 +425,47 @@ const styles = StyleSheet.create({
   },
   option: {
     backgroundColor: colors.white,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    minHeight: 58,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.xl,
+    borderWidth: colors.comicBorderWidth,
+    minHeight: 66,
     justifyContent: 'center',
     paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    ...shadows.comicSmall,
   },
   selectedOption: {
-    backgroundColor: colors.lavender,
-    borderColor: colors.royalPurple,
+    backgroundColor: colors.primaryPurple,
+    borderColor: colors.comicBorderColor,
+    ...shadows.comic,
+  },
+  correctOption: {
+    backgroundColor: '#DFFFD7',
+    borderColor: colors.green,
+  },
+  wrongOption: {
+    backgroundColor: '#FFE1E1',
+    borderColor: colors.errorCoral,
   },
   optionText: {
     ...typography.body,
     color: colors.deepViolet,
     fontWeight: '800',
   },
+  selectedOptionText: {
+    color: colors.white,
+  },
+  resultOptionText: {
+    color: colors.comicBorderColor,
+  },
   speakingBox: {
     backgroundColor: colors.white,
-    borderColor: colors.border,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.lg,
-    borderWidth: 1,
+    borderWidth: colors.comicBorderWidth,
     gap: spacing.md,
     padding: spacing.lg,
+    ...shadows.comic,
   },
   body: {
     ...typography.body,
@@ -440,18 +484,22 @@ const styles = StyleSheet.create({
   textArea: {
     ...typography.body,
     backgroundColor: colors.white,
-    borderColor: colors.border,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.md,
-    borderWidth: 1,
+    borderWidth: colors.comicBorderWidth,
     color: colors.deepViolet,
     minHeight: 150,
     padding: spacing.md,
     textAlignVertical: 'top',
+    ...shadows.comicSmall,
   },
   feedback: {
-    borderRadius: radius.md,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.lg,
+    borderWidth: colors.comicBorderWidth,
     gap: spacing.xs,
     padding: spacing.md,
+    ...shadows.comicSmall,
   },
   correctFeedback: {
     backgroundColor: '#DFF7EB',
@@ -470,8 +518,8 @@ const styles = StyleSheet.create({
   },
   footer: {
     backgroundColor: colors.white,
-    borderTopColor: colors.border,
-    borderTopWidth: 1,
+    borderTopColor: colors.comicBorderColor,
+    borderTopWidth: colors.comicBorderWidth,
     bottom: 0,
     elevation: 10,
     left: 0,
@@ -481,8 +529,8 @@ const styles = StyleSheet.create({
     right: 0,
     shadowColor: colors.deepViolet,
     shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
+    shadowOpacity: 0.12,
+    shadowRadius: 0,
   },
   pressed: {
     opacity: 0.78,

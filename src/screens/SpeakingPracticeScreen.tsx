@@ -5,6 +5,7 @@ import { ArrowLeft, CheckCircle2, Mic, Play, RotateCcw, Trash2 } from 'lucide-re
 
 import { AppButton } from '../components/AppButton';
 import { AppScrollView, Screen } from '../components/layout';
+import { HalftoneAccent } from '../components/HalftoneAccent';
 import { SpeakerButton } from '../components/SpeakerButton';
 import { colors, radius, shadows, spacing, typography } from '../data/theme';
 import { getSpeakingPromptById, speakingPromptsA1, type SpeakingPrompt } from '../data/speaking.a1';
@@ -887,9 +888,10 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
 
     return 'Cümleyi sakin ve net oku.';
   })();
+  const showRecorderIntro = status !== 'noVoice' && status !== 'error' && status !== 'tooShort';
 
   return (
-    <Screen backgroundColor={colors.deepViolet}>
+    <Screen backgroundColor={colors.lavenderBackground}>
       <View style={styles.header}>
         <Pressable
           accessibilityRole="button"
@@ -906,6 +908,7 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
 
       <AppScrollView contentContainerStyle={styles.content} style={styles.scroll}>
         <View style={styles.promptCard}>
+          <HalftoneAccent opacity={0.07} size="small" style={styles.promptTexture} />
           <View style={styles.promptTopRow}>
             <View style={styles.promptCopy}>
               <Text style={styles.kickerDark}>{prompt.topicTitle}</Text>
@@ -922,9 +925,13 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
           (status === 'recording' || status === 'cancelArmed') && styles.recordingCard,
           status === 'cancelArmed' && styles.cancelArmedCard,
         ]}>
-          <Text style={styles.duration}>{formatDuration(durationMs)}</Text>
-          <Text style={styles.recordTitle}>{recordingTitle}</Text>
-          <Text style={styles.body}>{recordingHelper}</Text>
+          {showRecorderIntro ? (
+            <>
+              <Text style={styles.duration}>{formatDuration(durationMs)}</Text>
+              <Text style={styles.recordTitle}>{recordingTitle}</Text>
+              <Text style={styles.body}>{recordingHelper}</Text>
+            </>
+          ) : null}
 
           {status === 'noVoice' ? (
             <NoVoiceState onRetry={retryCurrentPrompt} />
@@ -1129,15 +1136,18 @@ function ResultCard({
 
   return (
     <View style={styles.feedbackCard}>
+      <HalftoneAccent color={colors.yellowCta} opacity={0.12} size="medium" style={styles.resultTexture} />
       <View style={styles.resultHero}>
         <CheckCircle2 color={resultColor} size={28} />
         <View style={styles.resultHeroCopy}>
           <Text style={[styles.resultTitle, { color: resultColor }]}>{getResultTitle(pronunciationResult)}</Text>
           <Text style={styles.body}>Hedefe yakınlık</Text>
         </View>
-        <Text style={[styles.similarityScore, { color: resultColor }]}>
-          {pronunciationResult.comparison.similarityScore}
-        </Text>
+        <View style={[styles.scoreSticker, { borderColor: resultColor }]}>
+          <Text style={[styles.similarityScore, { color: resultColor }]}>
+            {pronunciationResult.comparison.similarityScore}
+          </Text>
+        </View>
       </View>
 
       <View style={styles.sentenceGrid}>
@@ -1221,17 +1231,22 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
     backgroundColor: colors.deepViolet,
+    borderBottomColor: colors.comicBorderColor,
+    borderBottomWidth: colors.comicBorderWidth,
     flexDirection: 'row',
     gap: spacing.md,
     padding: spacing.lg,
   },
   iconButton: {
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    borderRadius: radius.sm,
-    height: 44,
+    backgroundColor: colors.primaryPurple,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.md,
+    borderWidth: colors.comicBorderWidth,
+    height: 46,
     justifyContent: 'center',
-    width: 44,
+    width: 46,
+    ...shadows.comicSmall,
   },
   headerCopy: {
     flex: 1,
@@ -1243,6 +1258,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     ...typography.heading,
     color: colors.white,
+    fontWeight: '900',
   },
   scroll: {
     backgroundColor: colors.lavenderBackground,
@@ -1253,13 +1269,21 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
   },
   promptCard: {
-    backgroundColor: colors.paper,
+    backgroundColor: colors.white,
     borderColor: colors.comicBorderColor,
     borderRadius: radius.xl,
     borderWidth: colors.comicBorderWidth,
     gap: spacing.md,
-    padding: spacing.lg,
+    overflow: 'hidden',
+    padding: spacing.xl,
     ...shadows.comic,
+  },
+  promptTexture: {
+    height: 100,
+    position: 'absolute',
+    right: -12,
+    top: -12,
+    width: 130,
   },
   promptTopRow: {
     alignItems: 'center',
@@ -1278,6 +1302,7 @@ const styles = StyleSheet.create({
   expected: {
     ...typography.heading,
     color: colors.deepViolet,
+    fontWeight: '900',
   },
   meaning: {
     ...typography.body,
@@ -1289,14 +1314,14 @@ const styles = StyleSheet.create({
   },
   recorderCard: {
     alignItems: 'center',
-    backgroundColor: colors.paper,
+    backgroundColor: colors.white,
     borderColor: colors.comicBorderColor,
     borderRadius: radius.xl,
     borderWidth: colors.comicBorderWidth,
     borderTopColor: colors.yellowCta,
-    borderTopWidth: 8,
+    borderTopWidth: 10,
     gap: spacing.sm,
-    padding: spacing.lg,
+    padding: spacing.xl,
     ...shadows.lift,
   },
   recordingCard: {
@@ -1308,10 +1333,10 @@ const styles = StyleSheet.create({
   },
   duration: {
     color: colors.deepViolet,
-    fontSize: 38,
+    fontSize: 44,
     fontWeight: '900',
     letterSpacing: 0,
-    lineHeight: 44,
+    lineHeight: 50,
   },
   recordTitle: {
     ...typography.heading,
@@ -1345,11 +1370,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.primaryPurple,
     borderColor: colors.comicBorderColor,
-    borderRadius: 76,
+    borderRadius: 90,
     borderWidth: colors.comicBorderWidth,
-    height: 148,
+    height: 158,
     justifyContent: 'center',
-    width: 148,
+    width: 158,
     ...shadows.lift,
   },
   recordButtonActive: {
@@ -1530,14 +1555,15 @@ const styles = StyleSheet.create({
     width: 12,
   },
   feedbackCard: {
-    backgroundColor: colors.paper,
+    backgroundColor: colors.white,
     borderColor: colors.comicBorderColor,
     borderRadius: radius.xl,
     borderWidth: colors.comicBorderWidth,
     borderTopColor: colors.yellowCta,
-    borderTopWidth: 8,
+    borderTopWidth: 10,
     gap: spacing.md,
-    padding: spacing.lg,
+    overflow: 'hidden',
+    padding: spacing.xl,
     ...shadows.lift,
   },
   resultHero: {
@@ -1559,13 +1585,32 @@ const styles = StyleSheet.create({
     letterSpacing: 0,
     lineHeight: 50,
   },
+  scoreSticker: {
+    alignItems: 'center',
+    backgroundColor: colors.white,
+    borderRadius: radius.xl,
+    borderWidth: colors.comicBorderWidth,
+    justifyContent: 'center',
+    minWidth: 76,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    transform: [{ rotate: '2deg' }],
+    ...shadows.comicSmall,
+  },
+  resultTexture: {
+    height: 132,
+    position: 'absolute',
+    right: -20,
+    top: -20,
+    width: 160,
+  },
   sentenceGrid: {
     gap: spacing.sm,
   },
   sentenceCard: {
     backgroundColor: colors.paperLavender,
     borderColor: colors.comicBorderColor,
-    borderRadius: radius.lg,
+    borderRadius: radius.xl,
     borderWidth: colors.comicBorderWidth,
     gap: spacing.xs,
     padding: spacing.md,
@@ -1627,6 +1672,7 @@ const styles = StyleSheet.create({
     borderWidth: colors.comicBorderWidth,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
+    ...shadows.comicSmall,
   },
   missingChip: {
     backgroundColor: '#FFE7E7',
@@ -1642,7 +1688,7 @@ const styles = StyleSheet.create({
   feedbackNote: {
     backgroundColor: colors.comicBlueWash,
     borderColor: colors.comicBorderColor,
-    borderRadius: radius.lg,
+    borderRadius: radius.xl,
     borderWidth: colors.comicBorderWidth,
     gap: spacing.xs,
     padding: spacing.md,

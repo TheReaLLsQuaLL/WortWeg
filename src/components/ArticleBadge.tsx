@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { articleColors, colors, radius, spacing, typography } from '../data/theme';
+import { articleColors, colors, radius, shadows, spacing, typography } from '../data/theme';
 import type { Article } from '../types/lesson';
 
 type ArticleBadgeProps = {
@@ -10,7 +10,7 @@ type ArticleBadgeProps = {
 
 export function ArticleBadge({ article, size = 'md' }: ArticleBadgeProps) {
   return (
-    <View style={[styles.base, size === 'sm' && styles.small, { backgroundColor: articleColors[article] }]}> 
+    <View style={[styles.base, size === 'sm' && styles.small, { backgroundColor: articleColors[article] }]}>
       <Text style={[styles.text, size === 'sm' && styles.smallText]}>{article}</Text>
     </View>
   );
@@ -23,20 +23,14 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     borderWidth: colors.comicBorderWidth,
     justifyContent: 'center',
-    minHeight: 38,
-    minWidth: 58,
+    minHeight: 42,
+    minWidth: 64,
     paddingHorizontal: spacing.sm,
-    ...{
-      elevation: 3,
-      shadowColor: colors.comicShadowTint,
-      shadowOffset: { width: 3, height: 3 },
-      shadowOpacity: 1,
-      shadowRadius: 0,
-    },
+    ...shadows.comicSmall,
   },
   small: {
-    minHeight: 28,
-    minWidth: 42,
+    minHeight: 30,
+    minWidth: 46,
   },
   text: {
     ...typography.small,

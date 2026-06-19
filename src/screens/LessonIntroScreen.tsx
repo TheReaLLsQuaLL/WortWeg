@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import type { RouteProp } from '@react-navigation/native';
 
 import { AppButton } from '../components/AppButton';
+import { HalftoneAccent } from '../components/HalftoneAccent';
 import { ProgressPill } from '../components/ProgressPill';
 import { useDetailFooterSpacing } from '../components/layout';
 import { ArticleWord } from '../components/ArticleWord';
@@ -16,6 +17,7 @@ import {
   articleLightColors,
   colors,
   radius,
+  shadows,
   spacing,
   typography,
 } from '../data/theme';
@@ -81,6 +83,7 @@ export function LessonIntroScreen({ navigation, route }: LessonIntroScreenProps)
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.intro}>
+          <HalftoneAccent color={colors.yellowCta} opacity={0.1} size="small" style={styles.introTexture} />
           <Text style={styles.title}>{lesson.subtitle}</Text>
           {lesson.titleDe ? <Text style={styles.kickerDark}>{lesson.titleDe}</Text> : null}
           <Text style={styles.body}>{lesson.goalTr ?? lesson.descriptionTr}</Text>
@@ -231,17 +234,22 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
     backgroundColor: colors.deepViolet,
+    borderBottomColor: colors.comicBorderColor,
+    borderBottomWidth: colors.comicBorderWidth,
     flexDirection: 'row',
     gap: spacing.md,
     padding: spacing.lg,
   },
   iconButton: {
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    borderRadius: radius.sm,
-    height: 44,
+    backgroundColor: colors.primaryPurple,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.md,
+    borderWidth: colors.comicBorderWidth,
+    height: 46,
     justifyContent: 'center',
-    width: 44,
+    width: 46,
+    ...shadows.comicSmall,
   },
   headerCopy: {
     flex: 1,
@@ -258,18 +266,36 @@ const styles = StyleSheet.create({
   headerTitle: {
     ...typography.heading,
     color: colors.white,
+    fontWeight: '900',
   },
   content: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.lavenderBackground,
     gap: spacing.lg,
     padding: spacing.lg,
   },
   intro: {
+    backgroundColor: colors.white,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.xl,
+    borderTopColor: colors.yellowCta,
+    borderTopWidth: 10,
+    borderWidth: colors.comicBorderWidth,
     gap: spacing.sm,
+    overflow: 'hidden',
+    padding: spacing.xl,
+    ...shadows.lift,
+  },
+  introTexture: {
+    height: 120,
+    position: 'absolute',
+    right: -18,
+    top: -18,
+    width: 150,
   },
   title: {
     ...typography.heading,
     color: colors.deepViolet,
+    fontWeight: '900',
   },
   metaPills: {
     flexDirection: 'row',
@@ -281,7 +307,13 @@ const styles = StyleSheet.create({
     color: colors.muted,
   },
   section: {
+    backgroundColor: colors.white,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.xl,
+    borderWidth: colors.comicBorderWidth,
     gap: spacing.md,
+    padding: spacing.lg,
+    ...shadows.comicSmall,
   },
   sectionTitle: {
     ...typography.body,
@@ -295,7 +327,9 @@ const styles = StyleSheet.create({
   },
   articleLegendItem: {
     alignItems: 'center',
-    borderRadius: radius.sm,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.lg,
+    borderWidth: 2,
     flexDirection: 'row',
     gap: spacing.xs,
     paddingHorizontal: spacing.md,
@@ -314,44 +348,52 @@ const styles = StyleSheet.create({
     color: colors.deepViolet,
   },
   note: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.paperLavender,
     borderColor: colors.border,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: 1,
     gap: spacing.sm,
     padding: spacing.md,
+    shadowOpacity: 0,
+    elevation: 0,
   },
   warningBox: {
-    backgroundColor: '#FFF2C4',
-    borderColor: colors.yellow,
-    borderRadius: radius.md,
-    borderWidth: 1,
+    backgroundColor: colors.comicYellowWash,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.xl,
+    borderWidth: colors.comicBorderWidth,
     gap: spacing.sm,
-    padding: spacing.md,
+    padding: spacing.lg,
+    ...shadows.comicSmall,
   },
   promptBox: {
     alignItems: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: colors.paperLavender,
     borderColor: colors.border,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: 1,
     flexDirection: 'row',
     gap: spacing.md,
     padding: spacing.md,
   },
   reviewBox: {
-    backgroundColor: colors.lavender,
-    borderRadius: radius.md,
+    backgroundColor: colors.comicBlueWash,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.xl,
+    borderWidth: colors.comicBorderWidth,
     gap: spacing.sm,
-    padding: spacing.md,
+    padding: spacing.lg,
+    ...shadows.comic,
   },
   noteTitle: {
     ...typography.small,
     color: colors.royalPurple,
   },
   exampleRow: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.sm,
+    backgroundColor: colors.white,
+    borderColor: colors.border,
+    borderRadius: radius.lg,
+    borderWidth: 1,
     gap: 2,
     padding: spacing.md,
   },
@@ -366,9 +408,9 @@ const styles = StyleSheet.create({
   },
   dialogLine: {
     alignItems: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: colors.paperLavender,
     borderColor: colors.border,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: 1,
     flexDirection: 'row',
     gap: spacing.md,
@@ -379,8 +421,8 @@ const styles = StyleSheet.create({
   },
   footer: {
     backgroundColor: colors.white,
-    borderTopColor: colors.border,
-    borderTopWidth: 1,
+    borderTopColor: colors.comicBorderColor,
+    borderTopWidth: colors.comicBorderWidth,
     bottom: 0,
     elevation: 10,
     left: 0,
@@ -390,11 +432,11 @@ const styles = StyleSheet.create({
     right: 0,
     shadowColor: colors.deepViolet,
     shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
+    shadowOpacity: 0.12,
+    shadowRadius: 0,
   },
   center: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.lavenderBackground,
     flex: 1,
     gap: spacing.lg,
     justifyContent: 'center',

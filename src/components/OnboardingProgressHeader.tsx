@@ -2,7 +2,7 @@ import { ArrowLeft } from 'lucide-react-native';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { colors, radius, spacing, typography } from '../data/theme';
+import { colors, radius, shadows, spacing, typography } from '../data/theme';
 
 type OnboardingProgressHeaderProps = {
   current: number;
@@ -34,7 +34,7 @@ export function OnboardingProgressHeader({
           pressed && canGoBack && styles.pressed,
         ]}
       >
-        {canGoBack ? <ArrowLeft color={colors.comicBorderColor} size={20} /> : null}
+        {canGoBack ? <ArrowLeft color={colors.white} size={20} /> : null}
       </Pressable>
 
       <View style={styles.progressWrap}>
@@ -61,13 +61,14 @@ const styles = StyleSheet.create({
   },
   backButton: {
     alignItems: 'center',
-    backgroundColor: colors.paper,
+    backgroundColor: colors.primaryPurple,
     borderColor: colors.comicBorderColor,
-    borderRadius: radius.sm,
+    borderRadius: radius.md,
     borderWidth: colors.comicBorderWidth,
-    height: 44,
+    height: 46,
     justifyContent: 'center',
-    width: 44,
+    width: 46,
+    ...shadows.comicSmall,
   },
   backButtonHidden: {
     opacity: 0,
@@ -83,27 +84,28 @@ const styles = StyleSheet.create({
   },
   stepText: {
     ...typography.small,
-    color: colors.comicBorderColor,
+    color: colors.deepViolet,
     fontWeight: '900',
   },
   caption: {
     ...typography.small,
     color: colors.muted,
-    fontWeight: '800',
+    fontWeight: '900',
   },
   track: {
     backgroundColor: colors.white,
     borderColor: colors.comicBorderColor,
-    borderWidth: 2,
     borderRadius: radius.pill,
+    borderWidth: colors.comicBorderWidth,
     flexDirection: 'row',
-    height: 10,
+    height: 13,
     overflow: 'hidden',
   },
   fill: {
     backgroundColor: colors.yellowCta,
-    borderRadius: radius.pill,
-    height: 10,
+    borderRightColor: colors.comicBorderColor,
+    borderRightWidth: 2,
+    height: 13,
   },
   pressed: {
     opacity: 0.78,

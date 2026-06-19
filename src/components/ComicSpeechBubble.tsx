@@ -29,14 +29,14 @@ const styles = StyleSheet.create({
   bubble: {
     backgroundColor: colors.white,
     borderColor: colors.comicBorderColor,
-    borderRadius: radius.lg,
-    borderTopLeftRadius: radius.sm,
+    borderRadius: radius.xl,
+    borderTopLeftRadius: radius.md,
     borderWidth: colors.comicBorderWidth,
-    padding: spacing.md,
-    ...shadows.comicSmall,
+    padding: spacing.lg,
+    ...shadows.comic,
   },
   lavender: {
-    backgroundColor: colors.softLavenderPanel,
+    backgroundColor: colors.paperLavender,
   },
   yellow: {
     backgroundColor: colors.yellowCta,
@@ -47,15 +47,15 @@ const styles = StyleSheet.create({
     borderBottomWidth: colors.comicBorderWidth,
     borderLeftColor: colors.comicBorderColor,
     borderLeftWidth: colors.comicBorderWidth,
-    bottom: -5,
-    height: 14,
-    left: 18,
+    bottom: -6,
+    height: 16,
+    left: 22,
     position: 'absolute',
     transform: [{ rotate: '-45deg' }],
-    width: 14,
+    width: 16,
   },
   tailLavender: {
-    backgroundColor: colors.softLavenderPanel,
+    backgroundColor: colors.paperLavender,
   },
   tailYellow: {
     backgroundColor: colors.yellowCta,
@@ -63,6 +63,6 @@ const styles = StyleSheet.create({
   text: {
     ...typography.body,
     color: colors.comicBorderColor,
-    fontWeight: '800',
+    fontWeight: '900',
   },
 });

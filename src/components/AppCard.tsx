@@ -19,7 +19,7 @@ export function AppCard({ children, tone = 'default', style }: AppCardProps) {
 
 const styles = StyleSheet.create({
   base: {
-    backgroundColor: colors.paper,
+    backgroundColor: colors.white,
     borderColor: colors.comicBorderColor,
     borderRadius: radius.xl,
     borderWidth: colors.comicBorderWidth,
@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
   },
   muted: {
     backgroundColor: colors.paperLavender,
-    ...shadows.paper,
+    ...shadows.comicSmall,
   },
   violet: {
     backgroundColor: colors.primaryPurple,

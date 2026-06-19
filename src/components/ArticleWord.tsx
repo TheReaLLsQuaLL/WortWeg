@@ -33,7 +33,7 @@ export function ArticleWord({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.paper,
+    backgroundColor: colors.white,
     borderColor: colors.comicBorderColor,
     borderRadius: radius.lg,
     borderWidth: colors.comicBorderWidth,
@@ -60,6 +60,9 @@ const styles = StyleSheet.create({
   },
   example: {
     ...typography.small,
+    backgroundColor: colors.paperLavender,
+    borderRadius: radius.md,
     color: colors.deepViolet,
+    padding: spacing.sm,
   },
 });

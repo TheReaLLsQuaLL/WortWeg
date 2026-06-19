@@ -9,7 +9,7 @@ import {
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { colors, spacing, typography } from '../data/theme';
+import { colors, radius, shadows, spacing, typography } from '../data/theme';
 import { layout } from './layout';
 
 export type TabKey = 'home' | 'vocab' | 'chat' | 'exam' | 'profile';
@@ -53,7 +53,7 @@ export function TabBar({ activeTab, onTabPress }: TabBarProps) {
           <Pressable
             accessibilityRole="tab"
             accessibilityState={{ selected: active }}
-            android_ripple={{ color: colors.lavender, borderless: false }}
+            android_ripple={{ color: 'rgba(23,23,42,0.08)', borderless: false }}
             key={key}
             onPress={() => onTabPress(key)}
             style={({ pressed }) => [
@@ -63,9 +63,9 @@ export function TabBar({ activeTab, onTabPress }: TabBarProps) {
             ]}
           >
             <Icon
-              color={active ? colors.white : colors.muted}
+              color={active ? colors.comicBorderColor : colors.muted}
               size={20}
-              strokeWidth={2.4}
+              strokeWidth={2.8}
             />
             <Text style={[styles.label, active && styles.activeLabel]} numberOfLines={1}>
               {label}
@@ -80,40 +80,44 @@ export function TabBar({ activeTab, onTabPress }: TabBarProps) {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: colors.white,
-    borderTopColor: colors.border,
-    borderTopWidth: 1,
-    elevation: 12,
+    borderTopColor: colors.comicBorderColor,
+    borderTopWidth: colors.comicBorderWidth,
+    elevation: 16,
     flexDirection: 'row',
     gap: spacing.xs,
     paddingHorizontal: spacing.sm,
     paddingTop: spacing.sm,
-    shadowColor: colors.deepViolet,
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
+    shadowColor: colors.comicShadowTint,
+    shadowOffset: { width: 0, height: -5 },
+    shadowOpacity: 0.18,
+    shadowRadius: 0,
   },
   tab: {
     alignItems: 'center',
-    borderRadius: 8,
+    borderRadius: radius.md,
     flex: 1,
     gap: 3,
     justifyContent: 'center',
-    minHeight: 54,
+    minHeight: 56,
     paddingVertical: spacing.xs,
   },
   activeTab: {
-    backgroundColor: colors.deepViolet,
+    backgroundColor: colors.yellowCta,
+    borderColor: colors.comicBorderColor,
+    borderWidth: 2,
+    ...shadows.comicSmall,
   },
   label: {
     ...typography.small,
     color: colors.muted,
     fontSize: 11,
+    fontWeight: '900',
     lineHeight: 14,
   },
   activeLabel: {
-    color: colors.white,
+    color: colors.comicBorderColor,
   },
   pressed: {
-    opacity: 0.8,
+    opacity: 0.82,
   },
 });

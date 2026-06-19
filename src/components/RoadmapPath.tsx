@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors, radius, shadows, spacing, typography } from '../data/theme';
 import { AnimatedCard } from './AnimatedCard';
+import { HalftoneAccent } from './HalftoneAccent';
 import { RoadmapNode } from './RoadmapNode';
 
 export type RoadmapPathItem = {
@@ -22,27 +23,38 @@ type RoadmapPathProps = {
 export function RoadmapPath({ items }: RoadmapPathProps) {
   return (
     <View style={styles.container}>
+      <HalftoneAccent opacity={0.05} size="small" style={styles.mapTexture} />
+      <View style={styles.pathRail} />
       {items.map((item, index) => {
         const disabled = item.locked || item.comingSoon || !item.onPress;
+        const leftSide = index % 2 === 0;
         return (
           <AnimatedCard key={item.id} delayMs={index * 45}>
-          <Pressable
-            accessibilityRole="button"
-            disabled={disabled}
-            onPress={item.onPress}
-            style={({ pressed }) => [styles.row, pressed && styles.pressed]}
-          >
-            <View style={styles.railWrap}>
-              {index > 0 ? <View style={styles.railTop} /> : <View style={styles.railSpacer} />}
-              <RoadmapNode completed={item.completed} current={item.current} locked={item.locked || item.comingSoon} />
-              {index < items.length - 1 ? <View style={styles.railBottom} /> : <View style={styles.railSpacer} />}
-            </View>
-            <View style={[styles.card, item.current && styles.cardCurrent, disabled && styles.cardLocked]}>
-              <Text style={[styles.title, item.current && styles.titleCurrent]} numberOfLines={1}>{item.title}</Text>
-              {item.meta ? <Text style={styles.meta} numberOfLines={1}>{item.meta}</Text> : null}
-              {item.comingSoon ? <Text style={styles.badge}>Yakında</Text> : null}
-            </View>
-          </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              disabled={disabled}
+              onPress={item.onPress}
+              style={({ pressed }) => [styles.stop, pressed && styles.pressed]}
+            >
+              <View style={styles.nodeSlot}>
+                <RoadmapNode completed={item.completed} current={item.current} locked={item.locked || item.comingSoon} />
+              </View>
+              <View
+                style={[
+                  styles.card,
+                  leftSide ? styles.cardLeft : styles.cardRight,
+                  item.current && styles.cardCurrent,
+                  item.completed && styles.cardDone,
+                  disabled && styles.cardLocked,
+                ]}
+              >
+                {item.current ? <HalftoneAccent opacity={0.09} size="small" style={styles.cardTexture} /> : null}
+                {item.current ? <Text style={styles.currentBadge}>Şimdi</Text> : null}
+                <Text style={[styles.title, item.current && styles.titleCurrent]} numberOfLines={1}>{item.title}</Text>
+                {item.meta ? <Text style={styles.meta} numberOfLines={1}>{item.meta}</Text> : null}
+                {item.comingSoon ? <Text style={styles.badge}>Yakında</Text> : null}
+              </View>
+            </Pressable>
           </AnimatedCard>
         );
       })}
@@ -52,57 +64,92 @@ export function RoadmapPath({ items }: RoadmapPathProps) {
 
 const styles = StyleSheet.create({
   container: {
-    gap: 0,
+    minHeight: 420,
+    overflow: 'hidden',
+    paddingVertical: spacing.lg,
+    position: 'relative',
   },
-  row: {
-    flexDirection: 'row',
-    minHeight: 72,
+  mapTexture: {
+    bottom: 0,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
   },
-  railWrap: {
+  pathRail: {
+    backgroundColor: colors.yellowCta,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.pill,
+    borderWidth: colors.comicBorderWidth,
+    bottom: spacing.xl,
+    left: '50%',
+    marginLeft: -4,
+    position: 'absolute',
+    top: spacing.xl,
+    width: 8,
+  },
+  stop: {
+    minHeight: 118,
+    position: 'relative',
+    justifyContent: 'center',
+  },
+  nodeSlot: {
     alignItems: 'center',
-    width: 36,
-  },
-  railTop: {
-    backgroundColor: colors.primaryPurple,
-    borderColor: colors.comicBorderColor,
-    borderLeftWidth: 1,
-    borderRightWidth: 1,
-    flex: 1,
-    width: 5,
-  },
-  railBottom: {
-    backgroundColor: colors.primaryPurple,
-    borderColor: colors.comicBorderColor,
-    borderLeftWidth: 1,
-    borderRightWidth: 1,
-    flex: 1,
-    width: 5,
-  },
-  railSpacer: {
-    flex: 1,
-    width: 2,
+    left: '50%',
+    marginLeft: -38,
+    position: 'absolute',
+    top: 22,
+    width: 76,
+    zIndex: 3,
   },
   card: {
-    backgroundColor: colors.paper,
+    backgroundColor: colors.white,
     borderColor: colors.comicBorderColor,
     borderRadius: radius.lg,
     borderWidth: colors.comicBorderWidth,
-    flex: 1,
     gap: 2,
     justifyContent: 'center',
-    marginBottom: spacing.sm,
-    marginLeft: spacing.md,
-    paddingHorizontal: spacing.md,
+    overflow: 'hidden',
+    paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
+    width: '56%',
     ...shadows.comicSmall,
   },
+  cardLeft: {
+    alignSelf: 'flex-start',
+    marginRight: 90,
+    transform: [{ rotate: '-1deg' }],
+  },
+  cardRight: {
+    alignSelf: 'flex-end',
+    marginLeft: 90,
+    transform: [{ rotate: '1deg' }],
+  },
   cardCurrent: {
-    backgroundColor: colors.comicYellowWash,
-    borderColor: colors.comicBorderColor,
+    backgroundColor: colors.yellowCta,
+    minHeight: 78,
     ...shadows.comic,
   },
+  cardDone: {
+    backgroundColor: '#EAFFE8',
+  },
   cardLocked: {
-    opacity: 0.62,
+    backgroundColor: colors.paperLavender,
+    opacity: 0.7,
+    ...shadows.none,
+  },
+  currentBadge: {
+    ...typography.micro,
+    alignSelf: 'flex-start',
+    backgroundColor: colors.primaryPurple,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.sm,
+    borderWidth: colors.comicBorderWidth,
+    color: colors.white,
+    fontWeight: '900',
+    marginBottom: 2,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
   },
   title: {
     ...typography.body,
@@ -110,11 +157,12 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
   titleCurrent: {
-    color: colors.primaryPurple,
+    color: colors.comicBorderColor,
   },
   meta: {
     ...typography.small,
     color: colors.muted,
+    fontWeight: '800',
   },
   badge: {
     ...typography.small,
@@ -123,5 +171,12 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.82,
+  },
+  cardTexture: {
+    bottom: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    width: 96,
   },
 });

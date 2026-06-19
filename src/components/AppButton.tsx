@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 
 import { colors, motion, radius, shadows, spacing, typography } from '../data/theme';
+import { HalftoneAccent } from './HalftoneAccent';
 
 type IconProps = {
   color?: string;
@@ -35,13 +36,18 @@ export function AppButton({
   style,
   ...pressableProps
 }: AppButtonProps) {
-  const contentColor = variant === 'danger' ? colors.white : colors.comicBorderColor;
+  const isDisabled = Boolean(disabled);
+  const contentColor = isDisabled
+    ? colors.muted
+    : variant === 'danger'
+      ? colors.white
+      : colors.comicBorderColor;
 
   return (
     <Pressable
       accessibilityRole="button"
       android_ripple={{
-        color: variant === 'danger' ? 'rgba(255,255,255,0.18)' : 'rgba(26,26,46,0.08)',
+        color: variant === 'danger' ? 'rgba(255,255,255,0.18)' : 'rgba(23,23,42,0.10)',
         foreground: true,
       }}
       disabled={disabled || loading}
@@ -51,18 +57,19 @@ export function AppButton({
         variant === 'secondary' && styles.secondary,
         variant === 'ghost' && styles.ghost,
         variant === 'danger' && styles.danger,
-        (disabled || loading) && styles.disabled,
+        isDisabled && styles.disabled,
         pressed && !disabled && !loading && styles.pressed,
         style,
       ]}
       {...pressableProps}
     >
+      {variant === 'primary' && !isDisabled ? <HalftoneAccent opacity={0.08} size="small" style={styles.texture} /> : null}
       <View style={styles.content}>
         {loading ? (
           <ActivityIndicator color={contentColor} />
         ) : (
           <>
-            {Icon ? <Icon color={contentColor} size={18} strokeWidth={2.8} /> : null}
+            {Icon ? <Icon color={contentColor} size={19} strokeWidth={3} /> : null}
             <Text style={[styles.label, { color: contentColor }]} numberOfLines={1}>
               {title}
             </Text>
@@ -77,10 +84,12 @@ const styles = StyleSheet.create({
   base: {
     backgroundColor: colors.yellowCta,
     borderColor: colors.comicBorderColor,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: colors.comicBorderWidth,
     justifyContent: 'center',
-    minHeight: 52,
+    minHeight: 60,
+    overflow: 'hidden',
+    position: 'relative',
     ...shadows.comic,
   },
   primary: {
@@ -91,7 +100,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.sm,
     justifyContent: 'center',
-    minHeight: 52,
+    minHeight: 60,
     paddingHorizontal: spacing.lg,
   },
   label: {
@@ -99,11 +108,11 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
   secondary: {
-    backgroundColor: colors.paperLavender,
+    backgroundColor: colors.white,
     ...shadows.comicSmall,
   },
   ghost: {
-    backgroundColor: colors.paper,
+    backgroundColor: colors.paperLavender,
     borderColor: colors.border,
     shadowOpacity: 0,
     elevation: 0,
@@ -112,10 +121,20 @@ const styles = StyleSheet.create({
     backgroundColor: colors.errorCoral,
   },
   disabled: {
-    opacity: 0.5,
+    backgroundColor: '#F5F0D8',
+    borderColor: colors.border,
+    elevation: 0,
+    shadowOpacity: 0,
   },
   pressed: {
-    opacity: 0.96,
+    opacity: 0.98,
     transform: [{ translateX: colors.comicShadowOffset / 2 }, { translateY: colors.comicShadowOffset / 2 }, { scale: motion.pressScale }],
+  },
+  texture: {
+    bottom: 0,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
   },
 });

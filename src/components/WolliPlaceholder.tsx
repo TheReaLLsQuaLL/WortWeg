@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { colors, radius, spacing, typography } from '../data/theme';
+import { colors, radius, shadows, spacing, typography } from '../data/theme';
 
 export type WolliPlaceholderPose =
   | 'WOLLI_WELCOME'
@@ -18,7 +18,7 @@ type WolliPlaceholderProps = {
 
 export function WolliPlaceholder({ pose = 'WOLLI_CALM', size = 72 }: WolliPlaceholderProps) {
   return (
-    <View accessibilityLabel={pose} style={[styles.wrap, { height: size, width: size, borderRadius: size * 0.28 }]}> 
+    <View accessibilityLabel={pose} style={[styles.wrap, { height: size, width: size, borderRadius: Math.max(radius.lg, size * 0.28) }]}>
       <Text style={[styles.w, { fontSize: Math.max(18, size * 0.34) }]}>W</Text>
       {size >= 58 ? <Text style={styles.label} numberOfLines={1}>{pose.replace('WOLLI_', '')}</Text> : null}
     </View>
@@ -28,14 +28,15 @@ export function WolliPlaceholder({ pose = 'WOLLI_CALM', size = 72 }: WolliPlaceh
 const styles = StyleSheet.create({
   wrap: {
     alignItems: 'center',
-    backgroundColor: colors.softLavenderPanel,
+    backgroundColor: colors.yellowCta,
     borderColor: colors.comicBorderColor,
     borderWidth: colors.comicBorderWidth,
     justifyContent: 'center',
     padding: spacing.xs,
+    ...shadows.comicSmall,
   },
   w: {
-    color: colors.primaryPurple,
+    color: colors.comicBorderColor,
     fontWeight: '900',
     lineHeight: 34,
   },

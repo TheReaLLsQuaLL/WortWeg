@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { spacing } from '../data/theme';
+import { colors, radius, shadows, spacing } from '../data/theme';
 import { ComicSpeechBubble } from './ComicSpeechBubble';
 import { Mascot } from './Mascot';
 
@@ -13,7 +13,9 @@ type WolliBubbleProps = {
 export function WolliBubble({ children, text }: WolliBubbleProps) {
   return (
     <View style={styles.wrap}>
-      <Mascot size={54} />
+      <View style={styles.avatar}>
+        <Mascot size={56} />
+      </View>
       <ComicSpeechBubble text={text} tone="paper">
         {children}
       </ComicSpeechBubble>
@@ -26,5 +28,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     gap: spacing.md,
+  },
+  avatar: {
+    alignItems: 'center',
+    backgroundColor: colors.yellowCta,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.xl,
+    borderWidth: colors.comicBorderWidth,
+    height: 66,
+    justifyContent: 'center',
+    width: 66,
+    ...shadows.comicSmall,
   },
 });

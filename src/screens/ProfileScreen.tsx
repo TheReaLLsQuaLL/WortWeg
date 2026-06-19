@@ -5,6 +5,7 @@ import { Map, NotebookTabs, RotateCcw, Settings2 } from 'lucide-react-native';
 import { AppButton } from '../components/AppButton';
 import { DevEventLogPanel } from '../components/DevEventLogPanel';
 import { EmptyState } from '../components/EmptyState';
+import { HalftoneAccent } from '../components/HalftoneAccent';
 import { AppScrollView, Screen } from '../components/layout';
 import { TopBar } from '../components/TopBar';
 import { ALPHA_BUILD_DATE, APP_NAME, APP_VERSION } from '../data/constants';
@@ -292,7 +293,7 @@ export function ProfileScreen({ navigation, userState, onUpdateState, onResetApp
   };
 
   return (
-    <Screen backgroundColor={colors.deepViolet}>
+    <Screen backgroundColor={colors.lavenderBackground}>
       <TopBar
         streak={userState.streak}
         subtitle={userState.profile?.goal ?? 'A1 yolculuğu'}
@@ -300,6 +301,18 @@ export function ProfileScreen({ navigation, userState, onUpdateState, onResetApp
         xp={userState.xp}
       />
       <AppScrollView contentContainerStyle={styles.content} style={styles.scroll}>
+        <View style={styles.heroSection}>
+          <HalftoneAccent color={colors.yellowCta} opacity={0.11} size="small" style={styles.heroTexture} />
+          <Text style={styles.heroTitle}>
+            Seviye {level} · A1 %{a1Coverage}
+          </Text>
+          <Text style={styles.heroText}>
+            Sonraki seviyeye {xpToNextLevel} XP kaldı. Günlük XP hedefi:
+            {' '}
+            {userState.profile?.dailyGoalXp ?? 20} XP.
+          </Text>
+        </View>
+
         <View style={styles.grid}>
           <View style={styles.statCard}>
             <Text style={styles.statValue}>{userState.xp}</Text>
@@ -321,17 +334,6 @@ export function ProfileScreen({ navigation, userState, onUpdateState, onResetApp
             <Text style={styles.statValue}>{userState.examHistory.length}</Text>
             <Text style={styles.statLabel}>Sınav</Text>
           </View>
-        </View>
-
-        <View style={styles.heroSection}>
-          <Text style={styles.heroTitle}>
-            Seviye {level} · A1 %{a1Coverage}
-          </Text>
-          <Text style={styles.heroText}>
-            Sonraki seviyeye {xpToNextLevel} XP kaldı. Günlük XP hedefi:
-            {' '}
-            {userState.profile?.dailyGoalXp ?? 20} XP.
-          </Text>
         </View>
 
         <View style={styles.section}>
@@ -565,34 +567,36 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   statCard: {
-    backgroundColor: colors.paper,
+    backgroundColor: colors.white,
     borderColor: colors.comicBorderColor,
     borderRadius: radius.lg,
     borderWidth: colors.comicBorderWidth,
-    flexBasis: '47%',
+    flexBasis: '30%',
     flexGrow: 1,
     gap: spacing.xs,
-    minHeight: 96,
+    minHeight: 80,
     justifyContent: 'center',
     padding: spacing.md,
     ...shadows.comicSmall,
   },
   statValue: {
-    ...typography.heading,
+    fontSize: 25,
+    lineHeight: 30,
     color: colors.royalPurple,
+    fontWeight: '900',
   },
   statLabel: {
     ...typography.small,
     color: colors.muted,
   },
   section: {
-    backgroundColor: colors.paper,
+    backgroundColor: colors.white,
     borderColor: colors.comicBorderColor,
     borderRadius: radius.xl,
     borderWidth: colors.comicBorderWidth,
     gap: spacing.sm,
     padding: spacing.lg,
-    ...shadows.comic,
+    ...shadows.comicSmall,
   },
   heroSection: {
     backgroundColor: colors.primaryPurple,
@@ -600,12 +604,22 @@ const styles = StyleSheet.create({
     borderRadius: radius.xl,
     borderWidth: colors.comicBorderWidth,
     gap: spacing.sm,
-    padding: spacing.lg,
+    overflow: 'hidden',
+    padding: spacing.xl,
+    position: 'relative',
     ...shadows.lift,
+  },
+  heroTexture: {
+    bottom: 0,
+    position: 'absolute',
+    right: -10,
+    top: 0,
+    width: 150,
   },
   heroTitle: {
     ...typography.heading,
     color: colors.white,
+    fontWeight: '900',
   },
   heroText: {
     ...typography.body,
@@ -691,11 +705,12 @@ const styles = StyleSheet.create({
   mistakeCard: {
     backgroundColor: colors.paperLavender,
     borderColor: colors.comicBorderColor,
-    borderRadius: radius.lg,
+    borderRadius: radius.xl,
     borderWidth: colors.comicBorderWidth,
     gap: spacing.xs,
     padding: spacing.md,
-    ...shadows.comicSmall,
+    shadowOpacity: 0,
+    elevation: 0,
   },
   mistakePrompt: {
     ...typography.body,
@@ -735,7 +750,7 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
   },
   debugModal: {
-    backgroundColor: colors.paper,
+    backgroundColor: colors.white,
     borderColor: colors.comicBorderColor,
     borderRadius: radius.xl,
     borderWidth: colors.comicBorderWidth,

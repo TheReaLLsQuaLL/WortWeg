@@ -10,7 +10,7 @@ type ProgressPillProps = {
 export function ProgressPill({ label, tone = 'purple' }: ProgressPillProps) {
   return (
     <View style={[styles.base, styles[tone]]}>
-      <Text style={styles.text}>{label}</Text>
+      <Text style={[styles.text, tone === 'purple' && styles.purpleText]}>{label}</Text>
     </View>
   );
 }
@@ -20,19 +20,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderColor: colors.comicBorderColor,
     borderRadius: radius.pill,
-    borderWidth: colors.comicBorderWidth,
-    minHeight: 30,
+    borderWidth: 2,
+    minHeight: 32,
     justifyContent: 'center',
     paddingHorizontal: spacing.md,
-    ...shadows.paper,
+    ...shadows.comicSmall,
   },
-  purple: { backgroundColor: colors.softLavenderPanel },
-  green: { backgroundColor: '#DFF7EB' },
+  purple: { backgroundColor: colors.primaryPurple },
+  green: { backgroundColor: colors.successGreen },
   yellow: { backgroundColor: colors.yellowCta },
   plain: { backgroundColor: colors.white },
   text: {
     ...typography.small,
     color: colors.comicBorderColor,
     fontWeight: '900',
+  },
+  purpleText: {
+    color: colors.white,
   },
 });

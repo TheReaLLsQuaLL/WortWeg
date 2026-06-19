@@ -13,9 +13,11 @@ import { Send } from 'lucide-react-native';
 
 import { AppButton } from '../components/AppButton';
 import { Chip } from '../components/Chip';
+import { HalftoneAccent } from '../components/HalftoneAccent';
 import { Screen } from '../components/layout';
+import { Mascot } from '../components/Mascot';
 import { TopBar } from '../components/TopBar';
-import { colors, radius, spacing, typography } from '../data/theme';
+import { colors, radius, shadows, spacing, typography } from '../data/theme';
 import type { CommitUserState } from '../navigation/AppNavigator';
 import { generateTeacherReply } from '../services/aiTeacher';
 import { trackLocalEvent } from '../services/localEventLog';
@@ -101,7 +103,7 @@ export function ChatScreen({ userState, onUpdateState }: ChatScreenProps) {
   };
 
   return (
-    <Screen backgroundColor={colors.deepViolet}>
+    <Screen backgroundColor={colors.lavenderBackground}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={0}
@@ -122,11 +124,19 @@ export function ChatScreen({ userState, onUpdateState }: ChatScreenProps) {
         >
           {userState.chatMessages.length === 0 ? (
             <View style={styles.emptyState}>
-              <Text style={styles.title}>A1 seviyesinde sor</Text>
-              <Text style={styles.body}>
-                Türkçe açıklama isteyebilir veya kısa Almanca cümleni yazıp
-                geri bildirim alabilirsin.
-              </Text>
+              <HalftoneAccent color={colors.primaryPurple} opacity={0.08} size="small" style={styles.emptyTexture} />
+              <View style={styles.aiIntroRow}>
+                <View style={styles.aiAvatar}>
+                  <Mascot size={54} />
+                </View>
+                <View style={styles.aiIntroCopy}>
+                  <Text style={styles.kicker}>Wolli hazır</Text>
+                  <Text style={styles.title}>A1 seviyesinde sor</Text>
+                  <Text style={styles.body}>
+                    Kısa Almanca cümleni yaz, Türkçe açıklamayla dönelim.
+                  </Text>
+                </View>
+              </View>
               <View style={styles.starterChips}>
                 {starterChips.map((starter) => (
                   <Chip
@@ -183,14 +193,14 @@ export function ChatScreen({ userState, onUpdateState }: ChatScreenProps) {
 
 const styles = StyleSheet.create({
   safeArea: {
-    backgroundColor: colors.deepViolet,
+    backgroundColor: colors.lavenderBackground,
     flex: 1,
   },
   keyboard: {
     flex: 1,
   },
   messages: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.lavenderBackground,
     flexGrow: 1,
     gap: spacing.md,
     padding: spacing.lg,
@@ -198,12 +208,46 @@ const styles = StyleSheet.create({
   },
   emptyState: {
     backgroundColor: colors.white,
-    borderColor: colors.border,
-    borderRadius: radius.lg,
-    borderWidth: 1,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.xl,
+    borderWidth: colors.comicBorderWidth,
     gap: spacing.sm,
+    overflow: 'hidden',
     padding: spacing.lg,
     paddingBottom: spacing.xl,
+    ...shadows.comic,
+  },
+  aiIntroRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  aiAvatar: {
+    alignItems: 'center',
+    backgroundColor: colors.yellowCta,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.xl,
+    borderWidth: colors.comicBorderWidth,
+    height: 78,
+    justifyContent: 'center',
+    width: 78,
+    ...shadows.comicSmall,
+  },
+  aiIntroCopy: {
+    flex: 1,
+    gap: 3,
+  },
+  kicker: {
+    ...typography.micro,
+    color: colors.primaryPurple,
+    fontWeight: '900',
+  },
+  emptyTexture: {
+    height: 110,
+    position: 'absolute',
+    right: -14,
+    top: -14,
+    width: 140,
   },
   title: {
     ...typography.heading,
@@ -217,11 +261,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing.sm,
+    paddingTop: spacing.sm,
   },
   bubble: {
-    borderRadius: radius.md,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.lg,
+    borderWidth: colors.comicBorderWidth,
     maxWidth: '88%',
     padding: spacing.md,
+    ...shadows.comicSmall,
   },
   userBubble: {
     alignSelf: 'flex-end',
@@ -230,8 +278,6 @@ const styles = StyleSheet.create({
   teacherBubble: {
     alignSelf: 'flex-start',
     backgroundColor: colors.white,
-    borderColor: colors.border,
-    borderWidth: 1,
   },
   bubbleText: {
     ...typography.body,
@@ -242,23 +288,23 @@ const styles = StyleSheet.create({
   },
   composer: {
     backgroundColor: colors.white,
-    borderTopColor: colors.border,
-    borderTopWidth: 1,
-    elevation: 8,
+    borderTopColor: colors.comicBorderColor,
+    borderTopWidth: colors.comicBorderWidth,
+    elevation: 4,
     gap: spacing.sm,
     padding: spacing.lg,
     shadowColor: colors.deepViolet,
-    shadowOffset: { width: 0, height: -3 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 0,
     paddingBottom: spacing.xl,
   },
   input: {
     ...typography.body,
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
+    backgroundColor: colors.paperLavender,
+    borderColor: colors.comicBorderColor,
     borderRadius: radius.md,
-    borderWidth: 1,
+    borderWidth: colors.comicBorderWidth,
     color: colors.deepViolet,
     maxHeight: 110,
     minHeight: 54,

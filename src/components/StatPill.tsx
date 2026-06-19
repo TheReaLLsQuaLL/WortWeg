@@ -1,7 +1,7 @@
 import type { ComponentType } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { colors, radius, spacing, typography } from '../data/theme';
+import { colors, radius, shadows, spacing, typography } from '../data/theme';
 
 type IconProps = { color?: string; size?: number; strokeWidth?: number; fill?: string };
 
@@ -12,12 +12,12 @@ type StatPillProps = {
 };
 
 export function StatPill({ icon: Icon, label, tone = 'white' }: StatPillProps) {
-  const iconColor = tone === 'yellow' ? colors.comicBorderColor : colors.primaryPurple;
+  const iconColor = tone === 'purple' ? colors.white : colors.comicBorderColor;
 
   return (
     <View style={[styles.base, tone === 'yellow' && styles.yellow, tone === 'purple' && styles.purple]}>
-      {Icon ? <Icon color={iconColor} fill={tone === 'yellow' ? iconColor : undefined} size={16} strokeWidth={2.6} /> : null}
-      <Text style={styles.text}>{label}</Text>
+      {Icon ? <Icon color={iconColor} fill={tone === 'yellow' ? iconColor : undefined} size={16} strokeWidth={2.8} /> : null}
+      <Text style={[styles.text, tone === 'purple' && styles.purpleText]}>{label}</Text>
     </View>
   );
 }
@@ -25,29 +25,28 @@ export function StatPill({ icon: Icon, label, tone = 'white' }: StatPillProps) {
 const styles = StyleSheet.create({
   base: {
     alignItems: 'center',
-    backgroundColor: colors.paper,
+    backgroundColor: colors.white,
     borderColor: colors.comicBorderColor,
     borderRadius: radius.pill,
-    borderWidth: colors.comicBorderWidth,
+    borderWidth: 2,
     flexDirection: 'row',
     gap: spacing.xs,
-    minHeight: 34,
+    minHeight: 36,
     paddingHorizontal: spacing.md,
-    shadowColor: colors.comicShadowTint,
-    shadowOffset: { width: 2, height: 2 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 2,
+    ...shadows.comicSmall,
   },
   yellow: {
     backgroundColor: colors.yellowCta,
   },
   purple: {
-    backgroundColor: colors.softLavenderPanel,
+    backgroundColor: colors.primaryPurple,
   },
   text: {
     ...typography.small,
     color: colors.comicBorderColor,
     fontWeight: '900',
+  },
+  purpleText: {
+    color: colors.white,
   },
 });

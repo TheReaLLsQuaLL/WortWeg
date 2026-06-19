@@ -28,6 +28,7 @@ import {
 
 import { AnimatedCard } from '../components/AnimatedCard';
 import { AppButton } from '../components/AppButton';
+import { HalftoneAccent } from '../components/HalftoneAccent';
 import { Mascot } from '../components/Mascot';
 import { OnboardingProgressHeader } from '../components/OnboardingProgressHeader';
 import {
@@ -622,7 +623,9 @@ export function OnboardingScreen({ navigation, onComplete }: OnboardingScreenPro
   };
 
   return (
-    <LinearGradient colors={[colors.paperLavender, colors.lavenderBackground, '#EEE9FF']} style={styles.gradient}>
+    <LinearGradient colors={[colors.lavenderBackground, colors.paperLavender, colors.lavenderBackground]} style={styles.gradient}>
+      <HalftoneAccent opacity={0.1} size="large" style={styles.backgroundTextureTop} />
+      <HalftoneAccent color={colors.primaryPurple} opacity={0.08} size="medium" style={styles.backgroundTextureBottom} />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={0}
@@ -641,13 +644,32 @@ export function OnboardingScreen({ navigation, onComplete }: OnboardingScreenPro
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <Animated.View style={[styles.mascotWrap, mascotStyle]}>
-            <Mascot size={86} />
-            {stepId === 'mini_demo' ? (
-              <View style={styles.wolliBubble}>
-                <Text style={styles.wolliBubbleText}>Renkler artikelı hatırlamana yardım edecek.</Text>
+          <Animated.View style={[styles.mascotWrap, stepId === 'welcome' && mascotStyle]}>
+            {stepId === 'welcome' ? (
+              <View style={styles.mascotFrame}>
+                <HalftoneAccent color={colors.yellowCta} opacity={0.16} size="medium" style={styles.mascotTexture} />
+                <Mascot size={118} />
+                <View style={styles.mascotSticker}>
+                  <Text style={styles.mascotStickerText}>WOLLI</Text>
+                </View>
               </View>
-            ) : null}
+            ) : (
+              <View style={styles.mascotMiniRow}>
+                <View style={styles.mascotMiniAvatar}>
+                  <Mascot size={44} />
+                </View>
+                <View style={styles.mascotMiniBubble}>
+                  <Text style={styles.mascotMiniLabel}>WOLLI</Text>
+                  <Text style={styles.mascotMiniText}>
+                    {stepId === 'mini_demo'
+                      ? 'Renkler artikelı hatırlamana yardım edecek.'
+                      : stepId === 'ready'
+                        ? 'İlk adımın hazır.'
+                        : 'Yol haritanı netleştiriyoruz.'}
+                  </Text>
+                </View>
+              </View>
+            )}
           </Animated.View>
           <Animated.View style={{ opacity: fade, transform: [{ translateY: slide }] }}>
             {renderStep()}
@@ -682,6 +704,7 @@ function StepPanel({ children, helper, title }: { children: ReactNode; helper: s
   return (
     <AnimatedCard>
       <View style={styles.panel}>
+        <HalftoneAccent opacity={0.07} size="small" style={styles.panelTexture} />
         <View style={styles.panelBurstLarge} />
         <View style={styles.panelBurstSmall} />
         <Text style={styles.title}>{title}</Text>
@@ -930,13 +953,91 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
-    paddingBottom: spacing.xl,
+    paddingBottom: spacing.xxl,
   },
   mascotWrap: {
     alignItems: 'center',
   },
+  mascotFrame: {
+    alignItems: 'center',
+    backgroundColor: colors.white,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.xl,
+    borderWidth: colors.comicBorderWidth,
+    height: 170,
+    justifyContent: 'center',
+    overflow: 'hidden',
+    width: '100%',
+    ...shadows.comic,
+  },
+  mascotMiniRow: {
+    alignItems: 'center',
+    alignSelf: 'stretch',
+    flexDirection: 'row',
+    gap: spacing.sm,
+    justifyContent: 'center',
+    marginBottom: -spacing.xs,
+  },
+  mascotMiniAvatar: {
+    alignItems: 'center',
+    backgroundColor: colors.yellowCta,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.lg,
+    borderWidth: colors.comicBorderWidth,
+    height: 58,
+    justifyContent: 'center',
+    width: 58,
+    ...shadows.comicSmall,
+  },
+  mascotMiniBubble: {
+    backgroundColor: colors.white,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.lg,
+    borderWidth: colors.comicBorderWidth,
+    flex: 1,
+    gap: 2,
+    maxWidth: 290,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    ...shadows.comicSmall,
+  },
+  mascotMiniLabel: {
+    ...typography.micro,
+    color: colors.primaryPurple,
+    fontWeight: '900',
+  },
+  mascotMiniText: {
+    ...typography.small,
+    color: colors.deepViolet,
+    fontWeight: '900',
+  },
+  mascotTexture: {
+    bottom: 0,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+  },
+  mascotSticker: {
+    backgroundColor: colors.white,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.sm,
+    borderWidth: colors.comicBorderWidth,
+    bottom: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 4,
+    position: 'absolute',
+    right: spacing.md,
+    transform: [{ rotate: '-3deg' }],
+    ...shadows.comicSmall,
+  },
+  mascotStickerText: {
+    ...typography.micro,
+    color: colors.deepViolet,
+    fontWeight: '900',
+  },
   panel: {
-    backgroundColor: colors.paper,
+    backgroundColor: colors.white,
     borderColor: colors.comicBorderColor,
     borderRadius: radius.xl,
     borderWidth: colors.comicBorderWidth,
@@ -945,6 +1046,13 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
     position: 'relative',
     ...shadows.lift,
+  },
+  panelTexture: {
+    height: 112,
+    position: 'absolute',
+    right: -18,
+    top: -18,
+    width: 144,
   },
   panelBurstLarge: {
     backgroundColor: colors.comicYellowWash,
@@ -969,10 +1077,12 @@ const styles = StyleSheet.create({
   title: {
     ...typography.title,
     color: colors.deepViolet,
+    fontWeight: '900',
   },
   helper: {
     ...typography.body,
     color: colors.muted,
+    fontWeight: '700',
   },
   optionGrid: {
     flexDirection: 'row',
@@ -990,31 +1100,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.white,
     borderColor: colors.comicBorderColor,
-    borderRadius: radius.lg,
+    borderRadius: radius.xl,
     borderWidth: colors.comicBorderWidth,
     gap: spacing.sm,
-    minHeight: 96,
+    minHeight: 104,
     padding: spacing.md,
-    ...shadows.comicSmall,
+    ...shadows.comic,
   },
   optionCardSelected: {
     backgroundColor: colors.primaryPurple,
     borderColor: colors.comicBorderColor,
-    ...shadows.comic,
+    ...shadows.lift,
   },
   optionIcon: {
     alignItems: 'center',
-    backgroundColor: colors.paperLavender,
+    backgroundColor: colors.yellowCta,
     borderColor: colors.comicBorderColor,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: colors.comicBorderWidth,
-    height: 38,
+    height: 44,
     justifyContent: 'center',
-    minWidth: 38,
+    minWidth: 44,
     paddingHorizontal: spacing.xs,
+    ...shadows.comicSmall,
   },
   optionIconSelected: {
-    backgroundColor: colors.royalPurple,
+    backgroundColor: colors.deepViolet,
   },
   optionIconText: {
     ...typography.small,
@@ -1035,14 +1146,14 @@ const styles = StyleSheet.create({
   },
   valueCard: {
     alignItems: 'center',
-    backgroundColor: colors.primaryPurple,
+    backgroundColor: colors.deepViolet,
     borderColor: colors.comicBorderColor,
-    borderRadius: radius.lg,
+    borderRadius: radius.xl,
     borderWidth: colors.comicBorderWidth,
     flexDirection: 'row',
     gap: spacing.md,
-    padding: spacing.md,
-    ...shadows.comicSmall,
+    padding: spacing.lg,
+    ...shadows.comic,
   },
   valueIcon: {
     alignItems: 'center',
@@ -1145,16 +1256,16 @@ const styles = StyleSheet.create({
   },
   articleCard: {
     alignItems: 'center',
-    borderRadius: radius.lg,
-    borderWidth: 2,
+    borderRadius: radius.xl,
+    borderWidth: colors.comicBorderWidth,
     gap: spacing.xs,
-    minHeight: 112,
+    minHeight: 122,
     justifyContent: 'center',
     padding: spacing.md,
-    ...shadows.paper,
+    ...shadows.comicSmall,
   },
   articleCardSelected: {
-    ...shadows.comic,
+    ...shadows.lift,
   },
   articleBadge: {
     ...typography.body,
@@ -1259,15 +1370,29 @@ const styles = StyleSheet.create({
   },
   footerLinkText: {
     ...typography.small,
-    color: colors.lavender,
+    color: colors.royalPurple,
     fontWeight: '900',
   },
   footer: {
-    backgroundColor: 'rgba(30,27,58,0.96)',
-    borderTopColor: 'rgba(255,255,255,0.12)',
-    borderTopWidth: 1,
+    backgroundColor: colors.lavenderBackground,
+    borderTopColor: colors.comicBorderColor,
+    borderTopWidth: colors.comicBorderWidth,
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
+  },
+  backgroundTextureTop: {
+    height: 180,
+    position: 'absolute',
+    right: -24,
+    top: 16,
+    width: 220,
+  },
+  backgroundTextureBottom: {
+    bottom: 92,
+    height: 150,
+    left: -30,
+    position: 'absolute',
+    width: 190,
   },
   pressed: {
     opacity: 0.84,

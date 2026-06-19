@@ -12,11 +12,13 @@ type FeedbackBannerProps = {
 
 export function FeedbackBanner({ children, title, tone }: FeedbackBannerProps) {
   const Icon = tone === 'success' ? CheckCircle2 : tone === 'error' ? XCircle : Info;
-  const iconColor = tone === 'success' ? colors.green : tone === 'error' ? colors.red : colors.royalPurple;
+  const iconColor = colors.comicBorderColor;
 
   return (
     <View style={[styles.banner, tone === 'success' && styles.success, tone === 'error' && styles.error, tone === 'info' && styles.info]}>
-      <Icon color={iconColor} size={20} strokeWidth={2.6} />
+      <View style={styles.iconWrap}>
+        <Icon color={iconColor} size={21} strokeWidth={3} />
+      </View>
       <View style={styles.copy}>
         <Text style={styles.title}>{title}</Text>
         {typeof children === 'string' ? <Text style={styles.body}>{children}</Text> : children}
@@ -29,16 +31,26 @@ const styles = StyleSheet.create({
   banner: {
     alignItems: 'flex-start',
     borderColor: colors.comicBorderColor,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: colors.comicBorderWidth,
     flexDirection: 'row',
     gap: spacing.md,
     padding: spacing.md,
     ...shadows.comicSmall,
   },
-  success: { backgroundColor: '#DFF7EB' },
-  error: { backgroundColor: '#FFE5E5' },
-  info: { backgroundColor: colors.lavender },
+  success: { backgroundColor: '#DFFFD7' },
+  error: { backgroundColor: '#FFE1E1' },
+  info: { backgroundColor: colors.paperLavender },
+  iconWrap: {
+    alignItems: 'center',
+    backgroundColor: colors.white,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.pill,
+    borderWidth: 2,
+    height: 34,
+    justifyContent: 'center',
+    width: 34,
+  },
   copy: { flex: 1, gap: spacing.xs },
   title: {
     ...typography.body,

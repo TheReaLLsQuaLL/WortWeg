@@ -20,7 +20,7 @@ export function EmptyState({ actionTitle, body, framed = true, icon: Icon, onAct
     <View style={[styles.card, !framed && styles.unframed]}>
       {Icon ? (
         <View style={styles.iconWrap}>
-          <Icon color={colors.royalPurple} size={24} strokeWidth={2.6} />
+          <Icon color={colors.comicBorderColor} size={28} strokeWidth={3} />
         </View>
       ) : null}
       <Text style={styles.title}>{title}</Text>
@@ -33,32 +33,36 @@ export function EmptyState({ actionTitle, body, framed = true, icon: Icon, onAct
 const styles = StyleSheet.create({
   card: {
     alignItems: 'flex-start',
-    backgroundColor: colors.paper,
+    backgroundColor: colors.white,
     borderColor: colors.comicBorderColor,
     borderRadius: radius.xl,
     borderWidth: colors.comicBorderWidth,
-    gap: spacing.sm,
-    padding: spacing.lg,
+    gap: spacing.md,
+    padding: spacing.xl,
     ...shadows.comic,
   },
   unframed: {
     backgroundColor: 'transparent',
     borderWidth: 0,
     padding: 0,
+    shadowOpacity: 0,
+    elevation: 0,
   },
   iconWrap: {
     alignItems: 'center',
-    backgroundColor: colors.softLavenderPanel,
+    backgroundColor: colors.yellowCta,
     borderColor: colors.comicBorderColor,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: colors.comicBorderWidth,
-    height: 44,
+    height: 58,
     justifyContent: 'center',
-    width: 44,
+    width: 58,
+    ...shadows.comicSmall,
   },
   title: {
     ...typography.heading,
     color: colors.deepViolet,
+    fontWeight: '900',
   },
   body: {
     ...typography.body,

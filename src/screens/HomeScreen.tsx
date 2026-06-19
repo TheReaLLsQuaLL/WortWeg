@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { AnimatedCard } from '../components/AnimatedCard';
 import { AppButton } from '../components/AppButton';
 import { AppCard } from '../components/AppCard';
+import { HalftoneAccent } from '../components/HalftoneAccent';
 import { ProgressPill } from '../components/ProgressPill';
 import { AppScrollView, Screen } from '../components/layout';
 import { RoadmapPath, type RoadmapPathItem } from '../components/RoadmapPath';
@@ -88,7 +89,7 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
   const primaryButton = nextLesson ? 'Derse başla' : dueCards.length > 0 ? 'Tekrar et' : 'Sesli pratik aç';
 
   return (
-    <Screen backgroundColor={colors.deepViolet}>
+    <Screen backgroundColor={colors.lavenderBackground}>
       <TopBar
         streak={userState.streak}
         subtitle={(plan?.currentLevel ?? 'A0') + ' · Bugün ' + Math.min(userState.todayXp, dailyGoalXp) + '/' + dailyGoalXp + ' XP'}
@@ -98,6 +99,7 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
       <AppScrollView contentContainerStyle={styles.content} style={styles.scroll}>
         <AnimatedCard>
           <AppCard style={styles.todayCard}>
+          <HalftoneAccent color={colors.yellowCta} opacity={0.14} size="medium" style={styles.todayTexture} />
           <View style={styles.missionBurst} />
           <View style={styles.missionSticker}>
             <Text style={styles.missionStickerText}>W</Text>
@@ -122,6 +124,7 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
 
         <AnimatedCard delayMs={70}>
           <AppCard style={styles.section}>
+          <HalftoneAccent color={colors.primaryPurple} opacity={0.05} size="large" style={styles.mapPanelTexture} />
           <View style={styles.sectionHeader}>
             <View>
               <Text style={styles.sectionTitle}>Yolun</Text>
@@ -181,26 +184,28 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
   },
   todayCard: {
-    backgroundColor: colors.paper,
+    backgroundColor: colors.deepViolet,
     borderRadius: radius.xl,
     gap: spacing.lg,
-    overflow: 'visible',
-    padding: spacing.lg,
+    overflow: 'hidden',
+    padding: spacing.xl,
     position: 'relative',
   },
   missionBurst: {
-    backgroundColor: colors.comicYellowWash,
+    backgroundColor: colors.primaryPurple,
+    borderColor: colors.comicBorderColor,
     borderRadius: 999,
-    height: 150,
-    opacity: 0.9,
+    borderWidth: colors.comicBorderWidth,
+    height: 164,
+    opacity: 0.82,
     position: 'absolute',
-    right: -42,
-    top: -58,
-    width: 150,
+    right: -46,
+    top: -62,
+    width: 164,
   },
   missionSticker: {
     alignItems: 'center',
-    backgroundColor: colors.primaryPurple,
+    backgroundColor: colors.yellowCta,
     borderColor: colors.comicBorderColor,
     borderRadius: radius.pill,
     borderWidth: colors.comicBorderWidth,
@@ -214,7 +219,7 @@ const styles = StyleSheet.create({
   },
   missionStickerText: {
     ...typography.small,
-    color: colors.white,
+    color: colors.comicBorderColor,
     fontWeight: '900',
   },
   todayHeader: {
@@ -226,12 +231,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.yellowCta,
     borderColor: colors.comicBorderColor,
-    borderRadius: radius.lg,
+    borderRadius: radius.xl,
     borderWidth: colors.comicBorderWidth,
-    height: 56,
+    height: 64,
     justifyContent: 'center',
-    width: 56,
-    ...shadows.comicSmall,
+    width: 64,
+    ...shadows.comic,
   },
   flexCopy: {
     flex: 1,
@@ -244,14 +249,16 @@ const styles = StyleSheet.create({
   },
   todayTitle: {
     ...typography.heading,
-    color: colors.deepViolet,
+    color: colors.white,
+    fontWeight: '900',
   },
   todayMeta: {
     ...typography.small,
-    color: colors.muted,
+    color: colors.lavender,
+    fontWeight: '800',
   },
   goalBar: {
-    backgroundColor: colors.paperLavender,
+    backgroundColor: colors.white,
     borderColor: colors.comicBorderColor,
     borderRadius: radius.pill,
     borderWidth: colors.comicBorderWidth,
@@ -268,7 +275,9 @@ const styles = StyleSheet.create({
     borderRadius: radius.xl,
     borderWidth: colors.comicBorderWidth,
     gap: spacing.md,
+    overflow: 'hidden',
     padding: spacing.lg,
+    position: 'relative',
     ...shadows.comic,
   },
   sectionHeader: {
@@ -295,6 +304,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: spacing.md,
     ...shadows.comicSmall,
+    transform: [{ rotate: '2deg' }],
   },
   textButtonLabel: {
     ...typography.small,
@@ -308,7 +318,7 @@ const styles = StyleSheet.create({
   },
   quickAction: {
     alignItems: 'center',
-    backgroundColor: colors.paper,
+    backgroundColor: colors.white,
     borderColor: colors.comicBorderColor,
     borderRadius: radius.lg,
     borderWidth: colors.comicBorderWidth,
@@ -316,11 +326,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexGrow: 1,
     gap: spacing.xs,
-    minHeight: 52,
+    minHeight: 58,
     justifyContent: 'center',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     ...shadows.comicSmall,
+  },
+  todayTexture: {
+    bottom: 0,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
   },
   quickLabel: {
     ...typography.small,
@@ -344,13 +361,13 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
   planStrip: {
-    backgroundColor: colors.paperLavender,
-    borderColor: colors.border,
-    borderRadius: radius.lg,
-    borderWidth: 1,
+    backgroundColor: colors.white,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.xl,
+    borderWidth: colors.comicBorderWidth,
     gap: 2,
     padding: spacing.md,
-    ...shadows.paper,
+    ...shadows.comicSmall,
   },
   planTitle: {
     ...typography.body,
@@ -363,5 +380,12 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.82,
+  },
+  mapPanelTexture: {
+    bottom: -20,
+    height: 180,
+    left: -20,
+    position: 'absolute',
+    width: 220,
   },
 });
