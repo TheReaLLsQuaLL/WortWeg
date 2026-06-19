@@ -23,6 +23,7 @@ import type {
 } from '../types/learningPlan';
 
 const dayLabels = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
+const privateAlphaMaxPlayableStartLevel: StartLevelId = 'A2';
 
 const goalLabels: Record<UserGoalId, string> = {
   exam: 'Sınav',
@@ -83,6 +84,9 @@ const normalizeStartLevel = (startLevel: StartLevelId): CurriculumLevelId => {
 
   return startLevel;
 };
+
+const getPrivateAlphaPlayableStartLevel = (startLevel: StartLevelId): StartLevelId =>
+  startLevel === 'B1' ? privateAlphaMaxPlayableStartLevel : startLevel;
 
 const levelIndex = (levelId: CurriculumLevelId) => curriculumLevelOrder.indexOf(levelId);
 
@@ -430,9 +434,10 @@ export const createLearningPlan = (input: LearningPlanInput): LearningPlan => {
   const placementStartLevel = input.usePlacementRecommendation && input.placementResult
     ? input.placementResult.recommendedStartLevel
     : undefined;
+  const selectedStartLevel = placementStartLevel ?? input.startLevel;
   const effectiveInput: LearningPlanInput = {
     ...input,
-    startLevel: placementStartLevel ?? input.startLevel,
+    startLevel: getPrivateAlphaPlayableStartLevel(selectedStartLevel),
     selfSelectedLevel: input.selfSelectedLevel ?? input.startLevel,
   };
   const trackId = recommendTrack(effectiveInput);

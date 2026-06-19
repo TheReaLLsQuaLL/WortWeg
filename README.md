@@ -1,6 +1,6 @@
 # WortWeg
 
-WortWeg is a mobile-first German learning MVP for Turkish speakers. It uses Expo React Native, TypeScript, React Navigation, local AsyncStorage persistence, original CEFR A1 content, SRS vocabulary review, a secure local AI backend wrapper for Gemini text feedback, and placeholder speech/pronunciation services.
+WortWeg is a mobile-first German learning MVP for Turkish speakers. It uses Expo React Native, TypeScript, React Navigation, local AsyncStorage persistence, original playable A0/A1/A2 content, SRS vocabulary review, a secure local AI backend wrapper for Gemini text feedback, and backend German speech-to-text for speaking practice.
 
 ## Requirements
 
@@ -29,6 +29,12 @@ GEMINI_CHEAP_MODEL=gemini-3.1-flash-lite
 ```
 
 For Expo Go on a real Android phone, set the mobile backend URL to the computer LAN IP shown by Expo or your network settings. Do not use `localhost` from a physical phone.
+
+On macOS, check the current Wi-Fi LAN IP with:
+
+```bash
+ipconfig getifaddr en0
+```
 
 ```bash
 AI_BACKEND_URL=http://localhost:3001
@@ -61,13 +67,13 @@ Android Expo Go notes:
 npm install
 ```
 
-Copy `.env.example` to `.env`. Do not expose real API keys in the mobile app.
+Copy `.env.example` to `.env`. `.env` is local, ignored by Git, and must not be committed. Do not expose real API keys in the mobile app.
 
 ```bash
 cp .env.example .env
 ```
 
-Put `GEMINI_API_KEY` only in `.env` for the backend server. For Expo Go on a real phone, set `EXPO_PUBLIC_AI_BACKEND_URL` to your Mac LAN URL, for example `http://192.168.1.8:3001`. The backend URL is not secret; the Gemini key is secret.
+Put `GEMINI_API_KEY` only in `.env` for the backend server. For Expo Go on a real phone, set `EXPO_PUBLIC_AI_BACKEND_URL` to your current Mac LAN URL. The IP can change between networks; check it with `ipconfig getifaddr en0`. The backend URL is not secret; the Gemini key is secret.
 
 ## Run
 
@@ -105,7 +111,7 @@ npm run typecheck
 ## Current MVP Behavior
 
 - Onboarding persists locally with `@react-native-async-storage/async-storage`.
-- The A1 learning path is built from `src/data/lessons.a1.ts`.
+- The playable learning path covers A0, A1, and A2. B1/B2 are curriculum metadata for now and are marked as coming soon.
 - Exam practice content is original and lives in `src/data/exam.a1.ts`.
 - Lesson completion awards XP, updates local-date streaks, adds SRS cards, and records mistakes.
 - SRS review uses `src/lib/srs.ts`.
@@ -180,13 +186,13 @@ STT_MODEL=gpt-4o-mini-transcribe
 # Server/internal tools on this Mac.
 AI_BACKEND_URL=http://localhost:3001
 
-# Expo Go on a physical phone. Use the LAN IP shown by Expo.
-EXPO_PUBLIC_AI_BACKEND_URL=http://192.168.1.8:3001
+# Expo Go on a physical phone. Use the current Mac LAN IP.
+EXPO_PUBLIC_AI_BACKEND_URL=http://YOUR_MAC_LAN_IP:3001
 EXPO_PUBLIC_AI_TIMEOUT_MS=30000
 EXPO_PUBLIC_SPEECH_TIMEOUT_MS=45000
 ```
 
-Use `localhost` only for simulator/web or curl commands running on the same Mac. For Expo Go on a physical phone, `localhost` means the phone itself, so use your computer LAN IP.
+Use `localhost` only for simulator/web or curl commands running on the same Mac. For Expo Go on a physical phone, `localhost` means the phone itself, so use your computer LAN IP. On macOS, run `ipconfig getifaddr en0` to check the current Wi-Fi IP.
 
 
 ## Speech-to-text Backend
@@ -225,7 +231,7 @@ Health checks:
 
 ```bash
 curl http://localhost:3001/health
-curl http://192.168.1.8:3001/health
+curl http://YOUR_MAC_LAN_IP:3001/health
 ```
 
 Transcription curl example:
@@ -251,8 +257,8 @@ Android Expo Go test:
 iOS STT debug checklist:
 
 1. Confirm iPhone and Mac are on the same Wi-Fi.
-2. Open `http://192.168.1.8:3001/health` in iPhone Safari.
-3. Confirm `EXPO_PUBLIC_AI_BACKEND_URL=http://192.168.1.8:3001` in the Expo/mobile env.
+2. Run `ipconfig getifaddr en0` on the Mac and open `http://YOUR_MAC_LAN_IP:3001/health` in iPhone Safari.
+3. Confirm `EXPO_PUBLIC_AI_BACKEND_URL=http://YOUR_MAC_LAN_IP:3001` in the Expo/mobile env.
 4. Restart Expo with `--clear` after env changes.
 5. Open speaking practice, hold the mic, speak, and release.
 6. Watch backend logs for the `/speech/transcribe` endpoint hit.
@@ -288,10 +294,10 @@ If the app returns the local Wolli fallback while backend curl works:
 npm run server:dev
 ```
 
-2. Confirm your phone can reach the backend over LAN. Replace the IP with the LAN IP shown by Expo:
+2. Confirm your phone can reach the backend over LAN. Replace `YOUR_MAC_LAN_IP` with the current IP from `ipconfig getifaddr en0`:
 
 ```bash
-curl http://192.168.1.8:3001/health
+curl http://YOUR_MAC_LAN_IP:3001/health
 ```
 
 Expected response:
@@ -303,7 +309,7 @@ Expected response:
 3. In `.env`, set the mobile URL with the `EXPO_PUBLIC_` prefix:
 
 ```bash
-EXPO_PUBLIC_AI_BACKEND_URL=http://192.168.1.8:3001
+EXPO_PUBLIC_AI_BACKEND_URL=http://YOUR_MAC_LAN_IP:3001
 EXPO_PUBLIC_AI_TIMEOUT_MS=30000
 ```
 
@@ -324,7 +330,7 @@ npm start -- --clear
 6. Test the AI endpoint from your Mac or another LAN device:
 
 ```bash
-curl -s -X POST http://192.168.1.8:3001/ai/teacher \
+curl -s -X POST http://YOUR_MAC_LAN_IP:3001/ai/teacher \
   -H 'Content-Type: application/json' \
   -d '{"mode":"chat","level":"A1","userMessage":"Hallo","targetLanguage":"German","nativeLanguage":"Turkish","conversationHistory":[],"context":{}}'
 ```
@@ -438,7 +444,7 @@ Alpha test checklist:
 3. Reset, complete onboarding with placement, accept the recommendation, then confirm Home opens.
 4. Start A0.1 from Home, answer at least one question wrong, finish the lesson, and confirm XP/progress updates.
 5. Open Kelime review and Hatalarım.
-6. Open CurriculumMap and confirm A0/A1 plus the first four A2 lessons open while later A2/B1/B2 modules show coming-soon behavior.
+6. Open CurriculumMap and confirm A0/A1/A2 lessons open while B1/B2 modules show coming-soon behavior.
 7. Open AI chat and send a short A1 message.
 8. Open speaking practice, press and hold the microphone, speak, release, replay, and confirm:
    - Release starts the animated analysis state.
@@ -450,7 +456,7 @@ Alpha test checklist:
 
 Before testing speech on iPhone:
 
-- Open http://192.168.1.8:3001/health in iPhone Safari.
+- Run `ipconfig getifaddr en0` on the Mac, then open http://YOUR_MAC_LAN_IP:3001/health in iPhone Safari.
 - If it does not open, fix same Wi-Fi, firewall, or the Mac LAN IP before testing speech.
 - Confirm .env uses EXPO_PUBLIC_AI_BACKEND_URL=http://YOUR_MAC_LAN_IP:3001 and restart Expo with --clear after changing it.
 
@@ -476,8 +482,8 @@ Privacy expectations:
 
 Known alpha limitations:
 
-- A0/A1 and the first four A2 lessons are playable; later A2 plus B1/B2 remain curriculum metadata for now.
-- Speaking transcript uses backend OpenAI STT and requires backend reachability plus OpenAI API quota.
+- A0/A1/A2 lessons are playable; B1/B2 remain curriculum metadata and are marked as coming soon.
+- Speaking transcript uses backend OpenAI STT and requires local backend reachability plus OpenAI API quota.
 - Speaking feedback is transcript-comparison based, not real phonetic pronunciation scoring.
 - This is Expo Go/dev-build testing only for now.
 - No accounts, Supabase sync, or cloud progress backup yet.
@@ -489,6 +495,6 @@ See also: `docs/alpha-test-checklist.md` for a short tester-facing Turkish check
 ## Product Notes
 
 - User-facing explanations and feedback are in Turkish.
-- German content is CEFR A1 first.
+- German content currently covers playable A0, A1, and A2 lessons.
 - Exam text is described as “A1 sınav tarzı pratik,” not as an official Goethe/telc/ÖSD product.
 - All included lesson and exam content is original starter content.

@@ -18,6 +18,7 @@ const placementSkills: PlacementSkill[] = [
 ];
 
 const placementLevelOrder: PlacementLevelSignal[] = ['A0', 'A1', 'A2', 'B1'];
+const privateAlphaMaxPlayableLevel: PlacementLevelSignal = 'A2';
 
 export type PlacementAnswerMap = Record<string, string>;
 
@@ -47,6 +48,9 @@ const recommendLevelFromScore = (score: number): PlacementLevelSignal => {
 
   return 'B1';
 };
+
+const applyPrivateAlphaLevelGuard = (level: PlacementLevelSignal): PlacementLevelSignal =>
+  level === 'B1' ? privateAlphaMaxPlayableLevel : level;
 
 const normalizeSelfSelectedLevel = (level?: StartLevelId): PlacementLevelSignal => {
   if (level === 'B1') {
@@ -95,7 +99,12 @@ const buildExplanation = (
   total: number,
   selfLevel: PlacementLevelSignal,
   recommendedLevel: PlacementLevelSignal,
+  rawRecommendedLevel: PlacementLevelSignal,
 ) => {
+  if (rawRecommendedLevel === 'B1' && recommendedLevel === 'A2') {
+    return 'Sonuç ' + score + '/' + total + '. B1 seviyesine yakın görünüyorsun. B1 yakında; şimdilik A2 pekiştirme planıyla devam edelim.';
+  }
+
   const selfIndex = placementLevelOrder.indexOf(selfLevel);
   const recommendedIndex = placementLevelOrder.indexOf(recommendedLevel);
 
@@ -135,7 +144,8 @@ export const scorePlacementTest = (
     }
   });
 
-  const recommendedStartLevel = recommendLevelFromScore(score);
+  const rawRecommendedStartLevel = recommendLevelFromScore(score);
+  const recommendedStartLevel = applyPrivateAlphaLevelGuard(rawRecommendedStartLevel);
   const selfLevel = normalizeSelfSelectedLevel(selfSelectedLevel);
   const total = questions.length;
 
@@ -143,9 +153,10 @@ export const scorePlacementTest = (
     score,
     total,
     recommendedStartLevel,
+    privateAlphaCappedFrom: rawRecommendedStartLevel === 'B1' ? 'B1' : undefined,
     confidence: getConfidence(score, answeredTotal, selfLevel, recommendedStartLevel),
     skillBreakdown,
-    explanationTr: buildExplanation(score, total, selfLevel, recommendedStartLevel),
+    explanationTr: buildExplanation(score, total, selfLevel, recommendedStartLevel, rawRecommendedStartLevel),
   };
 };
 

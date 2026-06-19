@@ -22,7 +22,7 @@ Bu liste 3-5 kişilik özel alpha testi içindir. Kısa tut: akış bozuluyor mu
 10. Kelime tekrarını aç.
 11. Hatalarım bölümünü aç.
 12. Yol haritasında A0/A1 derslerini açmayı dene.
-13. A2 ilk 4 dersi açılıyor mu, sonraki A2/B1/B2 modüllerinde yakında mesajı görünüyor mu kontrol et.
+13. A0/A1/A2 dersleri açılıyor mu, B1/B2 modüllerinde yakında mesajı görünüyor mu kontrol et.
 14. Wolli chat'e kısa bir A1 mesaj yaz.
 15. Sesli pratikte mikrofon butonuna basılı tut, Almanca cümleyi söyle, bırak ve dinle.
 16. Bırakınca analiz animasyonu başlıyor mu kontrol et.
@@ -31,7 +31,7 @@ Bu liste 3-5 kişilik özel alpha testi içindir. Kısa tut: akış bozuluyor mu
 
 ## iPhone Ses Testinden Önce
 
-- iPhone Safari ile http://192.168.1.8:3001/health adresini aç.
+- Mac'te `ipconfig getifaddr en0` ile güncel LAN IP'yi bul, sonra iPhone Safari ile http://YOUR_MAC_LAN_IP:3001/health adresini aç.
 - Açılmıyorsa aynı Wi-Fi, firewall veya Mac LAN IP ayarı sorunludur. Önce bunu düzelt.
 - Backend IP değiştiyse .env içindeki EXPO_PUBLIC_AI_BACKEND_URL değerini güncelle ve Expo uygulamasını temiz önbellekle yeniden başlat.
 
@@ -55,7 +55,7 @@ Bu liste 3-5 kişilik özel alpha testi içindir. Kısa tut: akış bozuluyor mu
 
 ## Bilinen Alpha Kurtarma Adımları
 
-- Ses analizi çalışmazsa telefondan http://192.168.1.8:3001/health adresini açmayı dene. Açılmıyorsa telefon ve bilgisayar aynı Wi-Fi ağında olmayabilir.
+- Ses analizi çalışmazsa Mac'te `ipconfig getifaddr en0` ile güncel IP'yi kontrol et, sonra telefondan http://YOUR_MAC_LAN_IP:3001/health adresini açmayı dene. Açılmıyorsa telefon ve bilgisayar aynı Wi-Fi ağında olmayabilir.
 - Uygulama yeniden açıldığında onboarding tekrar gelirse Profil -> Geliştirici sıfırlama yap, akışı tekrar tamamla ve bunu geri bildirimde belirt.
 - Analiz ekranı takılı kalırsa tekrar dene ve mümkünse DEV ortamındaki Speech debug panelinin ekran görüntüsünü gönder.
 - Backend IP değiştiyse .env içindeki EXPO_PUBLIC_AI_BACKEND_URL değerini yeni LAN IP ile güncelle ve Expo uygulamasını temiz önbellekle yeniden başlat.
@@ -74,7 +74,7 @@ Bu liste 3-5 kişilik özel alpha testi içindir. Kısa tut: akış bozuluyor mu
 
 ## Bilinen Sınırlar
 
-- A0/A1 ve ilk 4 A2 dersi oynanabilir; sonraki A2 ile B1/B2 şimdilik yol haritası bilgisidir.
+- A0/A1/A2 dersleri oynanabilir; B1/B2 şimdilik yol haritası bilgisidir ve yakında olarak görünür.
 - Ses yazıya çevirme backend ve OpenAI API kotasına bağlıdır.
 - Konuşma geri bildirimi gerçek fonetik telaffuz puanı değildir; hedef cümle ile transcript karşılaştırmasına dayanır.
 - Hesap, bulut senkronizasyonu ve Supabase henüz yok.

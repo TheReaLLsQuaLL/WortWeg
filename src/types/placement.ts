@@ -25,6 +25,7 @@ export type PlacementResult = {
   score: number;
   total: number;
   recommendedStartLevel: Extract<CurriculumLevelId, 'A0' | 'A1' | 'A2' | 'B1'>;
+  privateAlphaCappedFrom?: Extract<CurriculumLevelId, 'B1'>;
   confidence: PlacementConfidence;
   skillBreakdown: Record<PlacementSkill, PlacementSkillBreakdownItem>;
   explanationTr: string;

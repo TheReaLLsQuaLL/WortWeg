@@ -55,6 +55,13 @@ export function PlacementResultScreen({ route, onComplete }: PlacementResultScre
   const { setup, profileName, result } = route.params;
   const [savingMode, setSavingMode] = useState<'recommended' | 'selected' | null>(null);
   const selfSelectedLevel = setup.selfSelectedLevel ?? setup.startLevel;
+  const isB1CappedForAlpha = result.privateAlphaCappedFrom === 'B1';
+  const recommendationLabel = isB1CappedForAlpha
+    ? 'A2 pekiştirme'
+    : getPlacementLevelLabel(result.recommendedStartLevel);
+  const roadmapText = isB1CappedForAlpha
+    ? 'B1 yakında. Şimdilik A2 pekiştirme planıyla devam edelim.'
+    : getPlacementLevelLabel(result.recommendedStartLevel) + ' seviyesinden başlayabilir.';
 
   const finish = async (useRecommendation: boolean) => {
     setSavingMode(useRecommendation ? 'recommended' : 'selected');
@@ -88,9 +95,14 @@ export function PlacementResultScreen({ route, onComplete }: PlacementResultScre
         <View style={styles.heroCard}>
           <HalftoneAccent color={colors.yellowCta} opacity={0.1} size="small" style={styles.heroTexture} />
           <Text style={styles.kicker}>Önerilen seviye</Text>
-          <Text style={styles.level}>{getPlacementLevelLabel(result.recommendedStartLevel)}</Text>
+          <Text style={styles.level}>{recommendationLabel}</Text>
           <Text style={styles.score}>{result.score}/{result.total} doğru · {getConfidenceLabel(result.confidence)}</Text>
           <Text style={styles.heroText}>{result.explanationTr}</Text>
+          {isB1CappedForAlpha ? (
+            <View style={styles.alphaNotice}>
+              <Text style={styles.alphaNoticeText}>B1 özel alpha sonrası açılacak.</Text>
+            </View>
+          ) : null}
         </View>
 
         <View style={styles.compareCard}>
@@ -100,7 +112,7 @@ export function PlacementResultScreen({ route, onComplete }: PlacementResultScre
           </View>
           <View style={styles.metaBoxStrong}>
             <Text style={styles.metaLabel}>Wolli önerisi</Text>
-            <Text style={styles.metaValue}>{getPlacementLevelLabel(result.recommendedStartLevel)}</Text>
+            <Text style={styles.metaValue}>{recommendationLabel}</Text>
           </View>
         </View>
 
@@ -121,7 +133,7 @@ export function PlacementResultScreen({ route, onComplete }: PlacementResultScre
             </View>
             <View style={styles.previewCopy}>
               <Text style={styles.previewLabelActive}>Yol haritan</Text>
-              <Text style={styles.previewTextActive}>{getPlacementLevelLabel(result.recommendedStartLevel)} seviyesinden başlayabilir.</Text>
+              <Text style={styles.previewTextActive}>{roadmapText}</Text>
             </View>
           </View>
         </View>
@@ -192,6 +204,21 @@ const styles = StyleSheet.create({
   heroText: {
     ...typography.body,
     color: colors.lavender,
+  },
+  alphaNotice: {
+    alignSelf: 'flex-start',
+    backgroundColor: colors.yellowCta,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.sm,
+    borderWidth: colors.comicBorderWidth,
+    marginTop: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+  alphaNoticeText: {
+    ...typography.small,
+    color: colors.comicBorderColor,
+    fontWeight: '900',
   },
   compareCard: {
     flexDirection: 'row',

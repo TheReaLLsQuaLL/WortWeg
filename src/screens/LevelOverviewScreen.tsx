@@ -28,6 +28,7 @@ export function LevelOverviewScreen({ navigation, route }: LevelOverviewScreenPr
   const modules = getModulesForLevel(level.id);
   const playableCount = modules.filter((module) => getPlayableLessonByModuleId(module.id)).length;
   const comingSoonCount = Math.max(0, modules.length - playableCount);
+  const levelComingSoon = level.isPlaceholder || playableCount === 0;
 
   const openModule = (moduleId: string) => {
     const playableLesson = getPlayableLessonByModuleId(moduleId);
@@ -57,7 +58,7 @@ export function LevelOverviewScreen({ navigation, route }: LevelOverviewScreenPr
           <Text style={styles.heroTitle}>{level.id}</Text>
           <Text style={styles.heroText}>{level.descriptionTr}</Text>
           <View style={styles.heroStats}>
-            <Text style={styles.heroMeta}>{level.isPlaceholder ? 'Yakında' : 'Tahmini ' + level.estimatedWeeks + ' hafta'}</Text>
+            <Text style={styles.heroMeta}>{levelComingSoon ? 'Yakında' : 'Tahmini ' + level.estimatedWeeks + ' hafta'}</Text>
             <Text style={styles.heroMeta}>{playableCount} oynanabilir</Text>
             {comingSoonCount > 0 ? <Text style={styles.heroMetaMuted}>{comingSoonCount} yakında</Text> : null}
           </View>
