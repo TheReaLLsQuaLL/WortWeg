@@ -286,6 +286,7 @@ Recommendation:
 - Added safe defaults for `SPEECH_SCORING_PROVIDER=transcript` and `SPEECH_AZURE_ENABLED=false`; Azure remains unavailable.
 - Added explicit provider request timeouts for Gemini and OpenAI STT calls.
 - Added dependency-free in-memory rate limiting for `/health`, `/ai/teacher`, and `/speech/*`.
+- Added `server:smoke` for local backend readiness checks without printing secrets or raw provider payloads.
 - Omitted provider/model diagnostics from production AI and speech responses while keeping development diagnostics available.
 - Relaxed app service parsers so production provider-neutral responses do not break existing flows.
 
@@ -345,7 +346,8 @@ These should be fixed before any hosted backend is exposed to remote testers:
 6. Confirm and document speech temp-file cleanup behavior.
 7. Tune rate limits after phone smoke and tester behavior are known.
 8. Add deployment runbook and host-specific constraints after a host is selected.
-9. Run hosted smoke tests for `/health`, AI chat, and speech transcription before inviting testers.
+9. Run `server:smoke` locally and against any future hosted backend before inviting testers.
+10. Run hosted phone smoke tests for `/health`, AI chat, and speech transcription before inviting testers.
 
 ## Suggested Implementation Order
 

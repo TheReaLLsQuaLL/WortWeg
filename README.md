@@ -239,6 +239,20 @@ curl http://localhost:3001/health
 curl http://YOUR_MAC_LAN_IP:3001/health
 ```
 
+Local backend smoke test:
+
+```bash
+npm run server:dev
+npm run server:smoke
+BACKEND_SMOKE_URL=http://localhost:3001 npm run server:smoke
+```
+
+The smoke script checks `/health`, basic CORS reachability, the AI route response shape, safe speech validation errors, and optionally rate limiting. It does not print API keys, transcripts, audio URIs, or raw provider responses. To force the rate-limit check, start a temporary backend with low rate-limit env values and run:
+
+```bash
+BACKEND_SMOKE_RATE_LIMIT=1 BACKEND_SMOKE_URL=http://localhost:3991 npm run server:smoke
+```
+
 Transcription curl example:
 
 ```bash

@@ -39,6 +39,8 @@ Do not start deployment until all of these are true:
 - `npm run typecheck` passes.
 - `npm run content:qa` passes.
 - `git diff --check` passes.
+- `npm run server:check` passes.
+- `npm run server:smoke` passes against the local backend.
 - Backend `/health` passes locally.
 - AI chat works on phone against the local backend.
 - Speech transcription works on phone against the local backend.
@@ -156,7 +158,8 @@ EXPO_PUBLIC_AI_BACKEND_URL=https://YOUR_BACKEND_HOST
 - Restart Expo with clear cache after changing `EXPO_PUBLIC_AI_BACKEND_URL`.
 - Document a simple environment switching checklist:
   1. Confirm target backend `/health`.
-  2. Update local `.env` or build environment.
+  2. Run `BACKEND_SMOKE_URL=https://YOUR_BACKEND_HOST npm run server:smoke` once a hosted backend exists.
+  3. Update local `.env` or build environment.
   3. Restart Expo/build with clear cache.
   4. Test AI chat.
   5. Test speech transcription.
