@@ -294,7 +294,7 @@ export const lessonsB1Preview: Lesson[] = [
         question: 'Konuşan kişi neden kelimeleri tekrar ediyor?',
         correct: 'Kelimeleri unutmak istemediği için.',
         distractors: ['Yağmur yağdığı için.', 'Randevusu iptal olduğu için.', 'Daha sonra geleceği için.'],
-        explanation: 'Cümlede “Aus diesem Grund wiederhole ich die Wörter” sonucu anlatıyor.',
+        explanation: 'İlk cümle nedeni söyler; “Aus diesem Grund” sonucu bağlar: bu sebeple kelimeleri tekrar ediyor.',
         speechText: 'Ich möchte die Wörter nicht vergessen. Aus diesem Grund wiederhole ich sie.',
       }),
       choiceExercise({
@@ -447,7 +447,7 @@ export const lessonsB1Preview: Lesson[] = [
         lessonId: B1_PREVIEW_LESSON_3_ID,
         skill: 'grammar',
         prompt: 'Doğru cümleyi seç.',
-        question: '“Neden kısa cümleler yazmayı denemiyorsun?” için doğru cümle hangisi?',
+        question: 'Öneri olarak “Neden kısa cümleler yazmayı denemiyorsun?” için doğru cümle hangisi?',
         correct: 'Warum versuchst du nicht, kurze Sätze zu schreiben?',
         distractors: ['Warum du versuchst nicht, kurze Sätze zu schreiben?', 'Warum versuchst nicht du, kurze Sätze schreiben?', 'Warum versuchst du nicht, kurze Sätze schreibt?'],
         explanation: 'Warum versuchst du nicht, ...? nazik öneri sorusudur. zu schreiben doğru yapıdır.',
