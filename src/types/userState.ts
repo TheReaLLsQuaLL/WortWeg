@@ -57,6 +57,27 @@ export type LessonProgress = {
   lastStudiedAt: string;
 };
 
+export type SpeakingStatsLevelId = 'A0' | 'A1' | 'A2' | 'B1_PREVIEW' | 'OTHER';
+
+export type SpeakingLevelStats = {
+  attempts: number;
+  successfulAttempts: number;
+  bestScorePercent?: number;
+  latestScorePercent?: number;
+  lastPracticedAt?: string;
+  practicedSentenceIds: string[];
+};
+
+export type SpeakingStats = {
+  totalAttempts: number;
+  successfulAttempts: number;
+  bestScorePercent?: number;
+  latestScorePercent?: number;
+  lastPracticedAt?: string;
+  practicedSentenceIds: string[];
+  levelBreakdown: Partial<Record<SpeakingStatsLevelId, SpeakingLevelStats>>;
+};
+
 export type UserState = {
   hasOnboarded: boolean;
   hasCompletedOnboarding: boolean;
@@ -72,6 +93,7 @@ export type UserState = {
   lessonProgress: Record<string, LessonProgress>;
   reviewCards: ReviewCard[];
   mistakes: Mistake[];
+  speakingStats: SpeakingStats;
   chatMessages: ChatMessage[];
   examBestScore?: number;
   examHistory: Array<{

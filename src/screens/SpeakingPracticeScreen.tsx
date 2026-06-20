@@ -9,7 +9,7 @@ import { HalftoneAccent } from '../components/HalftoneAccent';
 import { SpeakerButton } from '../components/SpeakerButton';
 import { colors, radius, shadows, spacing, typography } from '../data/theme';
 import { getSpeakingPromptById, speakingPromptsA1, type SpeakingPrompt } from '../data/speaking.a1';
-import type { RootNavigation, RootStackParamList } from '../navigation/AppNavigator';
+import type { CommitUserState, RootNavigation, RootStackParamList } from '../navigation/AppNavigator';
 import {
   cleanupRecording,
   getActiveRecordingStatus,
@@ -27,9 +27,11 @@ import {
 } from '../services/speechService';
 import { trackLocalEvent } from '../services/localEventLog';
 import { normalizeGermanText } from '../lib/transcriptCompare';
+import { updateSpeakingStats } from '../lib/speakingStats';
 
 type SpeakingPracticeScreenProps = {
   navigation: RootNavigation;
+  onUpdateState: CommitUserState;
   route: RouteProp<RootStackParamList, 'SpeakingPractice'>;
 };
 
@@ -150,7 +152,7 @@ const getTranscriptionIssue = (result: TranscriptionResult): 'none' | 'noVoice' 
   return 'none';
 };
 
-export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeScreenProps) {
+export function SpeakingPracticeScreen({ navigation, onUpdateState, route }: SpeakingPracticeScreenProps) {
   const initialPrompt = getSpeakingPromptById(route.params?.promptId);
   const initialIndex = Math.max(
     0,
@@ -217,6 +219,8 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
     return speakingPromptsA1[promptIndex] ?? speakingPromptsA1[0]!;
   }, [promptIndex, route.params?.expectedText, route.params?.meaningTr, route.params?.promptId, route.params?.tipTr, route.params?.topicTitle]);
   const source = route.params?.source ?? 'speaking_practice';
+  const statsLevel = route.params?.level ?? (route.params?.expectedText ? 'OTHER' : 'A1');
+  const statsSentenceId = route.params?.sentenceId ?? route.params?.promptId;
   const progressText = route.params?.expectedText
     ? 'Ders cümlesi'
     : String(promptIndex + 1) + '/' + speakingPromptsA1.length;
@@ -495,6 +499,19 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
 
       setTranscriptionResult(nextTranscriptionResult);
       setPronunciationResult(nextPronunciationResult);
+      try {
+        await onUpdateState((state) => ({
+          ...state,
+          speakingStats: updateSpeakingStats(state.speakingStats, {
+            level: statsLevel,
+            practicedAt: new Date().toISOString(),
+            scorePercent: nextPronunciationResult.scorePercent,
+            sentenceId: statsSentenceId,
+          }),
+        }));
+      } catch {
+        // Speaking feedback should still render if local stats persistence fails.
+      }
       logSpeechUiDebug('analysis state resolved', { state: 'result', platform: Platform.OS });
       updateSpeechDebug({ lastStage: 'resolved:result' });
       setSafeStatus('result');

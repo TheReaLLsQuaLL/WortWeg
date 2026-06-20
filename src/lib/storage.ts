@@ -6,6 +6,7 @@ import type { DailyMinutes, LearningPlan, LearningPlanInput, StartLevelId, Targe
 import { trackLocalEvent } from '../services/localEventLog';
 import type { OnboardingProfile, UserState } from '../types/userState';
 import { getLocalDateKey, updateStudyStreak } from './date';
+import { defaultSpeakingStats, normalizeSpeakingStats } from './speakingStats';
 
 const defaultPlanInput: LearningPlanInput = {
   userGoal: 'daily_life',
@@ -99,6 +100,7 @@ export const defaultUserState: UserState = {
   lessonProgress: {},
   reviewCards: [],
   mistakes: [],
+  speakingStats: defaultSpeakingStats,
   chatMessages: [],
   examHistory: [],
   learningPlan: createDefaultLearningPlan(),
@@ -314,6 +316,7 @@ export const loadUserState = async (): Promise<UserState> => {
       completedLessons: Array.isArray(parsedState.completedLessons) ? parsedState.completedLessons : [],
       lessonProgress: parsedState.lessonProgress && typeof parsedState.lessonProgress === 'object' ? parsedState.lessonProgress : {},
       mistakes: Array.isArray(parsedState.mistakes) ? parsedState.mistakes : [],
+      speakingStats: normalizeSpeakingStats(parsedState.speakingStats),
       chatMessages: Array.isArray(parsedState.chatMessages) ? parsedState.chatMessages : [],
       todayXp:
         parsedState.lastStudyDate === getLocalDateKey()

@@ -16,15 +16,19 @@ import {
   type SpeakingLibrarySentence,
 } from '../data/speakingLibrary';
 import { colors, radius, shadows, spacing, typography } from '../data/theme';
+import { formatSpeakingLastPractice, formatSpeakingScorePercent, normalizeSpeakingStats } from '../lib/speakingStats';
 import type { RootNavigation } from '../navigation/AppNavigator';
+import type { UserState } from '../types/userState';
 
 type SpeakingLibraryScreenProps = {
   navigation: RootNavigation;
+  userState: UserState;
 };
 
 type SpeakingLibraryGroupId = typeof speakingLibraryLevelOrder[number];
 
-export function SpeakingLibraryScreen({ navigation }: SpeakingLibraryScreenProps) {
+export function SpeakingLibraryScreen({ navigation, userState }: SpeakingLibraryScreenProps) {
+  const speakingStats = normalizeSpeakingStats(userState.speakingStats);
   const [activeGroup, setActiveGroup] = useState<SpeakingLibraryGroupId>('A0');
   const sentences = useMemo(
     () => speakingLibrarySentences.filter((sentence) => getSpeakingLibraryGroupId(sentence) === activeGroup),
@@ -40,6 +44,10 @@ export function SpeakingLibraryScreen({ navigation }: SpeakingLibraryScreenProps
       tipTr: sentence.isB1Preview
         ? 'Bu kısa bir B1 Ön İzleme. Tam B1 yolu yakında.'
         : 'Cümleyi yavaş ve net söyle. Sonra sonucu birlikte incele.',
+      sentenceId: sentence.id,
+      sourceLessonId: sentence.sourceLessonId,
+      level: sentence.isB1Preview ? 'B1_PREVIEW' : sentence.level === 'A0' || sentence.level === 'A1' || sentence.level === 'A2' ? sentence.level : 'OTHER',
+      isB1Preview: sentence.isB1Preview,
     });
   };
 
@@ -71,6 +79,22 @@ export function SpeakingLibraryScreen({ navigation }: SpeakingLibraryScreenProps
           </View>
         </AppCard>
 
+        <AppCard style={styles.statsCard}>
+          <Text style={styles.statsTitle}>Konuşma ilerlemen</Text>
+          {speakingStats.totalAttempts === 0 ? (
+            <Text style={styles.muted}>Henüz konuşma denemesi yok. Bir cümle seçip pratik yapabilirsin.</Text>
+          ) : (
+            <View style={styles.statsGrid}>
+              <StatItem label="Toplam deneme" value={String(speakingStats.totalAttempts)} />
+              <StatItem label="Başarılı deneme" value={String(speakingStats.successfulAttempts)} />
+              <StatItem label="En iyi skor" value={formatSpeakingScorePercent(speakingStats.bestScorePercent)} />
+              <StatItem label="Son skor" value={formatSpeakingScorePercent(speakingStats.latestScorePercent)} />
+              <StatItem label="Çalışılan cümle" value={String(speakingStats.practicedSentenceIds.length)} />
+              <StatItem label="Son pratik" value={formatSpeakingLastPractice(speakingStats.lastPracticedAt)} />
+            </View>
+          )}
+        </AppCard>
+
         <View style={styles.filterRow}>
           {speakingLibraryLevelOrder.map((groupId) => (
             <Chip
@@ -97,6 +121,15 @@ export function SpeakingLibraryScreen({ navigation }: SpeakingLibraryScreenProps
         </View>
       </AppScrollView>
     </Screen>
+  );
+}
+
+function StatItem({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.statItem}>
+      <Text style={styles.statValue}>{value}</Text>
+      <Text style={styles.statLabel}>{label}</Text>
+    </View>
   );
 }
 
@@ -195,6 +228,38 @@ const styles = StyleSheet.create({
   muted: {
     ...typography.body,
     color: colors.muted,
+  },
+  statsCard: {
+    gap: spacing.sm,
+  },
+  statsTitle: {
+    ...typography.body,
+    color: colors.deepViolet,
+    fontWeight: '900',
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  statItem: {
+    backgroundColor: colors.paperLavender,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.md,
+    borderWidth: colors.comicBorderWidth,
+    flexBasis: '47%',
+    flexGrow: 1,
+    padding: spacing.sm,
+  },
+  statValue: {
+    ...typography.body,
+    color: colors.deepViolet,
+    fontWeight: '900',
+  },
+  statLabel: {
+    ...typography.small,
+    color: colors.muted,
+    fontWeight: '800',
   },
   filterRow: {
     flexDirection: 'row',

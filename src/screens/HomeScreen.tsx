@@ -13,6 +13,7 @@ import { TopBar } from '../components/TopBar';
 import { getNextPlayableLesson, getPlayableLessonsForPlan, isLessonUnlocked } from '../data/lessons';
 import { speakingLibrarySentences } from '../data/speakingLibrary';
 import { colors, radius, shadows, spacing, typography } from '../data/theme';
+import { formatSpeakingScorePercent, normalizeSpeakingStats } from '../lib/speakingStats';
 import { getDueReviewCards, getReviewCoverage } from '../lib/srs';
 import type { RootNavigation } from '../navigation/AppNavigator';
 import { trackLocalEvent } from '../services/localEventLog';
@@ -89,6 +90,10 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
       : speakingLibrarySentences.length + ' hazır cümle';
   const primaryButton = nextLesson ? 'Derse başla' : dueCards.length > 0 ? 'Tekrar et' : 'Sesli pratik aç';
   const latestExam = userState.examHistory[userState.examHistory.length - 1];
+  const speakingStats = normalizeSpeakingStats(userState.speakingStats);
+  const speakingPracticeDetail = speakingStats.totalAttempts > 0
+    ? speakingStats.totalAttempts + ' deneme · en iyi ' + formatSpeakingScorePercent(speakingStats.bestScorePercent)
+    : speakingLibrarySentences.length + ' hazır cümle';
   const reviewItems = [
     {
       id: 'vocab',
@@ -112,7 +117,7 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
       id: 'speaking',
       icon: Mic,
       title: 'Konuşma pratiği',
-      detail: speakingLibrarySentences.length + ' hazır cümle',
+      detail: speakingPracticeDetail,
       onPress: () => navigation.navigate('SpeakingLibrary'),
     },
     {

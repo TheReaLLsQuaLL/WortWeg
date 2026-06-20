@@ -37,7 +37,7 @@ import {
 import type { CurriculumLevelId } from '../types/curriculum';
 import type { LearningPlanInput } from '../types/learningPlan';
 import type { PlacementResult } from '../types/placement';
-import type { UserState } from '../types/userState';
+import type { SpeakingStatsLevelId, UserState } from '../types/userState';
 import { trackLocalEvent } from '../services/localEventLog';
 import type { OnboardingCompletion } from '../services/onboardingService';
 
@@ -55,6 +55,10 @@ export type RootStackParamList = {
     expectedText?: string;
     meaningTr?: string;
     tipTr?: string;
+    sentenceId?: string;
+    sourceLessonId?: string;
+    level?: SpeakingStatsLevelId;
+    isB1Preview?: boolean;
   } | undefined;
   SpeakingLibrary: undefined;
   Mistakes: undefined;
@@ -366,12 +370,16 @@ export function AppNavigator() {
             </Stack.Screen>
             <Stack.Screen name="SpeakingPractice">
               {({ navigation, route }) => (
-                <SpeakingPracticeScreen navigation={navigation} route={route} />
+                <SpeakingPracticeScreen
+                  navigation={navigation}
+                  onUpdateState={commitUserState}
+                  route={route}
+                />
               )}
             </Stack.Screen>
             <Stack.Screen name="SpeakingLibrary">
               {({ navigation }) => (
-                <SpeakingLibraryScreen navigation={navigation} />
+                <SpeakingLibraryScreen navigation={navigation} userState={userState} />
               )}
             </Stack.Screen>
             <Stack.Screen name="Mistakes">
