@@ -164,6 +164,20 @@ const isB1PreviewTopicMessage = (message: string) => {
     'dankbar',
     'ich wäre ihnen dankbar',
     'ich ware ihnen dankbar',
+    'plan anlat',
+    'gelecek niyet',
+    'niyet',
+    'vorhaben',
+    'ich habe vor',
+    'ich plane',
+    'ich werde',
+    'ich möchte',
+    'ich moechte',
+    'nächste woche',
+    'naechste woche',
+    'wenn ich zeit habe',
+    'sobald',
+    'fertig bin',
   ]);
 };
 
@@ -375,6 +389,7 @@ const localTeacherReply = (message: string): TeacherReply => {
   const asksAdvice = includesAny(text, ['tavsiye', 'öneri', 'solltest', 'würde', 'wurde', 'an deiner stelle', 'es wäre besser', 'es ware besser', 'vielleicht könntest', 'vielleicht konntest', 'warum versuchst']);
   const asksComparison = includesAny(text, ['karşılaştır', 'karsilastir', 'tercih', 'größer', 'groesser', 'kleiner', 'besser als', 'schlechter als', 'genauso', 'lieber', 'am liebsten', 'bevorzuge', 'bevorzugen', 'je mehr', 'desto']);
   const asksComplaint = includesAny(text, ['şikayet', 'sikayet', 'sorun', 'problem', 'beschwer', 'leider', 'könnten sie bitte', 'koennten sie bitte', 'rechnung', 'bestellung', 'funktioniert nicht', 'dankbar', 'ich wäre ihnen dankbar', 'ich ware ihnen dankbar']);
+  const asksFuturePlan = includesAny(text, ['plan anlat', 'gelecek niyet', 'niyet', 'vorhaben', 'ich habe vor', 'ich plane', 'ich werde', 'ich möchte', 'ich moechte', 'nächste woche', 'naechste woche', 'wenn ich zeit habe', 'sobald', 'fertig bin']);
 
   if (asksB1Scope && !asksB1Preview) {
     return {
@@ -386,13 +401,14 @@ const localTeacherReply = (message: string): TeacherReply => {
         'B1 Ön İzleme: tavsiye ve öneri verme',
         'B1 Ön İzleme: karşılaştırma ve tercih bildirme',
         'B1 Ön İzleme: şikayet ve sorun bildirme',
+        'B1 Ön İzleme: plan anlatma ve gelecek niyetleri',
       ],
     };
   }
 
-  if (asksB1Preview && !asksComplaint && !asksComparison && !asksAdvice && !asksCauseEffect && !asksOpinion) {
+  if (asksB1Preview && !asksFuturePlan && !asksComplaint && !asksComparison && !asksAdvice && !asksCauseEffect && !asksOpinion) {
     return {
-      text: 'Wolli şu anda çevrimdışı. B1 Ön İzleme kısa ve isteğe bağlıdır; tam B1 yolu yakında. Şu an beş konu var.',
+      text: 'Wolli şu anda çevrimdışı. B1 Ön İzleme kısa ve isteğe bağlıdır; tam B1 yolu yakında. Şu an altı konu var.',
       corrections: [],
       suggestions: [
         'Görüş bildirme: Ich denke, dass...',
@@ -400,7 +416,20 @@ const localTeacherReply = (message: string): TeacherReply => {
         'Tavsiye: Du solltest..., Ich würde...',
         'Karşılaştırma: leichter als..., genauso ... wie, lieber',
         'Şikayet: Leider..., Könnten Sie bitte...?',
+        'Plan: Ich habe vor..., Ich plane...',
       ],
+    };
+  }
+
+  if (asksFuturePlan) {
+    return {
+      text: 'Wolli şu anda çevrimdışı. B1 Ön İzleme içinde gelecek planı anlatırken vorhaben ve planen niyeti, möchte isteği, werde ise gelecek niyetini anlatır. wenn/sobald cümlelerinde fiil sona gider.',
+      corrections: [
+        'vorhaben: Ich habe vor, jeden Tag Deutsch zu üben.',
+        'planen: Ich plane, nächste Woche mehr zu sprechen.',
+        'wenn/sobald: Wenn ich Zeit habe, mache ich eine kurze Übung.',
+      ],
+      suggestions: ['Kısa pratik: Sobald ich fertig bin, höre ich einen Dialog.'],
     };
   }
 
@@ -474,6 +503,7 @@ const localTeacherReply = (message: string): TeacherReply => {
       'B1 tavsiye için: Du solltest jeden Tag kurz üben.',
       'B1 tercih için: Ich lerne lieber am Morgen.',
       'B1 sorun için: Leider funktioniert die App nicht richtig.',
+      'B1 plan için: Ich habe vor, jeden Tag Deutsch zu üben.',
     ],
   };
 };
