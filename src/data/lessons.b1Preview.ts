@@ -42,8 +42,10 @@ export const lessonsB1Preview: Lesson[] = [
       { id: 'trotzdem', german: 'trotzdem', turkish: 'buna rağmen', exampleDe: 'Es ist schwer. Trotzdem versuche ich es.', exampleTr: 'Zor. Buna rağmen deniyorum.', tags: ['connector'] },
     ],
     grammar: [
-      grammarTip('Görüş bildirirken güvenli kalıp', 'B1 başlangıcında uzun cümle kurmak zorunda değilsin. Önce kısa görüş + kısa sebep yeterlidir.', [
+      grammarTip('Görüş bildirirken güvenli kalıp', 'Ich finde, Ich denke ve Ich bin der Meinung kalıplarıyla dass kullanabilirsin. dass cümlesinde fiil sona gider.', [
         { german: 'Ich finde den Vorschlag gut.', turkish: 'Öneriyi iyi buluyorum.' },
+        { german: 'Ich denke, dass der Vorschlag gut ist.', turkish: 'Önerinin iyi olduğunu düşünüyorum.' },
+        { german: 'Ich bin der Meinung, dass die Lösung einfach ist.', turkish: 'Çözümün basit olduğu görüşündeyim.' },
         { german: 'Meiner Meinung nach ist die Lösung einfach.', turkish: 'Bana göre çözüm basit.' },
       ]),
       grammarTip('weil ile sebep ekleme', 'weil cümlesinde çekimli fiil sona gider. Bu B1 için önemli bir adımdır.', [
