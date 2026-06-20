@@ -22,6 +22,7 @@ import { PlanSetupScreen } from '../screens/PlanSetupScreen';
 import { PlacementResultScreen } from '../screens/PlacementResultScreen';
 import { PlacementTestScreen } from '../screens/PlacementTestScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
+import { SpeakingLibraryScreen } from '../screens/SpeakingLibraryScreen';
 import { SpeakingPracticeScreen } from '../screens/SpeakingPracticeScreen';
 import { VocabScreen } from '../screens/VocabScreen';
 import {
@@ -54,6 +55,7 @@ export type RootStackParamList = {
     meaningTr?: string;
     tipTr?: string;
   } | undefined;
+  SpeakingLibrary: undefined;
   PlanOverview: undefined;
   PlanSetup: { mode?: 'edit' } | undefined;
   CurriculumMap: undefined;
@@ -363,6 +365,11 @@ export function AppNavigator() {
             <Stack.Screen name="SpeakingPractice">
               {({ navigation, route }) => (
                 <SpeakingPracticeScreen navigation={navigation} route={route} />
+              )}
+            </Stack.Screen>
+            <Stack.Screen name="SpeakingLibrary">
+              {({ navigation }) => (
+                <SpeakingLibraryScreen navigation={navigation} />
               )}
             </Stack.Screen>
             <Stack.Screen name="PlanOverview">

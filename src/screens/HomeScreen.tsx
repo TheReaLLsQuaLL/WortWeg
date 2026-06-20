@@ -143,7 +143,7 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
           <QuickAction badgeCount={dueCards.length} icon={RotateCcw} label="Kelime" onPress={() => navigation.navigate('Main', { initialTab: 'vocab' })} />
           <QuickAction badgeCount={mistakeCount} icon={NotebookTabs} label="Hatalarım" onPress={() => navigation.navigate('Main', { initialTab: 'profile' })} />
           <QuickAction icon={MessageCircle} label="Wolli" onPress={() => navigation.navigate('Main', { initialTab: 'chat' })} />
-          <QuickAction icon={Mic} label="Ses" onPress={() => navigation.navigate('SpeakingPractice', {})} />
+          <QuickAction icon={Mic} label="Ses" onPress={() => navigation.navigate('SpeakingLibrary')} />
         </View>
         </AnimatedCard>
 
