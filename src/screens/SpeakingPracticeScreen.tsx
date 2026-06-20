@@ -220,6 +220,9 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
   const progressText = route.params?.expectedText
     ? 'Ders cümlesi'
     : String(promptIndex + 1) + '/' + speakingPromptsA1.length;
+  const headerKicker = route.params?.expectedText
+    ? 'Konuşma pratiği · ' + progressText
+    : 'A1 konuşma pratiği · ' + progressText;
   const busyStatuses: PracticeStatus[] = ['requestingPermission', 'recording', 'cancelArmed', 'cancelling', 'stopping', 'analyzing'];
   const canPressRecord = !busyStatuses.includes(status);
   const canReplay = Boolean(audioUri) && !busyStatuses.includes(status);
@@ -907,7 +910,7 @@ export function SpeakingPracticeScreen({ navigation, route }: SpeakingPracticeSc
           <ArrowLeft color={colors.white} size={22} />
         </Pressable>
         <View style={styles.headerCopy}>
-          <Text style={styles.kicker}>A1 konuşma pratiği · {progressText}</Text>
+          <Text style={styles.kicker}>{headerKicker}</Text>
           <Text style={styles.headerTitle}>Sesli dene</Text>
         </View>
       </View>
