@@ -124,6 +124,17 @@ const isB1PreviewTopicMessage = (message: string) => {
     'deswegen',
     'darum',
     'aus diesem grund',
+    'tavsiye',
+    'öneri',
+    'solltest',
+    'würde',
+    'wurde',
+    'an deiner stelle',
+    'es wäre besser',
+    'es ware besser',
+    'vielleicht könntest',
+    'vielleicht konntest',
+    'warum versuchst',
   ]);
 };
 
@@ -332,6 +343,7 @@ const localTeacherReply = (message: string): TeacherReply => {
   const asksB1Preview = isB1PreviewTopicMessage(message);
   const asksCauseEffect = includesAny(text, ['neden', 'sonuç', 'sebep', 'weil', 'deshalb', 'deswegen', 'darum', 'aus diesem grund']);
   const asksOpinion = includesAny(text, ['görüş', 'fikir', 'düşünce', 'meiner meinung', 'ich denke', 'ich finde', 'ich bin der meinung', 'dass']);
+  const asksAdvice = includesAny(text, ['tavsiye', 'öneri', 'solltest', 'würde', 'wurde', 'an deiner stelle', 'es wäre besser', 'es ware besser', 'vielleicht könntest', 'vielleicht konntest', 'warum versuchst']);
 
   if (asksB1Scope && !asksB1Preview) {
     return {
@@ -340,7 +352,32 @@ const localTeacherReply = (message: string): TeacherReply => {
       suggestions: [
         'B1 Ön İzleme: görüş bildirme',
         'B1 Ön İzleme: neden-sonuç anlatma',
+        'B1 Ön İzleme: tavsiye ve öneri verme',
       ],
+    };
+  }
+
+  if (asksB1Preview && !asksAdvice && !asksCauseEffect && !asksOpinion) {
+    return {
+      text: 'Wolli şu anda çevrimdışı. B1 Ön İzleme kısa ve isteğe bağlıdır; tam B1 yolu yakında. Şu an üç konu var.',
+      corrections: [],
+      suggestions: [
+        'Görüş bildirme: Ich denke, dass...',
+        'Neden-sonuç: weil, deshalb, deswegen',
+        'Tavsiye: Du solltest..., Ich würde...',
+      ],
+    };
+  }
+
+  if (asksAdvice) {
+    return {
+      text: 'Wolli şu anda çevrimdışı. B1 Ön İzleme içinde tavsiye verirken solltest daha doğrudan, würde ise daha yumuşak öneri yapar. wenn cümlesinde fiil sona gider.',
+      corrections: [
+        'solltest: Du solltest jeden Tag zehn Minuten Deutsch üben.',
+        'würde: An deiner Stelle würde ich langsamer sprechen.',
+        'wenn: Es wäre besser, wenn du die Sätze laut liest.',
+      ],
+      suggestions: ['Kısa pratik: Vielleicht könntest du morgen noch einmal üben.'],
     };
   }
 
@@ -375,6 +412,7 @@ const localTeacherReply = (message: string): TeacherReply => {
     suggestions: [
       'Kendini tanıtmak için: Ich heiße ...',
       'B1 Ön İzleme için: Ich denke, dass der Vorschlag gut ist.',
+      'B1 tavsiye için: Du solltest jeden Tag kurz üben.',
     ],
   };
 };

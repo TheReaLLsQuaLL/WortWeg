@@ -16,6 +16,7 @@ export const playableLessons: Lesson[] = [...mainPathLessons, ...lessonsB1Previe
 export {
   B1_PREVIEW_LESSON_ID,
   B1_PREVIEW_LESSON_2_ID,
+  B1_PREVIEW_LESSON_3_ID,
   B1_PREVIEW_LESSON_IDS,
   isB1PreviewLessonId,
   lessonsB1Preview,

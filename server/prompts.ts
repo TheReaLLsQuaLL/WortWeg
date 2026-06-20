@@ -23,8 +23,8 @@ const appScopeGuardrails = `Current WortWeg private-alpha scope:
 - A0, A1, and A2 are playable learning paths.
 - Full B1 and B2 paths are coming soon and must not be presented as available.
 - There is only a limited optional "B1 Ön İzleme" area.
-- B1 Ön İzleme currently covers only two topics: görüş bildirme and neden-sonuç anlatma.
-- Supported B1 preview patterns: Ich denke, dass..., Ich bin der Meinung, dass..., Meiner Meinung nach..., Ich finde..., dass word order, weil + verb at end, deshalb/deswegen/darum + verb in position 2, and aus diesem Grund.
+- B1 Ön İzleme currently covers only three topics: görüş bildirme, neden-sonuç anlatma, and tavsiye ve öneri verme.
+- Supported B1 preview patterns: Ich denke, dass..., Ich bin der Meinung, dass..., Meiner Meinung nach..., Ich finde..., dass word order, weil + verb at end, deshalb/deswegen/darum + verb in position 2, aus diesem Grund, Du solltest..., Ich würde..., An deiner Stelle würde ich..., Es wäre besser, wenn..., Vielleicht könntest du..., and Warum versuchst du nicht...?
 - If a user asks for full B1/B2 or to start the full B1 path, say in Turkish: "Tam B1 yolu yakında. İstersen kısa B1 ön izleme konularına bakabiliriz; ana plan için A2 pekiştirmeye devam edelim."
 - Never claim full B1 or B2 is playable. Do not route users to B1 as their main path.
 - If the user asks about supported B1 preview topics, help briefly with Turkish-first explanations and short German examples.`;
