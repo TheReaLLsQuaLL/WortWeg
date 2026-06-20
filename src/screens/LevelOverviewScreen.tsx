@@ -69,7 +69,7 @@ export function LevelOverviewScreen({ navigation, route }: LevelOverviewScreenPr
         {previewLessons.length > 0 ? (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>B1 Ön İzleme</Text>
-            <Text style={styles.body}>Bu kısa ön izleme. Tam B1 yolu yakında.</Text>
+            <Text style={styles.body}>Bu kısa bir ön izleme. Tam B1 yolu yakında.</Text>
             {previewLessons.map((lesson) => (
               <Pressable
                 key={lesson.id}

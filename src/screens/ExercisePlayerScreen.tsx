@@ -22,7 +22,7 @@ import { useDetailFooterSpacing } from '../components/layout';
 import { SpeakerButton } from '../components/SpeakerButton';
 import { XP } from '../data/constants';
 import { getChoiceText, shuffleWithSeed, withShuffledExerciseChoices } from '../lib/choiceUtils';
-import { getLessonById, getNextPlayableLesson } from '../data/lessons';
+import { B1_PREVIEW_LESSON_ID, getLessonById, getNextPlayableLesson } from '../data/lessons';
 import { articleColors, colors, radius, shadows, spacing, typography } from '../data/theme';
 import {
   buildExercisesForLesson,
@@ -289,6 +289,7 @@ export function ExercisePlayerScreen({
     const hasMistakes = completion.mistakeCount > 0;
     const hasNextLesson = Boolean(completion.nextLessonId);
     const isA2PathComplete = lesson.id === 'a2-12-a2-genel-tekrar' && !hasNextLesson;
+    const isB1PreviewComplete = lesson.id === B1_PREVIEW_LESSON_ID;
     const selectCompletionAction = (actionId: string, runAction: () => void) => {
       trackLocalEvent({
         type: 'lesson_completion_action_selected',
@@ -310,6 +311,7 @@ export function ExercisePlayerScreen({
     const goVocab = () => navigation.navigate('Main', { initialTab: 'vocab' });
     const goMistakes = () => navigation.navigate('Main', { initialTab: 'profile' });
     const goA2Review = () => navigation.navigate('LessonIntro', { lessonId: 'a2-01-gunluk-planlar' });
+    const goB1PreviewOverview = () => navigation.navigate('LevelOverview', { levelId: 'B1' });
     const goSpeakingPrompt = () => navigation.navigate('SpeakingPractice', {
       source: 'lesson_completion',
       promptId: lesson.id + '-speaking',
@@ -322,7 +324,19 @@ export function ExercisePlayerScreen({
     return (
       <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.completionContent}>
-          {isA2PathComplete ? (
+          {isB1PreviewComplete ? (
+            <View style={styles.b1PreviewCompletionHero}>
+              <HalftoneAccent color={colors.primaryPurple} opacity={0.1} size="medium" style={styles.completionTexture} />
+              <View style={styles.completionIconBadge}>
+                <CheckCircle2 color={colors.primaryPurple} size={36} strokeWidth={2.8} />
+              </View>
+              <Text style={styles.completionTitle}>B1 Ön İzleme tamamlandı!</Text>
+              <Text style={styles.completionSubtitle}>Tam B1 yolu yakında. Şimdilik A2 pekiştirmeye devam edebilirsin.</Text>
+              <View style={styles.comingSoonPill}>
+                <Text style={styles.comingSoonText}>Kısa ön izleme</Text>
+              </View>
+            </View>
+          ) : isA2PathComplete ? (
             <View style={styles.a2CompletionHero}>
               <HalftoneAccent color={colors.yellowCta} opacity={0.12} size="medium" style={styles.completionTexture} />
               <View style={styles.completionIconBadge}>
@@ -368,7 +382,37 @@ export function ExercisePlayerScreen({
             </View>
           )}
 
-          {isA2PathComplete ? (
+          {isB1PreviewComplete ? (
+            <View style={styles.a2ActionGrid}>
+              <AppButton
+                icon={BookOpen}
+                onPress={() => selectCompletionAction('b1_preview_overview', goB1PreviewOverview)}
+                title="B1 Ön İzleme"
+                style={styles.gridActionButton}
+              />
+              <AppButton
+                icon={RotateCcw}
+                onPress={() => selectCompletionAction('vocab_review', goVocab)}
+                title="Kelime tekrarı"
+                variant="secondary"
+                style={styles.gridActionButton}
+              />
+              <AppButton
+                icon={NotebookTabs}
+                onPress={() => selectCompletionAction('mistakes_review', goMistakes)}
+                title="Hatalar"
+                variant="secondary"
+                style={styles.gridActionButton}
+              />
+              <AppButton
+                icon={Home}
+                onPress={() => selectCompletionAction('home', goHome)}
+                title="Ana sayfa"
+                variant="secondary"
+                style={styles.gridActionButton}
+              />
+            </View>
+          ) : isA2PathComplete ? (
             <View style={styles.a2ActionGrid}>
               <AppButton
                 icon={RotateCcw}
@@ -852,6 +896,17 @@ const styles = StyleSheet.create({
   a2CompletionHero: {
     alignItems: 'center',
     backgroundColor: colors.comicYellowWash,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.xl,
+    borderWidth: colors.comicBorderWidth,
+    gap: spacing.md,
+    overflow: 'hidden',
+    padding: spacing.xl,
+    ...shadows.comic,
+  },
+  b1PreviewCompletionHero: {
+    alignItems: 'center',
+    backgroundColor: colors.paperLavender,
     borderColor: colors.comicBorderColor,
     borderRadius: radius.xl,
     borderWidth: colors.comicBorderWidth,

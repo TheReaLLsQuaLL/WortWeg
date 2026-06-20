@@ -19,7 +19,7 @@ export const lessonsB1Preview: Lesson[] = [
     titleDe: 'Meinung äußern',
     subtitleTr: 'Kısa görüş, sebep ve karşılık cümleleri',
     goalTr: 'Bir konuda kısa görüş bildirmek, sebep vermek ve nazikçe katılmak ya da katılmamak.',
-    descriptionTr: 'Bu kısa ön izleme tam B1 yolu değildir. A2 temeli üstüne görüş bildirme kalıplarını güvenli şekilde denersin.',
+    descriptionTr: 'Bu kısa bir ön izleme. Tam B1 yolu yakında; A2 temeli üstüne görüş bildirme kalıplarını güvenli şekilde denersin.',
     estimatedMinutes: 16,
     objectives: [
       'Bence / bana göre kalıplarını Almancada tanıma',
@@ -51,7 +51,7 @@ export const lessonsB1Preview: Lesson[] = [
       { speaker: 'Aylin', line: 'Warum?', translationTr: 'Neden?' },
       { speaker: 'Jonas', line: 'Weil die Lösung einfach ist.', translationTr: 'Çünkü çözüm basit.' },
     ],
-    commonMistakeTr: 'B1 ön izlemede uzun cevap vermeye çalışma. Önce görüşünü net söyle, sonra tek bir sebep ekle.',
+    commonMistakeTr: 'B1 Ön İzleme içinde uzun cevap vermeye çalışma. Önce görüşünü net söyle, sonra tek bir sebep ekle.',
     speakingPrompt: {
       titleTr: 'Görüşünü söyle',
       promptDe: 'Meiner Meinung nach ist der Vorschlag gut, weil die Lösung einfach ist.',
@@ -62,14 +62,14 @@ export const lessonsB1Preview: Lesson[] = [
       promptTr: 'Bir plan hakkında bir görüş ve bir sebep yaz.',
       sampleAnswerDe: 'Ich finde den Plan gut, weil er klar ist.',
     },
-    reviewSummaryTr: 'Bu ön izlemede görüş bildirme, kısa sebep verme ve B1 seviyesine hazırlık kalıplarını denedin. Tam B1 yolu yakında.',
+    reviewSummaryTr: 'B1 Ön İzleme içinde görüş bildirme ve kısa sebep verme kalıplarını denedin. Tam B1 yolu yakında.',
     steps: [
-      { type: 'intro', titleTr: 'B1 ön izleme', bodyTr: 'Bu ders tam B1 yolu değildir; sadece görüş bildirme yapısına güvenli bir bakıştır.' },
+      { type: 'intro', titleTr: 'B1 Ön İzleme', bodyTr: 'Bu kısa bir ön izleme. Tam B1 yolu yakında; burada sadece görüş bildirme yapısına güvenli bir bakış var.' },
       { type: 'vocabulary', titleTr: 'Görüş kelimeleri' },
       { type: 'grammar', titleTr: 'Kısa sebep: weil' },
       { type: 'speaking', titleTr: 'Sesli görüş cümlesi', promptDe: 'Ich stimme zu, weil der Plan klar ist.', promptTr: 'Cümleyi net ve sakin söyle.' },
       { type: 'writing', titleTr: 'Mini yazma', promptTr: 'Bir görüş + bir sebep yaz.' },
-      { type: 'review', titleTr: 'Özet', bodyTr: 'B1 ön izleme sadece kısa bir denemedir. Ana yol A0/A1/A2 olarak kalır.' },
+      { type: 'review', titleTr: 'Özet', bodyTr: 'B1 Ön İzleme kısa bir denemedir. Ana yol A0/A1/A2 olarak kalır.' },
     ],
     baseExercises: [
       choiceExercise({
