@@ -150,6 +150,20 @@ const isB1PreviewTopicMessage = (message: string) => {
     'bevorzugen',
     'je mehr',
     'desto',
+    'şikayet',
+    'sikayet',
+    'sorun',
+    'problem',
+    'beschwer',
+    'leider',
+    'könnten sie bitte',
+    'koennten sie bitte',
+    'rechnung',
+    'bestellung',
+    'funktioniert nicht',
+    'dankbar',
+    'ich wäre ihnen dankbar',
+    'ich ware ihnen dankbar',
   ]);
 };
 
@@ -360,6 +374,7 @@ const localTeacherReply = (message: string): TeacherReply => {
   const asksOpinion = includesAny(text, ['görüş', 'fikir', 'düşünce', 'meiner meinung', 'ich denke', 'ich finde', 'ich bin der meinung', 'dass']);
   const asksAdvice = includesAny(text, ['tavsiye', 'öneri', 'solltest', 'würde', 'wurde', 'an deiner stelle', 'es wäre besser', 'es ware besser', 'vielleicht könntest', 'vielleicht konntest', 'warum versuchst']);
   const asksComparison = includesAny(text, ['karşılaştır', 'karsilastir', 'tercih', 'größer', 'groesser', 'kleiner', 'besser als', 'schlechter als', 'genauso', 'lieber', 'am liebsten', 'bevorzuge', 'bevorzugen', 'je mehr', 'desto']);
+  const asksComplaint = includesAny(text, ['şikayet', 'sikayet', 'sorun', 'problem', 'beschwer', 'leider', 'könnten sie bitte', 'koennten sie bitte', 'rechnung', 'bestellung', 'funktioniert nicht', 'dankbar', 'ich wäre ihnen dankbar', 'ich ware ihnen dankbar']);
 
   if (asksB1Scope && !asksB1Preview) {
     return {
@@ -370,20 +385,34 @@ const localTeacherReply = (message: string): TeacherReply => {
         'B1 Ön İzleme: neden-sonuç anlatma',
         'B1 Ön İzleme: tavsiye ve öneri verme',
         'B1 Ön İzleme: karşılaştırma ve tercih bildirme',
+        'B1 Ön İzleme: şikayet ve sorun bildirme',
       ],
     };
   }
 
-  if (asksB1Preview && !asksComparison && !asksAdvice && !asksCauseEffect && !asksOpinion) {
+  if (asksB1Preview && !asksComplaint && !asksComparison && !asksAdvice && !asksCauseEffect && !asksOpinion) {
     return {
-      text: 'Wolli şu anda çevrimdışı. B1 Ön İzleme kısa ve isteğe bağlıdır; tam B1 yolu yakında. Şu an dört konu var.',
+      text: 'Wolli şu anda çevrimdışı. B1 Ön İzleme kısa ve isteğe bağlıdır; tam B1 yolu yakında. Şu an beş konu var.',
       corrections: [],
       suggestions: [
         'Görüş bildirme: Ich denke, dass...',
         'Neden-sonuç: weil, deshalb, deswegen',
         'Tavsiye: Du solltest..., Ich würde...',
         'Karşılaştırma: leichter als..., genauso ... wie, lieber',
+        'Şikayet: Leider..., Könnten Sie bitte...?',
       ],
+    };
+  }
+
+  if (asksComplaint) {
+    return {
+      text: 'Wolli şu anda çevrimdışı. B1 Ön İzleme içinde sorun bildirirken leider daha yumuşak, Könnten Sie bitte ...? daha kibar ve resmi bir istek yapar. dass/wenn cümlelerinde fiil sona gider.',
+      corrections: [
+        'leider: Leider funktioniert die App nicht richtig.',
+        'istek: Könnten Sie bitte die Rechnung prüfen?',
+        'dass/wenn: Das Problem ist, dass ich keine Antwort bekommen habe.',
+      ],
+      suggestions: ['Kısa pratik: Ich wäre Ihnen dankbar, wenn Sie mir helfen könnten.'],
     };
   }
 
@@ -444,6 +473,7 @@ const localTeacherReply = (message: string): TeacherReply => {
       'B1 Ön İzleme için: Ich denke, dass der Vorschlag gut ist.',
       'B1 tavsiye için: Du solltest jeden Tag kurz üben.',
       'B1 tercih için: Ich lerne lieber am Morgen.',
+      'B1 sorun için: Leider funktioniert die App nicht richtig.',
     ],
   };
 };
