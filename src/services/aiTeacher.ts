@@ -135,6 +135,21 @@ const isB1PreviewTopicMessage = (message: string) => {
     'vielleicht könntest',
     'vielleicht konntest',
     'warum versuchst',
+    'karşılaştır',
+    'karsilastir',
+    'tercih',
+    'größer',
+    'groesser',
+    'kleiner',
+    'besser als',
+    'schlechter als',
+    'genauso',
+    'lieber',
+    'am liebsten',
+    'bevorzuge',
+    'bevorzugen',
+    'je mehr',
+    'desto',
   ]);
 };
 
@@ -344,6 +359,7 @@ const localTeacherReply = (message: string): TeacherReply => {
   const asksCauseEffect = includesAny(text, ['neden', 'sonuç', 'sebep', 'weil', 'deshalb', 'deswegen', 'darum', 'aus diesem grund']);
   const asksOpinion = includesAny(text, ['görüş', 'fikir', 'düşünce', 'meiner meinung', 'ich denke', 'ich finde', 'ich bin der meinung', 'dass']);
   const asksAdvice = includesAny(text, ['tavsiye', 'öneri', 'solltest', 'würde', 'wurde', 'an deiner stelle', 'es wäre besser', 'es ware besser', 'vielleicht könntest', 'vielleicht konntest', 'warum versuchst']);
+  const asksComparison = includesAny(text, ['karşılaştır', 'karsilastir', 'tercih', 'größer', 'groesser', 'kleiner', 'besser als', 'schlechter als', 'genauso', 'lieber', 'am liebsten', 'bevorzuge', 'bevorzugen', 'je mehr', 'desto']);
 
   if (asksB1Scope && !asksB1Preview) {
     return {
@@ -353,19 +369,33 @@ const localTeacherReply = (message: string): TeacherReply => {
         'B1 Ön İzleme: görüş bildirme',
         'B1 Ön İzleme: neden-sonuç anlatma',
         'B1 Ön İzleme: tavsiye ve öneri verme',
+        'B1 Ön İzleme: karşılaştırma ve tercih bildirme',
       ],
     };
   }
 
-  if (asksB1Preview && !asksAdvice && !asksCauseEffect && !asksOpinion) {
+  if (asksB1Preview && !asksComparison && !asksAdvice && !asksCauseEffect && !asksOpinion) {
     return {
-      text: 'Wolli şu anda çevrimdışı. B1 Ön İzleme kısa ve isteğe bağlıdır; tam B1 yolu yakında. Şu an üç konu var.',
+      text: 'Wolli şu anda çevrimdışı. B1 Ön İzleme kısa ve isteğe bağlıdır; tam B1 yolu yakında. Şu an dört konu var.',
       corrections: [],
       suggestions: [
         'Görüş bildirme: Ich denke, dass...',
         'Neden-sonuç: weil, deshalb, deswegen',
         'Tavsiye: Du solltest..., Ich würde...',
+        'Karşılaştırma: leichter als..., genauso ... wie, lieber',
       ],
+    };
+  }
+
+  if (asksComparison) {
+    return {
+      text: 'Wolli şu anda çevrimdışı. B1 Ön İzleme içinde karşılaştırma için als farklılık, genauso ... wie eşitlik anlatır. Tercih için lieber, am liebsten ve ich bevorzuge kullanabilirsin.',
+      corrections: [
+        'als: Deutsch ist leichter als ich dachte.',
+        'wie: Dieser Satz ist genauso wichtig wie der erste Satz.',
+        'tercih: Ich lerne lieber am Morgen.',
+      ],
+      suggestions: ['Kısa pratik: Ich bevorzuge einfache Beispiele.'],
     };
   }
 
@@ -413,6 +443,7 @@ const localTeacherReply = (message: string): TeacherReply => {
       'Kendini tanıtmak için: Ich heiße ...',
       'B1 Ön İzleme için: Ich denke, dass der Vorschlag gut ist.',
       'B1 tavsiye için: Du solltest jeden Tag kurz üben.',
+      'B1 tercih için: Ich lerne lieber am Morgen.',
     ],
   };
 };

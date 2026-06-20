@@ -31,13 +31,13 @@ const makeMockResponse = (
     tr:
       request.mode === 'chat'
         ? isB1Preview
-          ? 'Wolli şu anda çevrimdışı. Tam B1 yolu yakında; kısa B1 Ön İzleme içinde görüş bildirme, neden-sonuç ve tavsiye-öneri cümleleriyle pratik yapabiliriz.'
+          ? 'Wolli şu anda çevrimdışı. Tam B1 yolu yakında; kısa B1 Ön İzleme içinde görüş bildirme, neden-sonuç, tavsiye-öneri ve karşılaştırma-tercih cümleleriyle pratik yapabiliriz.'
           : 'Wolli şu anda çevrimdışı. A0/A1/A2 ve kısa B1 Ön İzleme konularında basit pratik yapabiliriz.'
         : 'Yerel geri bildirim: Cevabın A1 düzeyinde kısa ve anlaşılır şekilde değerlendirildi.',
     tip: isPronunciation
       ? 'Bu konuşma geri bildirimi yazıya dökülen cümlen ile hedef cümleyi karşılaştırır; gerçek fonetik ses puanı daha sonra eklenecek.'
       : isB1Preview
-        ? 'B1 Ön İzleme sınırlıdır: dass/weil fiil sonu, deshalb/deswegen/darum fiil ikinci sıra; solltest/würde nazik tavsiye verir.'
+        ? 'B1 Ön İzleme sınırlıdır: dass/weil fiil sonu, deshalb/deswegen/darum fiil ikinci sıra; solltest/würde tavsiye, als/wie/lieber tercih-karşılaştırma için kullanılır.'
         : 'Artikel, fiil sırası ve kısa cümle doğruluğuna dikkat et.',
     score:
       request.mode === 'writing_feedback' || request.mode === 'speaking_feedback'
