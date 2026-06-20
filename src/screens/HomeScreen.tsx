@@ -105,8 +105,8 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
       id: 'mistakes',
       icon: NotebookTabs,
       title: 'Hatalar',
-      detail: mistakeCount > 0 ? mistakeCount + ' hata tekrar bekliyor' : 'Henüz hata yok',
-      onPress: () => navigation.navigate('Main', { initialTab: 'profile' }),
+      detail: mistakeCount > 0 ? mistakeCount + ' hata tekrar bekliyor' : 'Yanlış yaptığın cümleleri gör',
+      onPress: () => navigation.navigate('Mistakes'),
     },
     {
       id: 'speaking',
@@ -206,7 +206,7 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
         <AnimatedCard delayMs={120}>
         <View style={styles.quickActions}>
           <QuickAction badgeCount={dueCards.length} icon={RotateCcw} label="Kelime" onPress={() => navigation.navigate('Main', { initialTab: 'vocab' })} />
-          <QuickAction badgeCount={mistakeCount} icon={NotebookTabs} label="Hatalarım" onPress={() => navigation.navigate('Main', { initialTab: 'profile' })} />
+          <QuickAction badgeCount={mistakeCount} icon={NotebookTabs} label="Hatalar" onPress={() => navigation.navigate('Mistakes')} />
           <QuickAction icon={MessageCircle} label="Wolli" onPress={() => navigation.navigate('Main', { initialTab: 'chat' })} />
           <QuickAction icon={Mic} label="Ses" onPress={() => navigation.navigate('SpeakingLibrary')} />
         </View>

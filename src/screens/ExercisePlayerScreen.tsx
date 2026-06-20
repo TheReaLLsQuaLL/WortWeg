@@ -309,7 +309,7 @@ export function ExercisePlayerScreen({
     };
     const goHome = () => navigation.navigate('Main', { initialTab: 'home' });
     const goVocab = () => navigation.navigate('Main', { initialTab: 'vocab' });
-    const goMistakes = () => navigation.navigate('Main', { initialTab: 'profile' });
+    const goMistakes = () => navigation.navigate('Mistakes');
     const goA2Review = () => navigation.navigate('LessonIntro', { lessonId: 'a2-01-gunluk-planlar' });
     const goB1PreviewOverview = () => navigation.navigate('LevelOverview', { levelId: 'B1' });
     const goSpeakingPrompt = () => navigation.navigate('SpeakingPractice', {

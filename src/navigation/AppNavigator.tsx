@@ -16,6 +16,7 @@ import { HomeScreen } from '../screens/HomeScreen';
 import { LessonIntroScreen } from '../screens/LessonIntroScreen';
 import { CurriculumMapScreen } from '../screens/CurriculumMapScreen';
 import { LevelOverviewScreen } from '../screens/LevelOverviewScreen';
+import { MistakesScreen } from '../screens/MistakesScreen';
 import { OnboardingScreen } from '../screens/OnboardingScreen';
 import { PlanOverviewScreen } from '../screens/PlanOverviewScreen';
 import { PlanSetupScreen } from '../screens/PlanSetupScreen';
@@ -56,6 +57,7 @@ export type RootStackParamList = {
     tipTr?: string;
   } | undefined;
   SpeakingLibrary: undefined;
+  Mistakes: undefined;
   PlanOverview: undefined;
   PlanSetup: { mode?: 'edit' } | undefined;
   CurriculumMap: undefined;
@@ -370,6 +372,15 @@ export function AppNavigator() {
             <Stack.Screen name="SpeakingLibrary">
               {({ navigation }) => (
                 <SpeakingLibraryScreen navigation={navigation} />
+              )}
+            </Stack.Screen>
+            <Stack.Screen name="Mistakes">
+              {({ navigation }) => (
+                <MistakesScreen
+                  navigation={navigation}
+                  userState={userState}
+                  onUpdateState={commitUserState}
+                />
               )}
             </Stack.Screen>
             <Stack.Screen name="PlanOverview">
