@@ -22,7 +22,7 @@ Bu liste 3-5 kişilik özel alpha testi içindir. Kısa tut: akış bozuluyor mu
 10. Kelime tekrarını aç.
 11. Hatalarım bölümünü aç.
 12. Yol haritasında A0/A1 derslerini açmayı dene.
-13. A0/A1/A2 dersleri açılıyor mu, B1'de yalnızca yedi kısa “B1 Ön İzleme” dersi görünüyor mu, tam B1/B2 modüllerinde yakında mesajı görünüyor mu kontrol et.
+13. A0/A1/A2 dersleri açılıyor mu, B1'de yalnızca sekiz kısa “B1 Ön İzleme” dersi görünüyor mu, tam B1/B2 modüllerinde yakında mesajı görünüyor mu kontrol et.
 14. Wolli chat'e kısa bir A1 mesaj yaz.
 15. Sesli pratikte mikrofon butonuna basılı tut, Almanca cümleyi söyle, bırak ve dinle.
 16. Bırakınca analiz animasyonu başlıyor mu kontrol et.
@@ -74,7 +74,7 @@ Bu liste 3-5 kişilik özel alpha testi içindir. Kısa tut: akış bozuluyor mu
 
 ## Bilinen Sınırlar
 
-- A0/A1/A2 dersleri oynanabilir. B1'de yalnızca yedi kısa “B1 Ön İzleme” dersi vardır; tam B1/B2 yolu yakında olarak görünür.
+- A0/A1/A2 dersleri oynanabilir. B1'de yalnızca sekiz kısa “B1 Ön İzleme” dersi vardır; tam B1/B2 yolu yakında olarak görünür.
 - Ses yazıya çevirme backend ve OpenAI API kotasına bağlıdır.
 - Konuşma geri bildirimi gerçek fonetik telaffuz puanı değildir; hedef cümle ile transcript karşılaştırmasına dayanır.
 - Hesap, bulut senkronizasyonu ve Supabase henüz yok.

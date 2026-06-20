@@ -5,8 +5,8 @@ This document is a planning sheet for product features and technical architectur
 ## 1. Current Product State
 
 - A0, A1, and A2 are fully playable.
-- Current content totals: 35 lessons, 280 exercises, 280 vocabulary items.
-- B1 has an optional limited preview with 7 lessons.
+- Current content totals: 36 lessons, 288 exercises, 288 vocabulary items.
+- B1 has an optional limited preview with 8 lessons.
 - Full B1 and B2 paths are coming soon and are not fully playable.
 - AI chat works through the local backend.
 - Speaking practice works through the local backend.
@@ -29,7 +29,6 @@ This document is a planning sheet for product features and technical architectur
 
 | Priority | Feature | Description | Why it matters | Risk | Suggested commit size |
 | --- | --- | --- | --- | --- | --- |
-| P0 | B1 Preview Pack 8 | Add one more isolated B1 preview lesson without unlocking full B1. | Gives advanced testers more useful content while preserving alpha guardrails. | Low/Medium | One preview lesson per commit. |
 | P0 | B1 Preview final QA | Audit all B1 preview lessons for grammar, fairness, vocabulary, routing, and copy. | Prevents preview content from looking like full B1. | Low | One QA/fix commit. |
 | P1 | AI lesson-aware practice suggestions | Let Wolli suggest short practice based on current lesson/level scope. | Makes AI feel connected to the course. | Medium | Prompt/context update plus focused tests. |
 | P1 | Speaking practice library | Add a small browseable list of existing speaking prompts. | Lets testers repeat useful speaking without entering lessons. | Medium | One screen/route commit, no new STT logic. |
@@ -147,15 +146,14 @@ This document is a planning sheet for product features and technical architectur
 
 ## 10. Recommended Build Order
 
-1. B1 Preview Pack 8.
-2. B1 Preview final QA.
-3. AI lesson-aware practice suggestions.
-4. Hybrid speech scoring v1, no Azure yet.
-5. Speaking practice library.
-6. Review dashboard polish.
-7. Azure pronunciation prototype design doc.
-8. Backend deployment planning.
-9. Private tester guide.
+1. B1 Preview final QA.
+2. AI lesson-aware practice suggestions.
+3. Hybrid speech scoring v1, no Azure yet.
+4. Speaking practice library.
+5. Review dashboard polish.
+6. Azure pronunciation prototype design doc.
+7. Backend deployment planning.
+8. Private tester guide.
 
 ## 11. Guardrails
 
@@ -171,4 +169,4 @@ This document is a planning sheet for product features and technical architectur
 
 ## 12. Next Suggested Task
 
-Next task: Add B1 Preview Pack 8.
+Next task: Run B1 Preview final QA/release pass.

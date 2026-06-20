@@ -31,13 +31,13 @@ const makeMockResponse = (
     tr:
       request.mode === 'chat'
         ? isB1Preview
-          ? 'Wolli şu anda çevrimdışı. Tam B1 yolu yakında; kısa B1 Ön İzleme içinde görüş bildirme, neden-sonuç, tavsiye-öneri, karşılaştırma-tercih, şikayet-sorun, plan-gelecek ve deneyim-Perfekt cümleleriyle pratik yapabiliriz.'
+          ? 'Wolli şu anda çevrimdışı. Tam B1 yolu yakında; kısa B1 Ön İzleme içinde görüş bildirme, neden-sonuç, tavsiye-öneri, karşılaştırma-tercih, şikayet-sorun, plan-gelecek, deneyim-Perfekt ve kısa e-posta cümleleriyle pratik yapabiliriz.'
           : 'Wolli şu anda çevrimdışı. A0/A1/A2 ve kısa B1 Ön İzleme konularında basit pratik yapabiliriz.'
         : 'Yerel geri bildirim: Cevabın A1 düzeyinde kısa ve anlaşılır şekilde değerlendirildi.',
     tip: isPronunciation
       ? 'Bu konuşma geri bildirimi yazıya dökülen cümlen ile hedef cümleyi karşılaştırır; gerçek fonetik ses puanı daha sonra eklenecek.'
       : isB1Preview
-        ? 'B1 Ön İzleme sınırlıdır: dass/weil fiil sonu, deshalb/deswegen/darum fiil ikinci sıra; solltest/würde tavsiye, als/wie/lieber tercih-karşılaştırma, leider/Könnten Sie bitte sorun bildirme, vorhaben/planen/werden gelecek planı, haben/sein Perfekt ise deneyim anlatma için kullanılır.'
+        ? 'B1 Ön İzleme sınırlıdır: dass/weil fiil sonu, deshalb/deswegen/darum fiil ikinci sıra; solltest/würde tavsiye, als/wie/lieber tercih-karşılaştırma, leider/Könnten Sie bitte sorun bildirme, vorhaben/planen/werden gelecek planı, haben/sein Perfekt deneyim anlatma, Sehr geehrte/r, Liebe/r, Könnten Sie mir bitte...? ve Mit freundlichen Grüßen ise kısa e-posta/mesaj yazma için kullanılır.'
         : 'Artikel, fiil sırası ve kısa cümle doğruluğuna dikkat et.',
     score:
       request.mode === 'writing_feedback' || request.mode === 'speaking_feedback'

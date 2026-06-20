@@ -409,6 +409,7 @@ const localTeacherReply = (message: string): TeacherReply => {
   const asksComplaint = includesAny(text, ['şikayet', 'sikayet', 'sorun', 'problem', 'beschwer', 'leider', 'könnten sie bitte', 'koennten sie bitte', 'rechnung', 'bestellung', 'funktioniert nicht', 'dankbar', 'ich wäre ihnen dankbar', 'ich ware ihnen dankbar']);
   const asksFuturePlan = includesAny(text, ['plan anlat', 'gelecek niyet', 'niyet', 'vorhaben', 'ich habe vor', 'ich plane', 'ich werde', 'ich möchte', 'ich moechte', 'nächste woche', 'naechste woche', 'wenn ich zeit habe', 'sobald', 'fertig bin']);
   const asksExperience = includesAny(text, ['deneyim', 'perfekt', 'partizip', 'schon einmal', 'noch nie', 'letztes jahr', 'vor zwei wochen', 'gestern habe', 'erfahrung', 'deutschkurs', 'bewerbungsgespräch', 'bewerbungsgespraech', 'gefahren', 'gegangen', 'gemacht', 'geführt', 'gefuehrt', 'dabei habe ich gelernt']);
+  const asksEmailMessage = includesAny(text, ['e-posta', 'eposta', 'email', 'mesaj', 'nachricht', 'anmeldung', 'sehr geehrte', 'lieber', 'liebe', 'vielen dank für', 'vielen dank fuer', 'ich schreibe ihnen', 'könnten sie mir bitte', 'koennten sie mir bitte', 'ich freue mich auf ihre antwort', 'viele grüße', 'viele gruesse', 'mit freundlichen grüßen', 'mit freundlichen gruessen']);
 
   if (asksB1Scope && !asksB1Preview) {
     return {
@@ -422,13 +423,14 @@ const localTeacherReply = (message: string): TeacherReply => {
         'B1 Ön İzleme: şikayet ve sorun bildirme',
         'B1 Ön İzleme: plan anlatma ve gelecek niyetleri',
         'B1 Ön İzleme: deneyim anlatma ve Perfekt tekrarı',
+        'B1 Ön İzleme: kısa e-posta ve mesaj yazma',
       ],
     };
   }
 
-  if (asksB1Preview && !asksExperience && !asksFuturePlan && !asksComplaint && !asksComparison && !asksAdvice && !asksCauseEffect && !asksOpinion) {
+  if (asksB1Preview && !asksEmailMessage && !asksExperience && !asksFuturePlan && !asksComplaint && !asksComparison && !asksAdvice && !asksCauseEffect && !asksOpinion) {
     return {
-      text: 'Wolli şu anda çevrimdışı. B1 Ön İzleme kısa ve isteğe bağlıdır; tam B1 yolu yakında. Şu an yedi konu var.',
+      text: 'Wolli şu anda çevrimdışı. B1 Ön İzleme kısa ve isteğe bağlıdır; tam B1 yolu yakında. Şu an sekiz konu var.',
       corrections: [],
       suggestions: [
         'Görüş bildirme: Ich denke, dass...',
@@ -438,7 +440,20 @@ const localTeacherReply = (message: string): TeacherReply => {
         'Şikayet: Leider..., Könnten Sie bitte...?',
         'Plan: Ich habe vor..., Ich plane...',
         'Deneyim: Ich habe schon einmal..., Ich habe noch nie...',
+        'E-posta: Sehr geehrte/r..., Könnten Sie mir bitte...?',
       ],
+    };
+  }
+
+  if (asksEmailMessage) {
+    return {
+      text: 'Wolli şu anda çevrimdışı. B1 Ön İzleme içinde kısa e-posta yazarken resmi hitap için Sehr geehrte/r, samimi mesaj için Liebe/r kullanırsın. weil cümlesinde fiil sona gider; Könnten Sie mir bitte ...? kibar bir istektir.',
+      corrections: [
+        'resmi: Sehr geehrte Frau Müller,',
+        'sebep: Ich schreibe Ihnen, weil ich eine Frage zu meiner Anmeldung habe.',
+        'istek: Könnten Sie mir bitte die Informationen schicken?',
+      ],
+      suggestions: ['Kısa kapanış: Ich freue mich auf Ihre Antwort. Mit freundlichen Grüßen'],
     };
   }
 
@@ -538,6 +553,7 @@ const localTeacherReply = (message: string): TeacherReply => {
       'B1 sorun için: Leider funktioniert die App nicht richtig.',
       'B1 plan için: Ich habe vor, jeden Tag Deutsch zu üben.',
       'B1 deneyim için: Ich habe schon einmal auf Deutsch gesprochen.',
+      'B1 e-posta için: Könnten Sie mir bitte die Informationen schicken?',
     ],
   };
 };
