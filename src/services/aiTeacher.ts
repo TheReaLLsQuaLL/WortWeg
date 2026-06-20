@@ -42,7 +42,7 @@ type AiBackendResponse = {
   }>;
   nextPrompt?: string;
   cefr: 'A1' | 'A2' | 'B1';
-  modelUsed: string;
+  modelUsed?: string;
 };
 
 type AiBackendFallbackReason = {
@@ -245,7 +245,7 @@ const isAiBackendResponse = (value: unknown): value is AiBackendResponse => {
     typeof response.tip === 'string' &&
     typeof response.score === 'number' &&
     Array.isArray(response.mistakes) &&
-    typeof response.modelUsed === 'string'
+    (response.modelUsed === undefined || typeof response.modelUsed === 'string')
   );
 };
 

@@ -146,8 +146,8 @@ type SpeechBackendResponse = {
   transcript: string;
   language?: string;
   confidence: number | null;
-  provider: string;
-  modelUsed: string;
+  provider?: string;
+  modelUsed?: string;
   fallback: boolean;
   durationMs: number;
 };
@@ -161,8 +161,8 @@ const isSpeechBackendResponse = (value: unknown): value is SpeechBackendResponse
   return (
     typeof response.transcript === 'string' &&
     (typeof response.confidence === 'number' || response.confidence === null) &&
-    typeof response.provider === 'string' &&
-    typeof response.modelUsed === 'string' &&
+    (response.provider === undefined || typeof response.provider === 'string') &&
+    (response.modelUsed === undefined || typeof response.modelUsed === 'string') &&
     typeof response.fallback === 'boolean' &&
     typeof response.durationMs === 'number'
   );

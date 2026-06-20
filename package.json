@@ -12,7 +12,9 @@
     "dev:all": "concurrently \"npm run server:dev\" \"npm start\"",
     "typecheck": "tsc --noEmit",
     "content:qa": "tsx scripts/content-qa.ts",
-    "env:check:openai": "node scripts/check-openai-env.cjs"
+    "env:check:openai": "node scripts/check-openai-env.cjs",
+    "server:start": "NODE_ENV=production tsx server/index.ts",
+    "server:check": "tsx server/checkConfig.ts"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",

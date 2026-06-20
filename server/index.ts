@@ -1,26 +1,33 @@
-import path from 'node:path';
-
 import cors from 'cors';
-import dotenv from 'dotenv';
 import express from 'express';
 
+import { getBackendConfig, isCorsOriginAllowed } from './config';
 import { generateAiTeacherResponse } from './geminiClient';
 import { speechRouter } from './speechRoutes';
 import { getModelForMode } from './modelRouter';
 import {
   aiTeacherRequestSchema,
   aiTeacherResponseSchema,
+  type AiTeacherResponse,
 } from './schemas';
 
-dotenv.config({ path: path.resolve(process.cwd(), '.env') });
-
+const config = getBackendConfig();
 const app = express();
-const port = Number(process.env.PORT ?? 3001);
-const host = process.env.HOST ?? '0.0.0.0';
+
+const toPublicAiResponse = (data: AiTeacherResponse) => {
+  if (config.includeProviderDiagnostics) {
+    return data;
+  }
+
+  const { modelUsed: _modelUsed, ...publicData } = data;
+  return publicData;
+};
 
 app.use(
   cors({
-    origin: true,
+    origin: (origin, callback) => {
+      callback(null, isCorsOriginAllowed(origin));
+    },
   }),
 );
 app.use(express.json({ limit: '1mb' }));
@@ -36,7 +43,7 @@ app.post('/ai/teacher', async (request, response) => {
   if (!parsedRequest.success) {
     response.status(400).json({
       error: 'Invalid request body',
-      details: parsedRequest.error.flatten(),
+      details: config.includeProviderDiagnostics ? parsedRequest.error.flatten() : undefined,
     });
     return;
   }
@@ -51,17 +58,17 @@ app.post('/ai/teacher', async (request, response) => {
   if (!parsedResponse.success) {
     response.status(502).json({
       error: 'AI response failed validation',
-      details: parsedResponse.error.flatten(),
+      details: config.includeProviderDiagnostics ? parsedResponse.error.flatten() : undefined,
     });
     return;
   }
 
-  response.json(parsedResponse.data);
+  response.json(toPublicAiResponse(parsedResponse.data));
 });
 
-const server = app.listen(port, host, () => {
-  console.log(`WortWeg AI backend listening on http://${host}:${port}`);
-  console.log(`Expo Go phone URL: http://YOUR_MAC_LAN_IP:${port}`);
+const server = app.listen(config.port, config.host, () => {
+  console.log(`WortWeg AI backend listening on http://${config.host}:${config.port}`);
+  console.log(`Expo Go phone URL: http://YOUR_MAC_LAN_IP:${config.port}`);
 });
 
 const keepAlive = setInterval(() => {

@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
+import { getBackendConfig } from './config';
 import {
   speechTranscribeResponseSchema,
   type SpeechTranscribeResponse,
@@ -81,13 +82,17 @@ const callOpenAiTranscription = async (
     form.append('prompt', prompt);
   }
 
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), getBackendConfig().speechProviderTimeoutMs);
+
   const response = await fetch(OPENAI_TRANSCRIPTIONS_ENDPOINT, {
     method: 'POST',
     headers: {
       Authorization: 'Bearer ' + apiKey,
     },
     body: form,
-  });
+    signal: controller.signal,
+  }).finally(() => clearTimeout(timeout));
 
   if (!response.ok) {
     throw new Error('openai-http-' + response.status);
@@ -148,7 +153,11 @@ export const transcribeAudio = async (input: SttInput): Promise<SpeechTranscribe
     });
   } catch (error) {
     const durationMs = Date.now() - startedAt;
-    const reason = error instanceof Error ? error.message : 'openai-error';
+    const reason = error instanceof Error && error.name === 'AbortError'
+      ? 'openai-timeout'
+      : error instanceof Error
+        ? error.message
+        : 'openai-error';
     const quotaNote = reason === 'openai-http-429'
       ? 'OpenAI rejected the request because of account/project quota or billing. WortWeg remains usable with mock fallback.'
       : undefined;

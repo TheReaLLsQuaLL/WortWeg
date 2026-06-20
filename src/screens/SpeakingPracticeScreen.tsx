@@ -149,6 +149,10 @@ const getTranscriptionIssue = (result: TranscriptionResult): 'none' | 'noVoice' 
     return 'error';
   }
 
+  if (result.fallback && !fallbackMarker) {
+    return 'error';
+  }
+
   return 'none';
 };
 

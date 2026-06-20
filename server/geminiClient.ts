@@ -3,6 +3,7 @@ import {
   type AiTeacherRequest,
   type AiTeacherResponse,
 } from './schemas';
+import { getBackendConfig } from './config';
 import { getCheapModel, getModelForMode } from './modelRouter';
 import { buildSystemPrompt, buildUserPrompt } from './prompts';
 
@@ -125,6 +126,9 @@ const callGeminiModel = async (
   modelUsed: string,
   apiKey: string,
 ): Promise<GeminiCallResult> => {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), getBackendConfig().aiProviderTimeoutMs);
+
   try {
     const response = await fetch(
       GEMINI_ENDPOINT +
@@ -137,6 +141,7 @@ const callGeminiModel = async (
         headers: {
           'Content-Type': 'application/json',
         },
+        signal: controller.signal,
         body: JSON.stringify({
           systemInstruction: {
             parts: [{ text: buildSystemPrompt(request) }],
@@ -170,8 +175,14 @@ const callGeminiModel = async (
     }
 
     return { ok: true, response: parseGeminiJson(text, request, modelUsed) };
-  } catch {
-    return { ok: false, reason: 'parse-or-network-fallback', model };
+  } catch (error) {
+    const reason = error instanceof Error && error.name === 'AbortError'
+      ? 'gemini-timeout'
+      : 'parse-or-network-fallback';
+
+    return { ok: false, reason, model };
+  } finally {
+    clearTimeout(timeout);
   }
 };
 

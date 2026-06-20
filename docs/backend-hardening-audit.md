@@ -23,16 +23,16 @@ Client secret rule: the mobile app must never contain `OPENAI_API_KEY`, `GEMINI_
 - Upload size limit: 10 MB.
 - Temp upload cleanup: attempted in `finally` after transcription route handling.
 - Request body JSON limit: 1 MB.
-- CORS: currently reflective/open with `origin: true`.
+- CORS: environment-driven; production requires `ALLOWED_ORIGINS`, development allows localhost/LAN-style origins.
 - Rate limiting: not present.
-- Production start script: not present.
+- Production start script: `server:start` exists as a first production-oriented runner using the existing TypeScript runtime.
 - `.env`: ignored by `.gitignore`; `.env.example` contains placeholders.
 
 ## Findings By Section
 
 ### 1. Production Start Readiness
 
-Status: should fix before private alpha hosting.
+Status: partially hardened; still needs host-specific runtime confirmation before private alpha hosting.
 
 Already good:
 
@@ -44,21 +44,21 @@ Already good:
 
 Gaps:
 
-- `package.json` has `server:dev` but no production backend start script.
-- There is no dedicated server build/start flow for hosting.
+- `package.json` now has `server:start`, but it uses the existing `tsx` runtime and must be confirmed against the selected host.
+- There is no dedicated compiled server build flow yet.
 - No `engines.node` field documents the expected production Node runtime.
 - No readiness endpoint beyond `/health`; this may be enough for first deploy, but it does not validate provider env configuration.
 - Shutdown handling covers `SIGINT` and `SIGTERM`, but there is no documented host runbook.
 
 Recommendation:
 
-- Add a production start strategy before deployment, for example a server build/start script or an approved `tsx` production command if that is intentionally accepted.
+- Confirm whether the selected host can run the current `server:start` script or whether a compiled server build is needed.
 - Add Node runtime documentation or `engines` once the host is selected.
 - Keep `/health`, and consider a non-secret readiness endpoint or startup config validation before remote testers.
 
 ### 2. Environment Variables
 
-Status: blocker before deployment if not addressed.
+Status: partially hardened; hosted env setup still must be verified before deployment.
 
 Already good:
 
@@ -76,30 +76,30 @@ Gaps:
 
 Recommendation:
 
-- Add backend config validation before deployment.
-- Treat missing provider keys as deployment readiness failures in production.
-- Keep local fallback behavior for development, but make production misconfiguration visible to operators through safe startup errors or readiness failure.
+- Backend config validation has a first implementation.
+- Missing provider keys are production startup failures when required.
+- Keep local fallback behavior for development, but verify production startup failure behavior on the selected host.
 
 ### 3. CORS
 
-Status: blocker before deployment.
+Status: partially hardened; hosted origin behavior still must be verified before deployment.
 
 Current behavior:
 
-- `server/index.ts` uses `cors({ origin: true })`.
-- This reflects/allows requesting origins and is practical for local Expo testing.
+- `server/index.ts` now uses environment-driven CORS checks.
+- Development allows localhost/LAN-style origins and configured `ALLOWED_ORIGINS`.
+- Production requires `ALLOWED_ORIGINS` and only returns CORS allow headers for listed origins.
 
 Risk:
 
-- Reflective/open CORS is too permissive for a hosted backend with paid provider keys.
-- A public backend with open CORS is easier to abuse from arbitrary web origins.
+- CORS is not a substitute for auth or rate limiting.
+- A public backend still needs abuse protection even with restrictive CORS.
 
 Recommendation:
 
-- Add environment-driven CORS before hosting.
-- Use `ALLOWED_ORIGINS` for web origins if needed.
-- For native app/private alpha, decide whether CORS is needed for the actual client surface; do not keep wildcard/reflective CORS forever.
-- Keep local development permissive only when `NODE_ENV !== 'production'`.
+- Environment-driven CORS has a first implementation.
+- Production requires `ALLOWED_ORIGINS`; development allows localhost/LAN-style origins.
+- For native app/private alpha, verify actual `Origin` behavior on the hosted backend and keep CORS restrictive.
 
 ### 4. Request Limits And Audio Upload
 
@@ -127,8 +127,8 @@ Gaps:
 
 Recommendation:
 
-- Add backend fetch timeouts with `AbortController`.
-- Add route-level or server-level request timeout handling.
+- Provider fetch timeouts with `AbortController` are in place for Gemini and OpenAI STT.
+- Add route-level or server-level request timeout handling later if host defaults are not enough.
 - Confirm temp file cleanup on success, provider failure, invalid body, and upload failure.
 - Confirm 10 MB against expected Expo recording size and host/provider limits.
 - Keep errors provider-neutral and app-safe.
@@ -159,7 +159,7 @@ Recommendation:
 - Add a small safe logging helper before deployment.
 - Keep production logs to route, status, duration, size bucket, score bucket/fallback bucket, and request id if added.
 - Do not log transcript, expected sentence, prompt text, chat text, uploaded file path/name, raw provider response, or API keys.
-- Consider making provider/model fields internal-only or explicitly documenting that the frontend never displays them.
+- Production AI and speech responses now omit provider/model diagnostics; development responses keep them for diagnostics.
 
 ### 6. Error Handling
 
@@ -177,17 +177,16 @@ Already good:
 Gaps:
 
 - There is no global Express error handler.
-- Some validation responses include Zod `details`. Usually safe, but should be reviewed for app-facing production responses.
-- AI provider fallback `modelUsed` values include internal failure reasons such as `mock:fallback-...`.
-- Speech fallback `modelUsed` values include internal failure reasons such as `mock:openai-http-...`.
-- App-facing backend responses are not fully provider-neutral.
-- Fetch calls do not have explicit timeouts.
+- Development validation responses include Zod `details`; production omits those details.
+- Development responses keep provider/model diagnostics for existing debug tooling.
+- Production AI and speech responses omit provider/model diagnostics, but still include generic `fallback` where needed by the app.
+- A global Express error handler is still missing.
 
 Recommendation:
 
 - Add a centralized app-facing error shape.
 - Keep provider/internal failure details out of normal app responses unless the field is explicitly DEV/internal.
-- Add timeout classification and safe error messages.
+- Keep timeout classification and safe error messages as provider behavior expands.
 - Add a global Express error handler.
 
 ### 7. Abuse / Rate Limiting
@@ -241,7 +240,7 @@ Recommendation:
 
 - Add max lengths to all context fields before deployment.
 - Keep lessonContext static and bounded.
-- Add Gemini fetch timeout.
+- Gemini fetch timeout is in place.
 - Keep B1 guardrails unchanged.
 - Keep AI prompts Turkish-first and provider-neutral.
 
@@ -263,33 +262,44 @@ Already good:
 
 Gaps:
 
-- Backend response includes provider/model/fallback fields.
-- OpenAI fetch has no explicit timeout.
+- Development response includes provider/model/fallback fields for diagnostics.
+- Production response omits provider/model diagnostics and keeps generic fallback behavior.
 - Fallback transcript can be generated from `expectedText`; this is fine for local/dev fallback but should be reviewed for production semantics.
 - Upload error cleanup for partially written files is not explicitly tested.
 - No rate limiting.
 - No request timeout.
-- No provider-neutral production response contract.
+- Provider-neutral production response contract has a first implementation; verify it in phone and hosted smoke tests.
 
 Recommendation:
 
-- Add OpenAI fetch timeout.
+- OpenAI fetch timeout is in place.
 - Add rate limiting and request timeout.
 - Confirm temp cleanup in tests/manual checks.
 - Keep transcript text out of logs.
-- Consider returning provider/model only under DEV/internal diagnostics, not as normal production app fields.
+- Provider/model diagnostics are now development-only response fields.
+
+## Completed In First Hardening Layer
+
+- Added `server/config.ts` for backend-only config loading and production validation.
+- Added `server:check` and `server:start` scripts.
+- Kept `npm run server:dev` intact for local development.
+- Replaced reflective CORS with environment-driven origin checks.
+- Made production startup require `ALLOWED_ORIGINS`, `GEMINI_API_KEY`, and `OPENAI_API_KEY` when using OpenAI STT.
+- Added safe defaults for `SPEECH_SCORING_PROVIDER=transcript` and `SPEECH_AZURE_ENABLED=false`; Azure remains unavailable.
+- Added explicit provider request timeouts for Gemini and OpenAI STT calls.
+- Omitted provider/model diagnostics from production AI and speech responses while keeping development diagnostics available.
+- Relaxed app service parsers so production provider-neutral responses do not break existing flows.
 
 ## Deployment Blockers
 
 These should be fixed before any hosted backend is exposed to remote testers:
 
 1. Final real-device phone smoke test has not fully passed.
-2. CORS is currently reflective/open with `origin: true`.
-3. No rate limiting or abuse protection exists.
-4. No production backend start/build strategy exists.
-5. Required production env validation is missing.
-6. Provider calls do not have explicit timeouts.
-7. App-facing backend response contracts still include provider/model/fallback diagnostics.
+2. No rate limiting or abuse protection exists.
+3. Hosted environment variables and `ALLOWED_ORIGINS` have not been configured or tested on a real host.
+4. Production start strategy still uses the existing `tsx` runtime; host-specific build/runtime choice must be confirmed.
+5. No hosted deployment runbook exists yet.
+6. Speech temp-file cleanup has not been verified on the selected host.
 
 ## Should Fix Before Private Alpha Hosting
 
@@ -329,39 +339,33 @@ These should be fixed before any hosted backend is exposed to remote testers:
 ## Prioritized Hardening Checklist
 
 1. Keep deployment blocked until the final phone smoke test passes.
-2. Add production start/build strategy and document Node runtime.
-3. Add backend env validation for production.
-4. Replace reflective CORS with `ALLOWED_ORIGINS`-driven CORS for production.
-5. Add rate limiting for `/speech/transcribe` and `/ai/teacher`.
-6. Add provider fetch timeouts for Gemini and OpenAI STT.
-7. Add centralized safe error responses.
-8. Add safe logging helper and production log policy.
-9. Bound all AI context schema string fields.
-10. Confirm and document speech temp-file cleanup behavior.
-11. Review whether provider/model/fallback fields should be hidden or removed from production responses.
-12. Add deployment runbook and host-specific constraints after a host is selected.
+2. Add rate limiting for `/speech/transcribe` and `/ai/teacher`.
+3. Confirm production runtime/build strategy for the selected host.
+4. Add centralized safe error responses.
+5. Add safe logging helper and production log policy.
+6. Bound all AI context schema string fields.
+7. Confirm and document speech temp-file cleanup behavior.
+8. Add deployment runbook and host-specific constraints after a host is selected.
+9. Run hosted smoke tests for `/health`, AI chat, and speech transcription before inviting testers.
 
 ## Suggested Implementation Order
 
 1. Phone smoke completion and blocker triage.
-2. Production start/env validation commit.
-3. CORS and safe error shape commit.
-4. Rate limiting and request timeout commit.
-5. Provider fetch timeout commit.
-6. Safe logging helper commit.
-7. AI context schema tightening commit.
-8. Speech cleanup/manual test commit.
-9. Deployment runbook commit.
-10. Host selection and deployment preparation.
+2. Rate limiting commit for AI and speech routes.
+3. Centralized safe error shape commit.
+4. Safe logging helper commit.
+5. AI context schema tightening commit.
+6. Speech cleanup/manual test commit.
+7. Deployment runbook commit.
+8. Host selection and deployment preparation.
 
 ## Next Safe Hardening Task
 
-Prepare backend production hardening without deployment:
+Add dependency-free rate limiting and centralized safe errors without deployment:
 
-- add production server start strategy,
-- add production env validation,
-- add `ALLOWED_ORIGINS` design,
-- keep local development behavior intact,
+- protect `/speech/transcribe` first,
+- protect `/ai/teacher` second,
+- keep local development behavior usable,
 - do not deploy,
 - do not add Azure,
 - do not expose API keys in the mobile app.
