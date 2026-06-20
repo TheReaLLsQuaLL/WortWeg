@@ -78,7 +78,7 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
       return;
     }
 
-    navigation.navigate('SpeakingPractice', { source: 'home_primary' });
+    navigation.navigate('SpeakingLibrary');
   };
 
   const primaryTitle = nextLesson ? nextLesson.title : dueCards.length > 0 ? 'Kelime tekrarı' : 'Sesli cümle pratiği';
@@ -86,7 +86,7 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
     ? nextLesson.cefr + ' · ' + nextLesson.estimatedMinutes + ' dk'
     : dueCards.length > 0
       ? dueCards.length + ' kart hazır'
-      : 'A1 konuşma · cümle eşleşmesi';
+      : speakingLibrarySentences.length + ' hazır cümle';
   const primaryButton = nextLesson ? 'Derse başla' : dueCards.length > 0 ? 'Tekrar et' : 'Sesli pratik aç';
   const latestExam = userState.examHistory[userState.examHistory.length - 1];
   const reviewItems = [
