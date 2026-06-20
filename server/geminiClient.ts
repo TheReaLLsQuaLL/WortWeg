@@ -16,7 +16,8 @@ const makeMockResponse = (
   const correction = context.correctAnswer ?? context.expectedAnswer ?? '';
   const isPronunciation = request.mode === 'speaking_feedback';
   const isVocab = request.mode === 'vocab_explanation';
-  const isB1Preview = request.level === 'B1';
+  const lessonContext = request.context.lessonContext;
+  const isB1Preview = request.level === 'B1' || Boolean(lessonContext?.isB1Preview);
 
   return {
     de:
@@ -30,15 +31,19 @@ const makeMockResponse = (
           : 'Das ist gut.'),
     tr:
       request.mode === 'chat'
-        ? isB1Preview
-          ? 'Wolli şu anda çevrimdışı. Tam B1 yolu yakında; kısa B1 Ön İzleme içinde görüş bildirme, neden-sonuç, tavsiye-öneri, karşılaştırma-tercih, şikayet-sorun, plan-gelecek, deneyim-Perfekt ve kısa e-posta cümleleriyle pratik yapabiliriz.'
-          : 'Wolli şu anda çevrimdışı. A0/A1/A2 ve kısa B1 Ön İzleme konularında basit pratik yapabiliriz.'
+        ? lessonContext
+          ? 'Wolli şu anda çevrimdışı. ' + lessonContext.title + ' için kısa pratik yapabiliriz.' + (lessonContext.isB1Preview ? ' Bu sınırlı B1 Ön İzleme; tam B1 yolu yakında.' : '')
+          : isB1Preview
+            ? 'Wolli şu anda çevrimdışı. Tam B1 yolu yakında; kısa B1 Ön İzleme içinde görüş bildirme, neden-sonuç, tavsiye-öneri, karşılaştırma-tercih, şikayet-sorun, plan-gelecek, deneyim-Perfekt ve kısa e-posta cümleleriyle pratik yapabiliriz.'
+            : 'Wolli şu anda çevrimdışı. A0/A1/A2 ve kısa B1 Ön İzleme konularında basit pratik yapabiliriz.'
         : 'Yerel geri bildirim: Cevabın A1 düzeyinde kısa ve anlaşılır şekilde değerlendirildi.',
     tip: isPronunciation
       ? 'Bu konuşma geri bildirimi yazıya dökülen cümlen ile hedef cümleyi karşılaştırır; gerçek fonetik ses puanı daha sonra eklenecek.'
       : isB1Preview
         ? 'B1 Ön İzleme sınırlıdır: dass/weil fiil sonu, deshalb/deswegen/darum fiil ikinci sıra; solltest/würde tavsiye, als/wie/lieber tercih-karşılaştırma, leider/Könnten Sie bitte sorun bildirme, vorhaben/planen/werden gelecek planı, haben/sein Perfekt deneyim anlatma, Sehr geehrte/r, Liebe/r, Könnten Sie mir bitte...? ve Mit freundlichen Grüßen ise kısa e-posta/mesaj yazma için kullanılır.'
-        : 'Artikel, fiil sırası ve kısa cümle doğruluğuna dikkat et.',
+        : lessonContext
+          ? 'Bu ders için kısa cevap, 1-2 örnek ve güvenli kelime pratiği ver.'
+          : 'Artikel, fiil sırası ve kısa cümle doğruluğuna dikkat et.',
     score:
       request.mode === 'writing_feedback' || request.mode === 'speaking_feedback'
         ? 11

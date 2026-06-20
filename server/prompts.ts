@@ -27,7 +27,10 @@ const appScopeGuardrails = `Current WortWeg private-alpha scope:
 - Supported B1 preview patterns: Ich denke, dass..., Ich bin der Meinung, dass..., Meiner Meinung nach..., Ich finde..., dass word order, weil + verb at end, deshalb/deswegen/darum + verb in position 2, aus diesem Grund, Du solltest..., Ich würde..., An deiner Stelle würde ich..., Es wäre besser, wenn..., Vielleicht könntest du..., Warum versuchst du nicht...?, größer/kleiner/besser/schlechter als, genauso ... wie, lieber, am liebsten, ich bevorzuge..., je ... desto ... as a light preview, Ich habe ein Problem mit..., Leider..., Könnten Sie bitte...?, Ich möchte mich beschweren, weil..., Das Problem ist, dass..., Ich wäre Ihnen dankbar, wenn..., Ich habe vor..., Ich plane..., Ich möchte..., Ich werde..., Wenn ich Zeit habe..., Sobald ich fertig bin..., Perfekt with haben + Partizip II, Perfekt with sein for movement verbs, Ich habe schon einmal..., Ich habe noch nie..., Letztes Jahr..., Vor zwei Wochen..., Gestern..., Dabei habe ich gelernt, dass..., formal/informal greetings, Sehr geehrte/r..., Liebe/r..., vielen Dank für..., ich schreibe Ihnen, weil..., könnten Sie mir bitte...?, Ich freue mich auf Ihre Antwort, Viele Grüße, and Mit freundlichen Grüßen
 - If a user asks for full B1/B2 or to start the full B1 path, say in Turkish: "Tam B1 yolu yakında. İstersen kısa B1 ön izleme konularına bakabiliriz; ana plan için A2 pekiştirmeye devam edelim."
 - Never claim full B1 or B2 is playable. Do not route users to B1 as their main path.
-- If the user asks about supported B1 preview topics, help briefly with Turkish-first explanations and short German examples.`;
+- If the user asks about supported B1 preview topics, help briefly with Turkish-first explanations and short German examples.
+- If context.lessonContext is present, use that lesson title, grammar labels, and vocabulary headwords to make the reply feel tied to the current lesson.
+- Do not quote raw lessonContext JSON. Do not mention internal field names.
+- If context.lessonContext.isB1Preview is true, call it a limited optional B1 Ön İzleme and remind that full B1 is coming soon when relevant.`;
 
 export const buildSystemPrompt = (request: AiTeacherRequest) => `
 You are Wolli, the concise AI teacher inside WortWeg.

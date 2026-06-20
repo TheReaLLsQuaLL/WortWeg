@@ -18,6 +18,15 @@ export const conversationMessageSchema = z.object({
   content: z.string().max(2000),
 });
 
+export const lessonContextSchema = z.object({
+  lessonId: z.string().max(120),
+  level: z.enum(['A0', 'A1', 'A2', 'B1']),
+  title: z.string().max(160),
+  grammarLabels: z.array(z.string().max(120)).max(5).default([]),
+  vocabularyHeadwords: z.array(z.string().max(80)).max(5).default([]),
+  isB1Preview: z.boolean().default(false),
+});
+
 export const aiTeacherRequestSchema = z.object({
   mode: aiModeSchema,
   level: levelSchema.default('A1'),
@@ -35,6 +44,7 @@ export const aiTeacherRequestSchema = z.object({
       word: z.string().optional(),
       article: z.string().optional(),
       correctAnswer: z.string().optional(),
+      lessonContext: lessonContextSchema.optional(),
     })
     .default({}),
 });

@@ -9,10 +9,20 @@ export type ChatMessage = {
   createdAt: string;
 };
 
+export type LessonContext = {
+  lessonId: string;
+  level: 'A0' | 'A1' | 'A2' | 'B1';
+  title: string;
+  grammarLabels: string[];
+  vocabularyHeadwords: string[];
+  isB1Preview: boolean;
+};
+
 export type TeacherInput = {
   message: string;
   cefrLevel: 'A1' | 'A2' | 'B1';
   recentMessages?: ChatMessage[];
+  lessonContext?: LessonContext;
 };
 
 export type TeacherReply = {

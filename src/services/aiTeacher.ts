@@ -6,6 +6,7 @@ import type {
   SpeakingGradeInput,
   TeacherInput,
   TeacherReply,
+  LessonContext,
   WritingGrade,
   WritingGradeInput,
 } from '../types/ai';
@@ -221,8 +222,12 @@ const isB1OrB2ScopeRequest = (message: string) => {
 };
 
 const getTeacherRequestLevel = (input: TeacherInput): 'A1' | 'A2' | 'B1' => {
-  if (isB1PreviewTopicMessage(input.message) || isB1OrB2ScopeRequest(input.message)) {
+  if (isB1PreviewTopicMessage(input.message) || isB1OrB2ScopeRequest(input.message) || input.lessonContext?.level === 'B1') {
     return 'B1';
+  }
+
+  if (input.lessonContext?.level === 'A2') {
+    return 'A2';
   }
 
   return input.cefrLevel;
@@ -281,7 +286,17 @@ const requestAiTeacher = async (
     level?: 'A1' | 'A2' | 'B1';
     userMessage: string;
     conversationHistory?: Array<{ role: 'user' | 'assistant'; content: string }>;
-    context?: Record<string, string | undefined>;
+    context?: {
+      lessonId?: string;
+      topic?: string;
+      expectedAnswer?: string;
+      transcript?: string;
+      examSection?: string;
+      word?: string;
+      article?: string;
+      correctAnswer?: string;
+      lessonContext?: LessonContext;
+    };
   },
 ): Promise<AiBackendRequestResult> => {
   const baseUrl = getAiBackendUrl();
@@ -398,7 +413,19 @@ const requestAiTeacher = async (
   }
 };
 
-const localTeacherReply = (message: string): TeacherReply => {
+const lessonContextSummary = (lessonContext: LessonContext) => {
+  const grammar = lessonContext.grammarLabels.slice(0, 2).join(', ');
+  const vocabulary = lessonContext.vocabularyHeadwords.slice(0, 3).join(', ');
+  const parts = [
+    lessonContext.title,
+    grammar ? 'odak: ' + grammar : '',
+    vocabulary ? 'kelimeler: ' + vocabulary : '',
+  ].filter(Boolean);
+
+  return parts.join(' · ');
+};
+
+const localTeacherReply = (message: string, lessonContext?: LessonContext): TeacherReply => {
   const text = normalizeTeacherIntentText(message);
   const asksB1Scope = isB1OrB2ScopeRequest(message);
   const asksB1Preview = isB1PreviewTopicMessage(message);
@@ -410,6 +437,29 @@ const localTeacherReply = (message: string): TeacherReply => {
   const asksFuturePlan = includesAny(text, ['plan anlat', 'gelecek niyet', 'niyet', 'vorhaben', 'ich habe vor', 'ich plane', 'ich werde', 'ich möchte', 'ich moechte', 'nächste woche', 'naechste woche', 'wenn ich zeit habe', 'sobald', 'fertig bin']);
   const asksExperience = includesAny(text, ['deneyim', 'perfekt', 'partizip', 'schon einmal', 'noch nie', 'letztes jahr', 'vor zwei wochen', 'gestern habe', 'erfahrung', 'deutschkurs', 'bewerbungsgespräch', 'bewerbungsgespraech', 'gefahren', 'gegangen', 'gemacht', 'geführt', 'gefuehrt', 'dabei habe ich gelernt']);
   const asksEmailMessage = includesAny(text, ['e-posta', 'eposta', 'email', 'mesaj', 'nachricht', 'anmeldung', 'sehr geehrte', 'lieber', 'liebe', 'vielen dank für', 'vielen dank fuer', 'ich schreibe ihnen', 'könnten sie mir bitte', 'koennten sie mir bitte', 'ich freue mich auf ihre antwort', 'viele grüße', 'viele gruesse', 'mit freundlichen grüßen', 'mit freundlichen gruessen']);
+  const asksLessonPractice = Boolean(lessonContext) && includesAny(text, ['bu ders', 'bu konu', '3 kelime', 'üç kelime', 'ornek cumle', 'örnek cümle', 'mini pratik', 'kısa konuşma', 'a2’ye bağla', 'a2ye bağla', 'a2’ye bagla', 'a2ye bagla']);
+
+  if (asksLessonPractice && lessonContext) {
+    const summary = lessonContextSummary(lessonContext);
+    const firstWord = lessonContext.vocabularyHeadwords[0] ?? 'Deutsch';
+    const secondWord = lessonContext.vocabularyHeadwords[1] ?? 'der Satz';
+    const b1Note = lessonContext.isB1Preview
+      ? ' Bu kısa bir B1 Ön İzleme; tam B1 yolu yakında. Ana plan için A2 pekiştirmeye devam edebilirsin.'
+      : '';
+
+    return {
+      text: 'Wolli şu anda çevrimdışı. ' + summary + ' üzerinden kısa pratik yapabiliriz.' + b1Note,
+      corrections: [
+        'Kelime 1: ' + firstWord,
+        'Kelime 2: ' + secondWord,
+      ],
+      suggestions: [
+        lessonContext.isB1Preview
+          ? 'A2 bağlantısı: önce kısa cümle kur, sonra B1 bağlacını veya kalıbı ekle.'
+          : 'Mini pratik: Bu kelimelerle bir kısa Almanca cümle yaz.',
+      ],
+    };
+  }
 
   if (asksB1Scope && !asksB1Preview) {
     return {
@@ -569,6 +619,12 @@ export const generateTeacherReply = async (
       role: message.role === 'teacher' ? 'assistant' : 'user',
       content: message.text,
     })),
+    context: input.lessonContext
+      ? {
+          lessonId: input.lessonContext.lessonId,
+          lessonContext: input.lessonContext,
+        }
+      : undefined,
   });
 
   if (backendReply) {
@@ -593,7 +649,7 @@ export const generateTeacherReply = async (
   }
 
   await wait(350);
-  return withTeacherReplyDebug(localTeacherReply(input.message), fallbackReason);
+  return withTeacherReplyDebug(localTeacherReply(input.message, input.lessonContext), fallbackReason);
 };
 
 export const gradeWriting = async (

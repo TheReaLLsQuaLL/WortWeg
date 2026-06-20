@@ -17,11 +17,12 @@ import { HalftoneAccent } from '../components/HalftoneAccent';
 import { Screen } from '../components/layout';
 import { Mascot } from '../components/Mascot';
 import { TopBar } from '../components/TopBar';
+import { getLessonById, getNextPlayableLesson, isB1PreviewLessonId } from '../data/lessons';
 import { colors, radius, shadows, spacing, typography } from '../data/theme';
 import type { CommitUserState } from '../navigation/AppNavigator';
 import { generateTeacherReply } from '../services/aiTeacher';
 import { trackLocalEvent } from '../services/localEventLog';
-import type { ChatMessage } from '../types/ai';
+import type { ChatMessage, LessonContext } from '../types/ai';
 import type { UserState } from '../types/userState';
 
 type ChatScreenProps = {
@@ -30,8 +31,49 @@ type ChatScreenProps = {
 };
 
 const starterChips = ['Mir geht es gut!', 'Wie heißt du?', 'Guten Morgen!', 'Danke!'];
+const lessonStarterChips = [
+  'Bu dersi kısaca açıkla',
+  'Bu dersten 3 kelime sor',
+  'Bir örnek cümle kur',
+  'Mini pratik yapalım',
+];
+const b1PreviewStarterChips = [
+  'Bu B1 ön izleme konusunu açıkla',
+  'Bana 3 örnek ver',
+  'Kısa konuşma pratiği yap',
+  'A2’ye bağla',
+];
 const INTERNAL_AI_COPY_PATTERN = /(dev debug|mock|fallback|provider|modelused|model:|endpoint|backend url|timeout|network request failed|fetch-failed|http status|localhost|127\.0\.0\.1|192\.168|https?:\/\/)/i;
 const OFFLINE_WOLLI_TEXT = 'Wolli şu anda çevrimdışı. A0/A1/A2 ve kısa B1 Ön İzleme konularında basit pratik yapabiliriz.';
+
+const buildLessonContext = (userState: UserState): LessonContext | undefined => {
+  const recentProgressLessonId = Object.values(userState.lessonProgress)
+    .filter((progress) => Boolean(getLessonById(progress.lessonId)))
+    .sort((a, b) => b.lastStudiedAt.localeCompare(a.lastStudiedAt))[0]?.lessonId;
+  const latestCompletedLessonId = [...userState.completedLessons]
+    .reverse()
+    .find((lessonId) => Boolean(getLessonById(lessonId)));
+  const nextLesson = getNextPlayableLesson(userState.completedLessons, userState.learningPlan);
+  const planLesson = userState.learningPlan?.currentModuleId
+    ? getLessonById(userState.learningPlan.currentModuleId)
+    : undefined;
+  const lesson = recentProgressLessonId
+    ? getLessonById(recentProgressLessonId)
+    : nextLesson ?? planLesson ?? (latestCompletedLessonId ? getLessonById(latestCompletedLessonId) : undefined);
+
+  if (!lesson) {
+    return undefined;
+  }
+
+  return {
+    lessonId: lesson.id,
+    level: lesson.cefr,
+    title: lesson.title,
+    grammarLabels: lesson.grammar.map((note) => note.title).slice(0, 5),
+    vocabularyHeadwords: lesson.vocabulary.map((word) => word.german).slice(0, 5),
+    isB1Preview: isB1PreviewLessonId(lesson.id),
+  };
+};
 
 const sanitizeTeacherMessage = (text: string) => {
   const normalizedText = text.replace(
@@ -50,6 +92,12 @@ export function ChatScreen({ userState, onUpdateState }: ChatScreenProps) {
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
+  const lessonContext = buildLessonContext(userState);
+  const activeStarterChips = lessonContext
+    ? lessonContext.isB1Preview
+      ? b1PreviewStarterChips
+      : lessonStarterChips
+    : starterChips;
 
   const scrollToEnd = () => {
     requestAnimationFrame(() => {
@@ -96,6 +144,7 @@ export function ChatScreen({ userState, onUpdateState }: ChatScreenProps) {
       message: text,
       cefrLevel: 'A1',
       recentMessages: [...userState.chatMessages, userMessage].slice(-8),
+      lessonContext,
     });
     const teacherMessage: ChatMessage = {
       id: `chat-teacher-${Date.now()}`,
@@ -148,12 +197,19 @@ export function ChatScreen({ userState, onUpdateState }: ChatScreenProps) {
                   <Text style={styles.kicker}>Wolli hazır</Text>
                   <Text style={styles.title}>Almanca pratik sor</Text>
                   <Text style={styles.body}>
-                    A0/A1/A2 veya kısa B1 Ön İzleme konularını Türkçe açıklamayla çalış.
+                    {lessonContext
+                      ? lessonContext.isB1Preview
+                        ? 'Bu kısa B1 Ön İzleme konusunu A2 temelinle bağlayarak çalış.'
+                        : lessonContext.title + ' dersinden kısa pratik yap.'
+                      : 'A0/A1/A2 veya kısa B1 Ön İzleme konularını Türkçe açıklamayla çalış.'}
                   </Text>
                 </View>
               </View>
+              {lessonContext ? (
+                <Text style={styles.contextLabel}>Derse göre: {lessonContext.title}</Text>
+              ) : null}
               <View style={styles.starterChips}>
-                {starterChips.map((starter) => (
+                {activeStarterChips.map((starter) => (
                   <Chip
                     key={starter}
                     label={starter}
@@ -275,6 +331,11 @@ const styles = StyleSheet.create({
   body: {
     ...typography.body,
     color: colors.muted,
+  },
+  contextLabel: {
+    ...typography.small,
+    color: colors.muted,
+    fontWeight: '800',
   },
   starterChips: {
     flexDirection: 'row',
