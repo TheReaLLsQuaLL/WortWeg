@@ -29,8 +29,9 @@ const toSafeScore = (value: unknown) =>
 const toSafeString = (value: unknown) =>
   typeof value === 'string' && value.trim() ? value.trim().slice(0, 120) : undefined;
 
-const uniqueCapped = (values: unknown[] = []) => {
-  const unique = values.reduce<string[]>((items, value) => {
+const uniqueCapped = (values: unknown) => {
+  const safeValues = Array.isArray(values) ? values : [];
+  const unique = safeValues.reduce<string[]>((items, value) => {
     const safeValue = toSafeString(value);
 
     if (safeValue && !items.includes(safeValue)) {
