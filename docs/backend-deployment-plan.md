@@ -99,7 +99,7 @@ Rules:
 - Do not show provider, model, endpoint, network, or internal backend details to normal users.
 - Do not put secrets in the client bundle.
 - Redact errors before returning them to the app.
-- Add rate limiting and abuse protection before broader testing.
+- Keep rate limiting enabled and tune limits before broader testing.
 - CORS should be restrictive and environment-driven, not wildcard forever.
 - Keep local event logs capped and privacy-safe.
 - Keep speech/debug diagnostics DEV-only and collapsed by default.
@@ -113,7 +113,7 @@ Before deploying for remote testers, prepare the backend with small backend-only
 - Add request size limits appropriate for audio uploads.
 - Add timeout handling for AI and speech routes.
 - Add structured safe errors for app-facing responses.
-- Add rate limiting.
+- Verify and tune rate limiting.
 - Add CORS config from environment variables.
 - Add health/readiness endpoint if `/health` is not enough for the selected host.
 - Add safe logging with no secrets, transcripts, `audioUri`, or raw API bodies.
@@ -179,7 +179,7 @@ EXPO_PUBLIC_AI_BACKEND_URL=https://YOUR_BACKEND_HOST
 ### Phase 2 - Backend production hardening
 
 - Add production start command and config validation if needed.
-- Add rate limiting, request limits, safe errors, safe logs, and CORS config.
+- Verify rate limiting, request limits, safe errors, safe logs, and CORS config.
 - Keep OpenAI STT path working.
 
 ### Phase 3 - Deploy backend with env vars

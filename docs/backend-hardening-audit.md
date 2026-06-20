@@ -24,7 +24,7 @@ Client secret rule: the mobile app must never contain `OPENAI_API_KEY`, `GEMINI_
 - Temp upload cleanup: attempted in `finally` after transcription route handling.
 - Request body JSON limit: 1 MB.
 - CORS: environment-driven; production requires `ALLOWED_ORIGINS`, development allows localhost/LAN-style origins.
-- Rate limiting: not present.
+- Rate limiting: dependency-free in-memory limiter is enabled by default for health, AI, and speech endpoint groups.
 - Production start script: `server:start` exists as a first production-oriented runner using the existing TypeScript runtime.
 - `.env`: ignored by `.gitignore`; `.env.example` contains placeholders.
 
@@ -148,8 +148,8 @@ Already good:
 Risks/gaps:
 
 - Development logs include provider and model names.
-- Speech response payload includes `provider`, `modelUsed`, and `fallback`; the app currently hides these from normal users, but the backend contract is not provider-neutral.
-- AI response payload includes `modelUsed`; the app must continue sanitizing/hiding it from normal user UI.
+- Development speech responses include `provider`, `modelUsed`, and `fallback` for existing debug tooling; production responses omit provider/model diagnostics.
+- Development AI responses include `modelUsed`; production responses omit it from normal app responses.
 - No centralized safe logger exists.
 - No production log policy exists in code.
 - README/docs mention some internal diagnostic terms for development; that is acceptable, but production operator logs should remain disciplined.
@@ -195,24 +195,22 @@ Status: blocker before remote private alpha.
 
 Current behavior:
 
-- No rate limiting exists.
-- No request throttling exists.
-- No per-route abuse protection exists.
+- Dependency-free in-memory rate limiting is enabled by default.
+- Endpoint groups have separate defaults: health 120/min, AI 30/min, speech 10/min.
+- Limits are configurable with `RATE_LIMIT_ENABLED`, `RATE_LIMIT_WINDOW_MS`, `RATE_LIMIT_AI_MAX`, `RATE_LIMIT_SPEECH_MAX`, and `RATE_LIMIT_HEALTH_MAX`.
+- HTTP 429 responses return a generic Turkish-safe message and no provider/request-body details.
 
 Risk:
 
-- Public AI and speech endpoints can generate provider cost quickly.
-- Speech upload endpoint accepts multipart audio and needs stricter protection first.
+- In-memory limiting is process-local and resets on restart.
+- It is enough for a first private-alpha backend, but it is not a distributed or account-aware limiter.
+- If the hosted runtime runs multiple instances, each instance has its own bucket.
 
 Recommendation:
 
-- Add rate limiting before hosting for remote testers.
-- Protect first:
-  1. `POST /speech/transcribe`
-  2. `POST /ai/teacher`
-- Start with simple IP-based limits if no auth exists.
-- Add request size/time limits and safe 429 responses.
-- Revisit once auth or tester identity exists.
+- Keep this limiter for first hosted alpha.
+- Tune limits after real phone smoke and tester behavior are known.
+- Revisit a shared limiter only if multiple instances, auth, or broader testing require it.
 
 ### 8. AI Teacher Route
 
@@ -234,7 +232,7 @@ Gaps:
 - `buildUserPrompt` serializes full `request.context`, which may include transcript or expected answer. That is intended for AI feedback, but it means context bounds and privacy review matter before production.
 - `conversationHistory` and `userMessage` are sent to Gemini, as expected, but should not be logged.
 - No route timeout around Gemini calls.
-- No abuse/rate limiting.
+- Basic in-memory rate limiting is in place; tune limits before hosted alpha.
 
 Recommendation:
 
@@ -266,14 +264,14 @@ Gaps:
 - Production response omits provider/model diagnostics and keeps generic fallback behavior.
 - Fallback transcript can be generated from `expectedText`; this is fine for local/dev fallback but should be reviewed for production semantics.
 - Upload error cleanup for partially written files is not explicitly tested.
-- No rate limiting.
-- No request timeout.
+- Basic in-memory rate limiting is in place.
+- No route-level request timeout beyond provider timeouts.
 - Provider-neutral production response contract has a first implementation; verify it in phone and hosted smoke tests.
 
 Recommendation:
 
 - OpenAI fetch timeout is in place.
-- Add rate limiting and request timeout.
+- Tune rate limits and add route-level request timeout later if host defaults are not enough.
 - Confirm temp cleanup in tests/manual checks.
 - Keep transcript text out of logs.
 - Provider/model diagnostics are now development-only response fields.
@@ -287,6 +285,7 @@ Recommendation:
 - Made production startup require `ALLOWED_ORIGINS`, `GEMINI_API_KEY`, and `OPENAI_API_KEY` when using OpenAI STT.
 - Added safe defaults for `SPEECH_SCORING_PROVIDER=transcript` and `SPEECH_AZURE_ENABLED=false`; Azure remains unavailable.
 - Added explicit provider request timeouts for Gemini and OpenAI STT calls.
+- Added dependency-free in-memory rate limiting for `/health`, `/ai/teacher`, and `/speech/*`.
 - Omitted provider/model diagnostics from production AI and speech responses while keeping development diagnostics available.
 - Relaxed app service parsers so production provider-neutral responses do not break existing flows.
 
@@ -295,11 +294,11 @@ Recommendation:
 These should be fixed before any hosted backend is exposed to remote testers:
 
 1. Final real-device phone smoke test has not fully passed.
-2. No rate limiting or abuse protection exists.
-3. Hosted environment variables and `ALLOWED_ORIGINS` have not been configured or tested on a real host.
-4. Production start strategy still uses the existing `tsx` runtime; host-specific build/runtime choice must be confirmed.
-5. No hosted deployment runbook exists yet.
-6. Speech temp-file cleanup has not been verified on the selected host.
+2. Hosted environment variables and `ALLOWED_ORIGINS` have not been configured or tested on a real host.
+3. Production start strategy still uses the existing `tsx` runtime; host-specific build/runtime choice must be confirmed.
+4. No hosted deployment runbook exists yet.
+5. Speech temp-file cleanup has not been verified on the selected host.
+6. In-memory rate limits must be tuned and rechecked against real tester behavior.
 
 ## Should Fix Before Private Alpha Hosting
 
@@ -339,33 +338,33 @@ These should be fixed before any hosted backend is exposed to remote testers:
 ## Prioritized Hardening Checklist
 
 1. Keep deployment blocked until the final phone smoke test passes.
-2. Add rate limiting for `/speech/transcribe` and `/ai/teacher`.
-3. Confirm production runtime/build strategy for the selected host.
-4. Add centralized safe error responses.
-5. Add safe logging helper and production log policy.
-6. Bound all AI context schema string fields.
-7. Confirm and document speech temp-file cleanup behavior.
+2. Confirm production runtime/build strategy for the selected host.
+3. Add centralized safe error responses.
+4. Add safe logging helper and production log policy.
+5. Bound all AI context schema string fields.
+6. Confirm and document speech temp-file cleanup behavior.
+7. Tune rate limits after phone smoke and tester behavior are known.
 8. Add deployment runbook and host-specific constraints after a host is selected.
 9. Run hosted smoke tests for `/health`, AI chat, and speech transcription before inviting testers.
 
 ## Suggested Implementation Order
 
 1. Phone smoke completion and blocker triage.
-2. Rate limiting commit for AI and speech routes.
-3. Centralized safe error shape commit.
-4. Safe logging helper commit.
-5. AI context schema tightening commit.
-6. Speech cleanup/manual test commit.
+2. Centralized safe error shape commit.
+3. Safe logging helper commit.
+4. AI context schema tightening commit.
+5. Speech cleanup/manual test commit.
+6. Rate-limit tuning after real-device behavior is known.
 7. Deployment runbook commit.
 8. Host selection and deployment preparation.
 
 ## Next Safe Hardening Task
 
-Add dependency-free rate limiting and centralized safe errors without deployment:
+Add centralized safe errors and safe logging without deployment:
 
-- protect `/speech/transcribe` first,
-- protect `/ai/teacher` second,
 - keep local development behavior usable,
+- preserve provider-neutral production responses,
+- keep rate limiting enabled and configurable,
 - do not deploy,
 - do not add Azure,
 - do not expose API keys in the mobile app.

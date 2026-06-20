@@ -8,6 +8,10 @@ const DEFAULT_PORT = 3001;
 const DEFAULT_HOST = '0.0.0.0';
 const DEFAULT_AI_PROVIDER_TIMEOUT_MS = 30_000;
 const DEFAULT_SPEECH_PROVIDER_TIMEOUT_MS = 45_000;
+const DEFAULT_RATE_LIMIT_WINDOW_MS = 60_000;
+const DEFAULT_RATE_LIMIT_AI_MAX = 30;
+const DEFAULT_RATE_LIMIT_SPEECH_MAX = 10;
+const DEFAULT_RATE_LIMIT_HEALTH_MAX = 120;
 
 const parsePositiveInt = (value: string | undefined, fallback: number) => {
   const parsed = value ? Number(value) : fallback;
@@ -58,6 +62,11 @@ export type BackendConfig = {
   nodeEnv: string;
   openAiApiKeyConfigured: boolean;
   port: number;
+  rateLimitAiMax: number;
+  rateLimitEnabled: boolean;
+  rateLimitHealthMax: number;
+  rateLimitSpeechMax: number;
+  rateLimitWindowMs: number;
   speechAzureEnabled: boolean;
   speechProviderTimeoutMs: number;
   speechScoringProvider: string;
@@ -70,6 +79,7 @@ const buildBackendConfig = (): BackendConfig => {
   const sttProvider = getSttProvider();
   const speechScoringProvider = getSpeechScoringProvider();
   const speechAzureEnabled = parseBoolean(process.env.SPEECH_AZURE_ENABLED, false);
+  const rateLimitEnabled = parseBoolean(process.env.RATE_LIMIT_ENABLED, true);
   const allowedOrigins = parseAllowedOrigins(process.env.ALLOWED_ORIGINS);
   const missing: string[] = [];
   const invalid: string[] = [];
@@ -117,6 +127,11 @@ const buildBackendConfig = (): BackendConfig => {
     nodeEnv,
     openAiApiKeyConfigured: Boolean(process.env.OPENAI_API_KEY?.trim()),
     port: parsePositiveInt(process.env.PORT, DEFAULT_PORT),
+    rateLimitAiMax: parsePositiveInt(process.env.RATE_LIMIT_AI_MAX, DEFAULT_RATE_LIMIT_AI_MAX),
+    rateLimitEnabled,
+    rateLimitHealthMax: parsePositiveInt(process.env.RATE_LIMIT_HEALTH_MAX, DEFAULT_RATE_LIMIT_HEALTH_MAX),
+    rateLimitSpeechMax: parsePositiveInt(process.env.RATE_LIMIT_SPEECH_MAX, DEFAULT_RATE_LIMIT_SPEECH_MAX),
+    rateLimitWindowMs: parsePositiveInt(process.env.RATE_LIMIT_WINDOW_MS, DEFAULT_RATE_LIMIT_WINDOW_MS),
     speechAzureEnabled,
     speechProviderTimeoutMs: parsePositiveInt(process.env.SPEECH_PROVIDER_TIMEOUT_MS, DEFAULT_SPEECH_PROVIDER_TIMEOUT_MS),
     speechScoringProvider,

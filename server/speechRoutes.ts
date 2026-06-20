@@ -2,13 +2,15 @@ import fs from 'node:fs/promises';
 import express from 'express';
 import multer from 'multer';
 
+import { getBackendConfig } from './config';
 import { transcribeAudio } from './sttClient';
 import { speechTranscribeRequestSchema } from './speechSchemas';
 import { getUploadSizeLimitBytes, speechUpload } from './upload';
 
 export const speechRouter = express.Router();
 
-const isDevelopment = process.env.NODE_ENV !== 'production';
+const config = getBackendConfig();
+const isDevelopment = !config.isProduction;
 
 const logSpeechDebug = (message: string, details?: Record<string, string | number | boolean | undefined>) => {
   if (!isDevelopment) {
@@ -30,6 +32,15 @@ const removeTempFile = async (file?: Express.Multer.File) => {
   }
 };
 
+const toPublicSpeechResponse = (result: Awaited<ReturnType<typeof transcribeAudio>>) => {
+  if (config.includeProviderDiagnostics) {
+    return result;
+  }
+
+  const { provider: _provider, modelUsed: _modelUsed, ...publicResult } = result;
+  return publicResult;
+};
+
 const sendUploadError = (response: express.Response, error: unknown) => {
   if (error instanceof multer.MulterError) {
     const status = error.code === 'LIMIT_FILE_SIZE' ? 413 : 400;
@@ -37,7 +48,7 @@ const sendUploadError = (response: express.Response, error: unknown) => {
       error: error.code === 'LIMIT_FILE_SIZE'
         ? 'Audio file is too large. Maximum upload size is 10MB.'
         : 'Invalid audio upload.',
-      details: { code: error.code, maxBytes: getUploadSizeLimitBytes() },
+      details: config.includeProviderDiagnostics ? { code: error.code, maxBytes: getUploadSizeLimitBytes() } : undefined,
     });
     return;
   }
@@ -45,7 +56,7 @@ const sendUploadError = (response: express.Response, error: unknown) => {
   if (error instanceof Error && error.message === 'unsupported-audio-format') {
     response.status(415).json({
       error: 'Unsupported audio format.',
-      details: { allowed: ['m4a', 'mp3', 'mp4', 'wav', 'webm', 'mpeg', 'mpga'] },
+      details: config.includeProviderDiagnostics ? { allowed: ['m4a', 'mp3', 'mp4', 'wav', 'webm', 'mpeg', 'mpga'] } : undefined,
     });
     return;
   }
@@ -79,7 +90,7 @@ speechRouter.post('/transcribe', (request, response) => {
       await removeTempFile(file);
       response.status(400).json({
         error: 'Invalid transcription request.',
-        details: parsedBody.error.flatten(),
+        details: config.includeProviderDiagnostics ? parsedBody.error.flatten() : undefined,
       });
       return;
     }
@@ -110,10 +121,10 @@ speechRouter.post('/transcribe', (request, response) => {
         durationMs: Date.now() - startedAt,
       });
 
-      response.json({
+      response.json(toPublicSpeechResponse({
         ...result,
         durationMs: Math.max(result.durationMs, Date.now() - startedAt),
-      });
+      }));
     } catch {
       response.status(500).json({ error: 'Speech transcription failed.' });
     } finally {

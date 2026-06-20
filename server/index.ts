@@ -5,6 +5,7 @@ import { getBackendConfig, isCorsOriginAllowed } from './config';
 import { generateAiTeacherResponse } from './geminiClient';
 import { speechRouter } from './speechRoutes';
 import { getModelForMode } from './modelRouter';
+import { createRateLimitMiddleware } from './rateLimit';
 import {
   aiTeacherRequestSchema,
   aiTeacherResponseSchema,
@@ -13,6 +14,9 @@ import {
 
 const config = getBackendConfig();
 const app = express();
+const healthRateLimit = createRateLimitMiddleware('health', config.rateLimitHealthMax);
+const aiRateLimit = createRateLimitMiddleware('ai', config.rateLimitAiMax);
+const speechRateLimit = createRateLimitMiddleware('speech', config.rateLimitSpeechMax);
 
 const toPublicAiResponse = (data: AiTeacherResponse) => {
   if (config.includeProviderDiagnostics) {
@@ -31,13 +35,13 @@ app.use(
   }),
 );
 app.use(express.json({ limit: '1mb' }));
-app.use('/speech', speechRouter);
+app.use('/speech', speechRateLimit, speechRouter);
 
-app.get('/health', (_request, response) => {
+app.get('/health', healthRateLimit, (_request, response) => {
   response.json({ ok: true, service: 'wortweg-ai' });
 });
 
-app.post('/ai/teacher', async (request, response) => {
+app.post('/ai/teacher', aiRateLimit, async (request, response) => {
   const parsedRequest = aiTeacherRequestSchema.safeParse(request.body);
 
   if (!parsedRequest.success) {
