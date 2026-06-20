@@ -1,4 +1,4 @@
-import { BookOpen, MessageCircle, Mic, NotebookTabs, RotateCcw, Sparkles } from 'lucide-react-native';
+import { BookOpen, ClipboardCheck, MessageCircle, Mic, NotebookTabs, RotateCcw, Sparkles } from 'lucide-react-native';
 import { useEffect } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -11,6 +11,7 @@ import { AppScrollView, Screen } from '../components/layout';
 import { RoadmapPath, type RoadmapPathItem } from '../components/RoadmapPath';
 import { TopBar } from '../components/TopBar';
 import { getNextPlayableLesson, getPlayableLessonsForPlan, isLessonUnlocked } from '../data/lessons';
+import { speakingLibrarySentences } from '../data/speakingLibrary';
 import { colors, radius, shadows, spacing, typography } from '../data/theme';
 import { getDueReviewCards, getReviewCoverage } from '../lib/srs';
 import type { RootNavigation } from '../navigation/AppNavigator';
@@ -87,6 +88,48 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
       ? dueCards.length + ' kart hazır'
       : 'A1 konuşma · cümle eşleşmesi';
   const primaryButton = nextLesson ? 'Derse başla' : dueCards.length > 0 ? 'Tekrar et' : 'Sesli pratik aç';
+  const latestExam = userState.examHistory[userState.examHistory.length - 1];
+  const reviewItems = [
+    {
+      id: 'vocab',
+      icon: RotateCcw,
+      title: 'Kelime tekrarı',
+      detail: dueCards.length > 0
+        ? dueCards.length + ' kart hazır'
+        : userState.reviewCards.length > 0
+          ? 'Bugünlük tekrar tamam'
+          : 'Derslerden kart açılır',
+      onPress: () => navigation.navigate('Main', { initialTab: 'vocab' }),
+    },
+    {
+      id: 'mistakes',
+      icon: NotebookTabs,
+      title: 'Hatalar',
+      detail: mistakeCount > 0 ? mistakeCount + ' hata tekrar bekliyor' : 'Henüz hata yok',
+      onPress: () => navigation.navigate('Main', { initialTab: 'profile' }),
+    },
+    {
+      id: 'speaking',
+      icon: Mic,
+      title: 'Konuşma pratiği',
+      detail: speakingLibrarySentences.length + ' hazır cümle',
+      onPress: () => navigation.navigate('SpeakingLibrary'),
+    },
+    {
+      id: 'ai',
+      icon: MessageCircle,
+      title: 'AI ile pratik',
+      detail: nextLesson ? nextLesson.title + ' için Wolli' : 'Wolli ile kısa pratik',
+      onPress: () => navigation.navigate('Main', { initialTab: 'chat' }),
+    },
+    {
+      id: 'exam',
+      icon: ClipboardCheck,
+      title: 'Sınav tarzı pratik',
+      detail: latestExam ? latestExam.score + '/' + latestExam.total + ' son deneme' : 'Kısa deneme aç',
+      onPress: () => navigation.navigate('Main', { initialTab: 'exam' }),
+    },
+  ];
 
   return (
     <Screen backgroundColor={colors.lavenderBackground}>
@@ -119,6 +162,28 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
             <View style={{ flex: 1 - dailyProgress }} />
           </View>
           <AppButton icon={BookOpen} onPress={startPrimary} title={primaryButton} />
+          </AppCard>
+        </AnimatedCard>
+
+        <AnimatedCard delayMs={45}>
+          <AppCard style={styles.reviewPanel}>
+            <View style={styles.sectionHeader}>
+              <View>
+                <Text style={styles.sectionTitle}>Bugün ne çalışalım?</Text>
+                <Text style={styles.muted}>Kısa bir tekrar seç</Text>
+              </View>
+            </View>
+            <View style={styles.reviewGrid}>
+              {reviewItems.map((item) => (
+                <ReviewPlanItem
+                  detail={item.detail}
+                  icon={item.icon}
+                  key={item.id}
+                  onPress={item.onPress}
+                  title={item.title}
+                />
+              ))}
+            </View>
           </AppCard>
         </AnimatedCard>
 
@@ -170,6 +235,20 @@ function QuickAction({ badgeCount = 0, icon: Icon, label, onPress }: { badgeCoun
           <Text style={styles.quickBadgeText}>{badgeLabel}</Text>
         </View>
       ) : null}
+    </Pressable>
+  );
+}
+
+function ReviewPlanItem({ detail, icon: Icon, onPress, title }: { detail: string; icon: typeof RotateCcw; onPress: () => void; title: string }) {
+  return (
+    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.reviewItem, pressed && styles.pressed]}>
+      <View style={styles.reviewIconWrap}>
+        <Icon color={colors.comicBorderColor} size={19} strokeWidth={2.8} />
+      </View>
+      <View style={styles.reviewItemCopy}>
+        <Text style={styles.reviewItemTitle}>{title}</Text>
+        <Text style={styles.reviewItemDetail}>{detail}</Text>
+      </View>
     </Pressable>
   );
 }
@@ -279,6 +358,55 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     position: 'relative',
     ...shadows.comic,
+  },
+  reviewPanel: {
+    backgroundColor: colors.white,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.xl,
+    borderWidth: colors.comicBorderWidth,
+    gap: spacing.md,
+    padding: spacing.lg,
+    ...shadows.comic,
+  },
+  reviewGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  reviewItem: {
+    backgroundColor: colors.paperLavender,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.lg,
+    borderWidth: colors.comicBorderWidth,
+    flexBasis: '48%',
+    flexGrow: 1,
+    gap: spacing.sm,
+    minHeight: 108,
+    padding: spacing.md,
+    ...shadows.comicSmall,
+  },
+  reviewIconWrap: {
+    alignItems: 'center',
+    backgroundColor: colors.yellowCta,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.md,
+    borderWidth: colors.comicBorderWidth,
+    height: 38,
+    justifyContent: 'center',
+    width: 38,
+  },
+  reviewItemCopy: {
+    gap: 2,
+  },
+  reviewItemTitle: {
+    ...typography.small,
+    color: colors.deepViolet,
+    fontWeight: '900',
+  },
+  reviewItemDetail: {
+    ...typography.small,
+    color: colors.muted,
+    fontWeight: '800',
   },
   sectionHeader: {
     alignItems: 'center',
