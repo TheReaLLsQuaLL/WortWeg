@@ -51,7 +51,7 @@ This document parks backend/server work for later. It is not an implementation p
 - Near term: public HTTPS backend for remote alpha testers.
 - Beta experiment: iOS/Android native STT in a separate EAS dev-build branch.
 - Later: evaluate ML Kit or Gemma-style local models only if device performance and German accuracy justify it.
-- Azure Pronunciation Assessment should wait until the core lesson/speaking loop is stable.
+- Azure Pronunciation Assessment should stay backend-only, feature-flagged, and not user-visible until validated.
 
 ## 7. Migration Checklist
 
@@ -67,4 +67,4 @@ This document parks backend/server work for later. It is not an implementation p
 
 ## 8. Current Priority
 
-For now, keep focus on app/content quality: playable A0/A1/A2 lessons, the optional limited B1 preview lessons, onboarding persistence, SRS, mistakes, speaking UX, and safe tester reporting. Full B1/B2 remain coming soon until a later content pass.
+For now, keep focus on final real-device smoke testing and backend deployment planning. The app already has playable A0/A1/A2 lessons, eight optional limited B1 preview lessons, onboarding persistence, SRS, dedicated mistakes review, Home review dashboard, Speaking Practice Library, transcript-based speech scoring, privacy-safe speaking stats, and safe tester reporting. Full B1/B2 remain coming soon until a later content pass.

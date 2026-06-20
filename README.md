@@ -116,7 +116,12 @@ npm run typecheck
 - Lesson completion awards XP, updates local-date streaks, adds SRS cards, and records mistakes.
 - SRS review uses `src/lib/srs.ts`.
 - AI chat, exam answer feedback, writing feedback, and speaking feedback call the local backend when configured, and fall back to local Wolli responses when unavailable.
-- Speech recording/replay is local, German transcription can use the secure backend, and speaking feedback is transcript-comparison based until real phonetic scoring is added.
+- AI chat has lesson-aware starter suggestions using safe static lesson context.
+- Home includes a compact review dashboard for Kelime tekrarı, Hatalar, Konuşma pratiği, AI ile pratik, and Sınav tarzı pratik.
+- Hatalar has a dedicated review route from Home and lesson completion.
+- Speaking Practice Library has 36 static practice sentences from existing lesson prompts.
+- Speech recording/replay is local, German transcription can use the secure backend, and speaking feedback uses transcript-based Hybrid Speech Scoring v1 until real phonetic scoring is added.
+- Speaking Practice Stats store privacy-safe aggregates only: attempt counts, success counts, best/latest score, last practice date, static sentence IDs, and level breakdown.
 
 ## AI Service Boundary
 
@@ -347,7 +352,8 @@ Current behavior:
 - replays the local recording
 - uploads audio to `/speech/transcribe` for German transcript when backend is reachable
 - falls back to a local transcript estimate when backend/OpenAI is unavailable
-- returns transcript-comparison feedback
+- returns transcript-based Hybrid Speech Scoring v1 feedback categories
+- updates privacy-safe speaking stats after scored results
 
 Test on Android Expo Go:
 
@@ -371,7 +377,7 @@ Limitations:
 - real phonetic pronunciation scoring is not connected yet
 - no paid speech API keys are used in the mobile app
 
-Next step for speech: keep this backend provider abstraction and add Azure Pronunciation Assessment or another scoring provider server-side.
+Next step for speech: keep the OpenAI STT path stable, complete real-device smoke testing, then plan any Azure Pronunciation Assessment work as a backend-only feature-flagged prototype. See `docs/azure-pronunciation-prototype.md`.
 
 ## Azure Pronunciation Assessment Later
 
@@ -380,7 +386,7 @@ Keep Azure keys server-side. The app should upload or stream audio to a backend 
 - `AZURE_SPEECH_KEY`
 - `AZURE_SPEECH_REGION`
 
-Then return a typed pronunciation result to `scorePronunciation(audioUri, expectedText)`.
+If this is prototyped later, return provider-neutral feedback fields to the app. Do not expose Azure/provider details in normal UI.
 
 ## Supabase Later
 
@@ -443,15 +449,16 @@ Alpha test checklist:
 2. Kill and reopen Expo Go; confirm Home opens again, not onboarding.
 3. Reset, complete onboarding with placement, accept the recommendation, then confirm Home opens.
 4. Start A0.1 from Home, answer at least one question wrong, finish the lesson, and confirm XP/progress updates.
-5. Open Kelime review and Hatalarım.
+5. Open Kelime review, the Home review dashboard, and Hatalarım.
 6. Open CurriculumMap and confirm A0/A1/A2 lessons open, B1 shows only the eight optional “B1 Ön İzleme” lessons, and full B1/B2 modules show coming-soon behavior.
 7. Open AI chat and send a short A1 message.
-8. Open speaking practice, press and hold the microphone, speak, release, replay, and confirm:
+8. Open Konuşma Pratiği, confirm the 36-sentence library and stats panel, press and hold the microphone, speak, release, replay, and confirm:
    - Release starts the animated analysis state.
    - Beklenen cümle is visible.
    - Söylediğin cümle shows the real transcript.
    - Hedefe yakınlık shows one simple score.
    - Pratik geri bildirimi is clear.
+   - Speaking stats update after a scored result without storing transcript text or audio URI.
 9. Open Profile, export the alpha event log, and send feedback.
 
 Before testing speech on iPhone:
@@ -484,7 +491,7 @@ Known alpha limitations:
 
 - A0/A1/A2 lessons are playable. Eight optional limited “B1 Ön İzleme” lessons are available; full B1/B2 tracks remain curriculum metadata and are marked as coming soon.
 - Speaking transcript uses backend OpenAI STT and requires local backend reachability plus OpenAI API quota.
-- Speaking feedback is transcript-comparison based, not real phonetic pronunciation scoring.
+- Speaking feedback is transcript-based Hybrid Speech Scoring v1, not real phonetic pronunciation scoring.
 - This is Expo Go/dev-build testing only for now.
 - No accounts, Supabase sync, or cloud progress backup yet.
 - Feedback opens a mail draft/template; there is no feedback backend yet.
