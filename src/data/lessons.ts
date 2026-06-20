@@ -1,26 +1,35 @@
 import { lessonsA0 } from './lessons.a0';
 import { lessonsA1 } from './lessons.a1';
 import { lessonsA2 } from './lessons.a2';
+import { lessonsB1Preview } from './lessons.b1Preview';
 import type { CurriculumLevelId } from '../types/curriculum';
 import type { LearningPlan, StartLevelId, TargetLevelId } from '../types/learningPlan';
 import type { Lesson } from '../types/lesson';
 
-export const playableLessons: Lesson[] = [...lessonsA0, ...lessonsA1, ...lessonsA2];
+type MainPathLevel = 'A0' | 'A1' | 'A2';
+type MainPathLesson = Lesson & { cefr: MainPathLevel };
 
+const mainPathLessons: MainPathLesson[] = [...lessonsA0, ...lessonsA1, ...lessonsA2] as MainPathLesson[];
+
+export const playableLessons: Lesson[] = [...mainPathLessons, ...lessonsB1Preview];
+
+export { B1_PREVIEW_LESSON_ID, lessonsB1Preview } from './lessons.b1Preview';
 export { lessonsA0, lessonsA1, lessonsA2 };
 
-export const playableLevelOrder: Array<'A0' | 'A1' | 'A2'> = ['A0', 'A1', 'A2'];
+export const playableLevelOrder: MainPathLevel[] = ['A0', 'A1', 'A2'];
 
 export const getLessonById = (lessonId: string) =>
   playableLessons.find((lesson) => lesson.id === lessonId);
 
 export const getPlayableLessonByModuleId = (moduleId: string) =>
-  getLessonById(moduleId);
+  mainPathLessons.find((lesson) => lesson.id === moduleId);
+
+export const getB1PreviewLessons = () => lessonsB1Preview;
 
 export const getLessonsForLevel = (levelId: CurriculumLevelId) =>
   playableLessons.filter((lesson) => lesson.cefr === levelId);
 
-const normalizeStartLevel = (level?: StartLevelId): 'A0' | 'A1' | 'A2' => {
+const normalizeStartLevel = (level?: StartLevelId): MainPathLevel => {
   if (level === 'zero' || level === 'A0') {
     return 'A0';
   }
@@ -32,7 +41,7 @@ const normalizeStartLevel = (level?: StartLevelId): 'A0' | 'A1' | 'A2' => {
   return 'A1';
 };
 
-const normalizeTargetLevel = (level?: TargetLevelId): 'A0' | 'A1' | 'A2' => {
+const normalizeTargetLevel = (level?: TargetLevelId): MainPathLevel => {
   if (level === 'A2' || level === 'B1' || level === 'B2') {
     return 'A2';
   }
@@ -51,7 +60,7 @@ export const getPlayableLessonsForPlan = (plan?: LearningPlan) => {
   const targetIndex = Math.max(startIndex, playableLevelOrder.indexOf(targetLevel));
   const levels = playableLevelOrder.slice(startIndex, targetIndex + 1);
 
-  return playableLessons.filter((lesson) => levels.includes(lesson.cefr));
+  return mainPathLessons.filter((lesson) => levels.includes(lesson.cefr));
 };
 
 export const getNextPlayableLesson = (

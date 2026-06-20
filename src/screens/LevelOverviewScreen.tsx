@@ -4,7 +4,7 @@ import type { RouteProp } from '@react-navigation/native';
 
 import { AppScrollView, Screen } from '../components/layout';
 import { curriculumLevels, getModulesForLevel } from '../data/curriculum';
-import { getPlayableLessonByModuleId } from '../data/lessons';
+import { getB1PreviewLessons, getPlayableLessonByModuleId } from '../data/lessons';
 import { colors, radius, shadows, spacing, typography } from '../data/theme';
 import type { RootNavigation, RootStackParamList } from '../navigation/AppNavigator';
 
@@ -29,6 +29,7 @@ export function LevelOverviewScreen({ navigation, route }: LevelOverviewScreenPr
   const playableCount = modules.filter((module) => getPlayableLessonByModuleId(module.id)).length;
   const comingSoonCount = Math.max(0, modules.length - playableCount);
   const levelComingSoon = level.isPlaceholder || playableCount === 0;
+  const previewLessons = level.id === 'B1' ? getB1PreviewLessons() : [];
 
   const openModule = (moduleId: string) => {
     const playableLesson = getPlayableLessonByModuleId(moduleId);
@@ -60,9 +61,35 @@ export function LevelOverviewScreen({ navigation, route }: LevelOverviewScreenPr
           <View style={styles.heroStats}>
             <Text style={styles.heroMeta}>{levelComingSoon ? 'Yakında' : 'Tahmini ' + level.estimatedWeeks + ' hafta'}</Text>
             <Text style={styles.heroMeta}>{playableCount} oynanabilir</Text>
+            {previewLessons.length > 0 ? <Text style={styles.heroMeta}>Ön izleme var</Text> : null}
             {comingSoonCount > 0 ? <Text style={styles.heroMetaMuted}>{comingSoonCount} yakında</Text> : null}
           </View>
         </View>
+
+        {previewLessons.length > 0 ? (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>B1 Ön İzleme</Text>
+            <Text style={styles.body}>Bu kısa ön izleme. Tam B1 yolu yakında.</Text>
+            {previewLessons.map((lesson) => (
+              <Pressable
+                key={lesson.id}
+                onPress={() => navigation.navigate('LessonIntro', { lessonId: lesson.id })}
+                style={({ pressed }) => [styles.previewCard, pressed && styles.pressed]}
+              >
+                <View style={styles.moduleIcon}>
+                  <BookOpen color={colors.royalPurple} size={18} />
+                </View>
+                <View style={styles.moduleCopy}>
+                  <Text style={styles.moduleTitle}>{lesson.title}</Text>
+                  <Text style={styles.muted}>{lesson.estimatedMinutes} dk · {lesson.baseExercises.length} alıştırma</Text>
+                </View>
+                <View style={styles.statusPill}>
+                  <Text style={styles.statusText}>Ön izleme</Text>
+                </View>
+              </Pressable>
+            ))}
+          </View>
+        ) : null}
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Hedefler</Text>
@@ -221,6 +248,18 @@ const styles = StyleSheet.create({
     borderRadius: radius.xl,
     borderWidth: colors.comicBorderWidth,
     gap: spacing.md,
+    padding: spacing.md,
+    ...shadows.comicSmall,
+  },
+  previewCard: {
+    alignItems: 'center',
+    backgroundColor: colors.comicYellowWash,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.xl,
+    borderWidth: colors.comicBorderWidth,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
     padding: spacing.md,
     ...shadows.comicSmall,
   },
