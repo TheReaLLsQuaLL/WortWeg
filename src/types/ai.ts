@@ -11,7 +11,7 @@ export type ChatMessage = {
 
 export type TeacherInput = {
   message: string;
-  cefrLevel: 'A1';
+  cefrLevel: 'A1' | 'A2' | 'B1';
   recentMessages?: ChatMessage[];
 };
 

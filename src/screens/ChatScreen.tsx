@@ -31,7 +31,7 @@ type ChatScreenProps = {
 
 const starterChips = ['Mir geht es gut!', 'Wie heißt du?', 'Guten Morgen!', 'Danke!'];
 const INTERNAL_AI_COPY_PATTERN = /(dev debug|mock|fallback|provider|modelused|model:|endpoint|backend url|timeout|network request failed|fetch-failed|http status|localhost|127\.0\.0\.1|192\.168|https?:\/\/)/i;
-const OFFLINE_WOLLI_TEXT = 'Wolli şu anda çevrimdışı. Yine de kısa A1 cümlelerle pratik yapabiliriz.';
+const OFFLINE_WOLLI_TEXT = 'Wolli şu anda çevrimdışı. A0/A1/A2 ve kısa B1 Ön İzleme konularında basit pratik yapabiliriz.';
 
 const sanitizeTeacherMessage = (text: string) => {
   const normalizedText = text.replace(
@@ -146,9 +146,9 @@ export function ChatScreen({ userState, onUpdateState }: ChatScreenProps) {
                 </View>
                 <View style={styles.aiIntroCopy}>
                   <Text style={styles.kicker}>Wolli hazır</Text>
-                  <Text style={styles.title}>A1 seviyesinde sor</Text>
+                  <Text style={styles.title}>Almanca pratik sor</Text>
                   <Text style={styles.body}>
-                    Kısa Almanca cümleni yaz, Türkçe açıklamayla dönelim.
+                    A0/A1/A2 veya kısa B1 Ön İzleme konularını Türkçe açıklamayla çalış.
                   </Text>
                 </View>
               </View>

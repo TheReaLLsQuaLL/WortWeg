@@ -96,6 +96,66 @@ const logAiDebug = (
 const getAiBackendUrl = () =>
   process.env.EXPO_PUBLIC_AI_BACKEND_URL?.trim() || '';
 
+const normalizeTeacherIntentText = (text: string) =>
+  text.toLocaleLowerCase('tr-TR');
+
+const includesAny = (text: string, patterns: string[]) =>
+  patterns.some((pattern) => text.includes(pattern));
+
+const isB1PreviewTopicMessage = (message: string) => {
+  const text = normalizeTeacherIntentText(message);
+
+  return includesAny(text, [
+    'b1 ön',
+    'ön izleme',
+    'görüş',
+    'fikir',
+    'düşünce',
+    'meiner meinung',
+    'ich denke',
+    'ich finde',
+    'ich bin der meinung',
+    'dass',
+    'neden',
+    'sonuç',
+    'sebep',
+    'weil',
+    'deshalb',
+    'deswegen',
+    'darum',
+    'aus diesem grund',
+  ]);
+};
+
+const isB1OrB2ScopeRequest = (message: string) => {
+  const text = normalizeTeacherIntentText(message);
+  const asksUpperLevel = /\bb\s?[12]\b/.test(text) || includesAny(text, ['tam b1', 'tam b2', 'b1 yolu', 'b2 yolu']);
+  const asksAvailability = includesAny(text, [
+    'başla',
+    'başlay',
+    'aç',
+    'açık',
+    'var mı',
+    'ne zaman',
+    'ders',
+    'yol',
+    'modül',
+    'tam',
+    'kilit',
+    'hazır',
+  ]);
+
+  return asksUpperLevel && asksAvailability;
+};
+
+const getTeacherRequestLevel = (input: TeacherInput): 'A1' | 'A2' | 'B1' => {
+  if (isB1PreviewTopicMessage(input.message) || isB1OrB2ScopeRequest(input.message)) {
+    return 'B1';
+  }
+
+  return input.cefrLevel;
+};
+
 const isAiBackendResponse = (value: unknown): value is AiBackendResponse => {
   if (!value || typeof value !== 'object') {
     return false;
@@ -266,23 +326,65 @@ const requestAiTeacher = async (
   }
 };
 
-const localTeacherReply = (message: string): TeacherReply => ({
-  text: `Wolli şu anda çevrimdışı. Yine de kısa A1 cümlelerle pratik yapabiliriz: "${message}" ifadesinden sonra "Ich lerne Deutsch." gibi net bir cümle kurabilirsin.`,
-  corrections:
-    message.trim().length > 0
-      ? ['Cümleni Almanca yazarsan kelime sırası ve artikel için geri bildirim verebilirim.']
-      : ['Bir Almanca cümle yaz: Ich heiße ...'],
-  suggestions: [
-    'Kendini tanıtmak için: Ich heiße ...',
-    'Nereden geldiğini söylemek için: Ich komme aus der Türkei.',
-  ],
-});
+const localTeacherReply = (message: string): TeacherReply => {
+  const text = normalizeTeacherIntentText(message);
+  const asksB1Scope = isB1OrB2ScopeRequest(message);
+  const asksB1Preview = isB1PreviewTopicMessage(message);
+  const asksCauseEffect = includesAny(text, ['neden', 'sonuç', 'sebep', 'weil', 'deshalb', 'deswegen', 'darum', 'aus diesem grund']);
+  const asksOpinion = includesAny(text, ['görüş', 'fikir', 'düşünce', 'meiner meinung', 'ich denke', 'ich finde', 'ich bin der meinung', 'dass']);
+
+  if (asksB1Scope && !asksB1Preview) {
+    return {
+      text: 'Wolli şu anda çevrimdışı. Tam B1 yolu yakında. İstersen kısa B1 Ön İzleme konularına bakabiliriz; ana plan için A2 pekiştirmeye devam edelim.',
+      corrections: [],
+      suggestions: [
+        'B1 Ön İzleme: görüş bildirme',
+        'B1 Ön İzleme: neden-sonuç anlatma',
+      ],
+    };
+  }
+
+  if (asksCauseEffect) {
+    return {
+      text: 'Wolli şu anda çevrimdışı. B1 Ön İzleme içinde neden-sonuç için kısa kural: weil cümlesinde fiil sona gider; deshalb, deswegen ve darum sonrasında fiil ikinci sıraya gelir.',
+      corrections: [
+        'weil: Ich lerne Deutsch, weil ich in Deutschland arbeiten möchte.',
+        'deshalb: Ich bin müde, deshalb mache ich eine Pause.',
+      ],
+      suggestions: ['Kısa pratik: Ich habe keine Zeit, darum komme ich später.'],
+    };
+  }
+
+  if (asksOpinion) {
+    return {
+      text: 'Wolli şu anda çevrimdışı. B1 Ön İzleme içinde görüş bildirirken kısa kalıplar kullan: Ich finde..., Meiner Meinung nach..., Ich denke, dass...',
+      corrections: [
+        'dass cümlesinde fiil sona gider: Ich denke, dass der Vorschlag gut ist.',
+        'Meiner Meinung nach sonrası normal cümle sırası gelir: Meiner Meinung nach ist die Lösung einfach.',
+      ],
+      suggestions: ['Kısa pratik: Ich bin der Meinung, dass die Lösung gut ist.'],
+    };
+  }
+
+  return {
+    text: 'Wolli şu anda çevrimdışı. A0/A1/A2 ve kısa B1 Ön İzleme konularında basit pratik yapabiliriz.',
+    corrections:
+      message.trim().length > 0
+        ? ['Cümleni Almanca yazarsan kelime sırası ve artikel için geri bildirim verebilirim.']
+        : ['Bir Almanca cümle yaz: Ich heiße ...'],
+    suggestions: [
+      'Kendini tanıtmak için: Ich heiße ...',
+      'B1 Ön İzleme için: Ich denke, dass der Vorschlag gut ist.',
+    ],
+  };
+};
 
 export const generateTeacherReply = async (
   input: TeacherInput,
 ): Promise<TeacherReply> => {
+  const requestLevel = getTeacherRequestLevel(input);
   const { response: backendReply, fallbackReason } = await requestAiTeacher('chat', {
-    level: input.cefrLevel,
+    level: requestLevel,
     userMessage: input.message,
     conversationHistory: input.recentMessages?.map((message) => ({
       role: message.role === 'teacher' ? 'assistant' : 'user',

@@ -16,22 +16,29 @@ const makeMockResponse = (
   const correction = context.correctAnswer ?? context.expectedAnswer ?? '';
   const isPronunciation = request.mode === 'speaking_feedback';
   const isVocab = request.mode === 'vocab_explanation';
+  const isB1Preview = request.level === 'B1';
 
   return {
     de:
       correction ||
       (request.mode === 'chat'
-        ? 'Ich lerne Deutsch.'
+        ? isB1Preview
+          ? 'Ich denke, dass der Vorschlag gut ist.'
+          : 'Ich lerne Deutsch.'
         : isVocab && context.word
           ? context.word
           : 'Das ist gut.'),
     tr:
       request.mode === 'chat'
-        ? 'Yerel yanıt: Kısa A1 cümlelerle devam edelim.'
+        ? isB1Preview
+          ? 'Wolli şu anda çevrimdışı. Tam B1 yolu yakında; kısa B1 Ön İzleme içinde görüş bildirme ve neden-sonuç cümleleriyle pratik yapabiliriz.'
+          : 'Wolli şu anda çevrimdışı. A0/A1/A2 ve kısa B1 Ön İzleme konularında basit pratik yapabiliriz.'
         : 'Yerel geri bildirim: Cevabın A1 düzeyinde kısa ve anlaşılır şekilde değerlendirildi.',
     tip: isPronunciation
       ? 'Bu konuşma geri bildirimi yazıya dökülen cümlen ile hedef cümleyi karşılaştırır; gerçek fonetik ses puanı daha sonra eklenecek.'
-      : 'Artikel, fiil sırası ve kısa cümle doğruluğuna dikkat et.',
+      : isB1Preview
+        ? 'B1 Ön İzleme sınırlıdır: dass/weil fiil sonu, deshalb/deswegen/darum fiil ikinci sıra.'
+        : 'Artikel, fiil sırası ve kısa cümle doğruluğuna dikkat et.',
     score:
       request.mode === 'writing_feedback' || request.mode === 'speaking_feedback'
         ? 11
@@ -49,7 +56,11 @@ const makeMockResponse = (
             },
           ]
         : [],
-    nextPrompt: request.mode === 'chat' ? 'Wie geht es dir?' : undefined,
+    nextPrompt: request.mode === 'chat'
+      ? isB1Preview
+        ? 'Warum lernst du Deutsch?'
+        : 'Wie geht es dir?'
+      : undefined,
     cefr: request.level,
     modelUsed,
   };
