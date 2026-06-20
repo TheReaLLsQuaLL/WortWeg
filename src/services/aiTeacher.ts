@@ -178,6 +178,24 @@ const isB1PreviewTopicMessage = (message: string) => {
     'wenn ich zeit habe',
     'sobald',
     'fertig bin',
+    'deneyim',
+    'perfekt',
+    'partizip',
+    'schon einmal',
+    'noch nie',
+    'letztes jahr',
+    'vor zwei wochen',
+    'gestern habe',
+    'erfahrung',
+    'deutschkurs',
+    'bewerbungsgespräch',
+    'bewerbungsgespraech',
+    'gefahren',
+    'gegangen',
+    'gemacht',
+    'geführt',
+    'gefuehrt',
+    'dabei habe ich gelernt',
   ]);
 };
 
@@ -390,6 +408,7 @@ const localTeacherReply = (message: string): TeacherReply => {
   const asksComparison = includesAny(text, ['karşılaştır', 'karsilastir', 'tercih', 'größer', 'groesser', 'kleiner', 'besser als', 'schlechter als', 'genauso', 'lieber', 'am liebsten', 'bevorzuge', 'bevorzugen', 'je mehr', 'desto']);
   const asksComplaint = includesAny(text, ['şikayet', 'sikayet', 'sorun', 'problem', 'beschwer', 'leider', 'könnten sie bitte', 'koennten sie bitte', 'rechnung', 'bestellung', 'funktioniert nicht', 'dankbar', 'ich wäre ihnen dankbar', 'ich ware ihnen dankbar']);
   const asksFuturePlan = includesAny(text, ['plan anlat', 'gelecek niyet', 'niyet', 'vorhaben', 'ich habe vor', 'ich plane', 'ich werde', 'ich möchte', 'ich moechte', 'nächste woche', 'naechste woche', 'wenn ich zeit habe', 'sobald', 'fertig bin']);
+  const asksExperience = includesAny(text, ['deneyim', 'perfekt', 'partizip', 'schon einmal', 'noch nie', 'letztes jahr', 'vor zwei wochen', 'gestern habe', 'erfahrung', 'deutschkurs', 'bewerbungsgespräch', 'bewerbungsgespraech', 'gefahren', 'gegangen', 'gemacht', 'geführt', 'gefuehrt', 'dabei habe ich gelernt']);
 
   if (asksB1Scope && !asksB1Preview) {
     return {
@@ -402,13 +421,14 @@ const localTeacherReply = (message: string): TeacherReply => {
         'B1 Ön İzleme: karşılaştırma ve tercih bildirme',
         'B1 Ön İzleme: şikayet ve sorun bildirme',
         'B1 Ön İzleme: plan anlatma ve gelecek niyetleri',
+        'B1 Ön İzleme: deneyim anlatma ve Perfekt tekrarı',
       ],
     };
   }
 
-  if (asksB1Preview && !asksFuturePlan && !asksComplaint && !asksComparison && !asksAdvice && !asksCauseEffect && !asksOpinion) {
+  if (asksB1Preview && !asksExperience && !asksFuturePlan && !asksComplaint && !asksComparison && !asksAdvice && !asksCauseEffect && !asksOpinion) {
     return {
-      text: 'Wolli şu anda çevrimdışı. B1 Ön İzleme kısa ve isteğe bağlıdır; tam B1 yolu yakında. Şu an altı konu var.',
+      text: 'Wolli şu anda çevrimdışı. B1 Ön İzleme kısa ve isteğe bağlıdır; tam B1 yolu yakında. Şu an yedi konu var.',
       corrections: [],
       suggestions: [
         'Görüş bildirme: Ich denke, dass...',
@@ -417,7 +437,20 @@ const localTeacherReply = (message: string): TeacherReply => {
         'Karşılaştırma: leichter als..., genauso ... wie, lieber',
         'Şikayet: Leider..., Könnten Sie bitte...?',
         'Plan: Ich habe vor..., Ich plane...',
+        'Deneyim: Ich habe schon einmal..., Ich habe noch nie...',
       ],
+    };
+  }
+
+  if (asksExperience) {
+    return {
+      text: 'Wolli şu anda çevrimdışı. B1 Ön İzleme içinde deneyim anlatırken çoğu fiilde haben + Partizip II, hareket fiillerinde sein kullanırsın. schon einmal “daha önce”, noch nie “hiç ... yapmadım” demektir.',
+      corrections: [
+        'haben: Ich habe letztes Jahr einen Deutschkurs gemacht.',
+        'sein: Ich bin vor zwei Wochen nach Berlin gefahren.',
+        'noch nie: Ich habe noch nie in Deutschland gearbeitet.',
+      ],
+      suggestions: ['Kısa pratik: Dabei habe ich gelernt, dass regelmäßige Übung wichtig ist.'],
     };
   }
 
@@ -504,6 +537,7 @@ const localTeacherReply = (message: string): TeacherReply => {
       'B1 tercih için: Ich lerne lieber am Morgen.',
       'B1 sorun için: Leider funktioniert die App nicht richtig.',
       'B1 plan için: Ich habe vor, jeden Tag Deutsch zu üben.',
+      'B1 deneyim için: Ich habe schon einmal auf Deutsch gesprochen.',
     ],
   };
 };
