@@ -22,6 +22,7 @@ import {
   type MicrophonePermissionResult,
   type PronunciationScore,
   type RecordingResult,
+  type SpeechFeedbackCategory,
   type TranscriptionResult,
 } from '../services/speechService';
 import { trackLocalEvent } from '../services/localEventLog';
@@ -1140,6 +1141,7 @@ function ResultCard({
   transcriptionResult: TranscriptionResult;
 }) {
   const resultColor = getResultColor(pronunciationResult);
+  const scorePercent = pronunciationResult.scorePercent;
 
   return (
     <View style={styles.feedbackCard}>
@@ -1152,7 +1154,7 @@ function ResultCard({
         </View>
         <View style={[styles.scoreSticker, { borderColor: resultColor }]}>
           <Text style={[styles.similarityScore, { color: resultColor }]}>
-            {pronunciationResult.comparison.similarityScore}
+            {scorePercent}
           </Text>
         </View>
       </View>
@@ -1171,12 +1173,11 @@ function ResultCard({
         </View>
       </View>
 
-      {pronunciationResult.comparison.missingWords.length > 0 ? (
-        <WordGroup title="Eksik duyulan" words={pronunciationResult.comparison.missingWords} tone="missing" />
-      ) : null}
-      {pronunciationResult.comparison.extraWords.length > 0 ? (
-        <WordGroup title="Ekstra duyulan" words={pronunciationResult.comparison.extraWords} tone="extra" />
-      ) : null}
+      <View style={styles.feedbackCategoryGrid}>
+        {pronunciationResult.feedbackCategories.map((category) => (
+          <FeedbackCategoryCard category={category} key={category.id} />
+        ))}
+      </View>
 
       <View style={styles.feedbackNote}>
         <Text style={styles.sectionTitle}>Pratik geri bildirimi</Text>
@@ -1201,17 +1202,30 @@ function ResultCard({
   );
 }
 
-function WordGroup({ title, tone, words }: { title: string; tone: 'missing' | 'extra'; words: string[] }) {
+function FeedbackCategoryCard({ category }: { category: SpeechFeedbackCategory }) {
+  const toneStyle =
+    category.tone === 'success'
+      ? styles.successCategory
+      : category.tone === 'error'
+        ? styles.errorCategory
+        : category.tone === 'info'
+          ? styles.infoCategory
+          : styles.warningCategory;
+
   return (
-    <View style={styles.wordGroup}>
-      <Text style={styles.wordGroupTitle}>{title}</Text>
-      <View style={styles.wordChipRow}>
-        {words.slice(0, 6).map((word, index) => (
-          <View key={title + '-' + word + '-' + index} style={[styles.wordChip, tone === 'missing' ? styles.missingChip : styles.extraChip]}>
-            <Text style={styles.wordChipText}>{word}</Text>
-          </View>
-        ))}
-      </View>
+    <View style={[styles.feedbackCategoryCard, toneStyle]}>
+      <Text style={styles.feedbackCategoryTitle}>{category.title}</Text>
+      {category.words && category.words.length > 0 ? (
+        <View style={styles.wordChipRow}>
+          {category.words.slice(0, 6).map((word, index) => (
+            <View key={category.id + '-' + word + '-' + index} style={styles.wordChip}>
+              <Text style={styles.wordChipText}>{word}</Text>
+            </View>
+          ))}
+        </View>
+      ) : (
+        <Text style={styles.feedbackCategoryText}>{category.messageTr}</Text>
+      )}
     </View>
   );
 }
@@ -1655,13 +1669,38 @@ const styles = StyleSheet.create({
     color: colors.royalPurple,
     fontWeight: '900',
   },
-  wordGroup: {
+  feedbackCategoryGrid: {
     gap: spacing.xs,
   },
-  wordGroupTitle: {
+  feedbackCategoryCard: {
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.lg,
+    borderWidth: colors.comicBorderWidth,
+    gap: spacing.xs,
+    padding: spacing.md,
+    ...shadows.comicSmall,
+  },
+  successCategory: {
+    backgroundColor: '#ECFDF3',
+  },
+  warningCategory: {
+    backgroundColor: '#FFF2C8',
+  },
+  infoCategory: {
+    backgroundColor: colors.comicBlueWash,
+  },
+  errorCategory: {
+    backgroundColor: '#FFE7E7',
+  },
+  feedbackCategoryTitle: {
     ...typography.small,
     color: colors.deepViolet,
     fontWeight: '900',
+  },
+  feedbackCategoryText: {
+    ...typography.small,
+    color: colors.muted,
+    fontWeight: '800',
   },
   wordChipRow: {
     flexDirection: 'row',
@@ -1675,12 +1714,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
     ...shadows.comicSmall,
-  },
-  missingChip: {
-    backgroundColor: '#FFE7E7',
-  },
-  extraChip: {
-    backgroundColor: '#FFF2C8',
   },
   wordChipText: {
     ...typography.small,

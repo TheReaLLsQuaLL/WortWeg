@@ -1,14 +1,21 @@
 export type SimilarityBucket = 'high' | 'medium' | 'low';
+export type SpeechFeedbackLevel = 'excellent' | 'good' | 'needsPractice' | 'noSpeech';
 
 export type TranscriptComparison = {
   exactMatch: boolean;
   normalizedMatch: boolean;
+  normalizedExpectedWords: string[];
+  normalizedTranscriptWords: string[];
   missingWords: string[];
   extraWords: string[];
   matchedWords: string[];
+  wordOrderHints: string[];
   similarityScore: number;
+  scorePercent: number;
   similarityBucket: SimilarityBucket;
+  feedbackLevel: SpeechFeedbackLevel;
   shortFeedbackTr: string;
+  retrySuggestionTr: string;
 };
 
 const punctuationPattern = /[.,!?;:()"“”„'´…\[\]{}]/g;
@@ -45,24 +52,111 @@ export const getSimilarityBucket = (score: number): SimilarityBucket => {
 
 const formatWordList = (words: string[]) => words.slice(0, 4).join(', ');
 
+const getOrderedMatchCount = (expectedTokens: string[], transcriptTokens: string[]) => {
+  if (expectedTokens.length === 0 || transcriptTokens.length === 0) {
+    return 0;
+  }
+
+  let previousRow = Array(transcriptTokens.length + 1).fill(0) as number[];
+
+  for (const expectedToken of expectedTokens) {
+    const currentRow = Array(transcriptTokens.length + 1).fill(0) as number[];
+
+    transcriptTokens.forEach((transcriptToken, transcriptIndex) => {
+      const column = transcriptIndex + 1;
+      const previousColumn = column - 1;
+
+      currentRow[column] = expectedToken === transcriptToken
+        ? (previousRow[previousColumn] ?? 0) + 1
+        : Math.max(previousRow[column] ?? 0, currentRow[previousColumn] ?? 0);
+    });
+
+    previousRow = currentRow;
+  }
+
+  return previousRow[transcriptTokens.length] ?? 0;
+};
+
+const getFeedbackLevel = (
+  similarityScore: number,
+  transcriptWordCount: number,
+): SpeechFeedbackLevel => {
+  if (transcriptWordCount === 0) {
+    return 'noSpeech';
+  }
+
+  if (similarityScore >= 85) {
+    return 'excellent';
+  }
+
+  if (similarityScore >= 60) {
+    return 'good';
+  }
+
+  return 'needsPractice';
+};
+
 const buildFeedback = (
   similarityScore: number,
   missingWords: string[],
   extraWords: string[],
+  wordOrderHints: string[],
+  feedbackLevel: SpeechFeedbackLevel,
 ) => {
-  if (similarityScore >= 80) {
-    return 'Cümlen hedefe çok yakın. Şimdi daha akıcı söylemeyi dene.';
+  if (feedbackLevel === 'noSpeech') {
+    return 'Sesini duyamadık. Mikrofona biraz daha yakın konuşup tekrar dene.';
+  }
+
+  if (feedbackLevel === 'excellent') {
+    return 'Harika! Cümlenin büyük kısmı doğru.';
+  }
+
+  if (feedbackLevel === 'good') {
+    if (wordOrderHints.length > 0) {
+      return 'İyi gidiyor. Kelime sırası biraz karışmış olabilir.';
+    }
+
+    if (missingWords.length > 0) {
+      return 'İyi gidiyor. Birkaç kelime eksik.';
+    }
+
+    return 'İyi gidiyor. Bir kez daha daha net söylemeyi dene.';
   }
 
   if (missingWords.length > 0) {
-    return 'Bazı kelimeler eksik duyuldu: ' + formatWordList(missingWords) + '.';
+    return 'Tekrar deneyelim. Eksik kelimeleri net söyle: ' + formatWordList(missingWords) + '.';
   }
 
   if (extraWords.length > 0) {
-    return 'Ekstra kelimeler duyuldu: ' + formatWordList(extraWords) + '.';
+    return 'Tekrar deneyelim. Hedef cümleye yakın kalmaya çalış.';
   }
 
-  return 'Cümle hedef cümleden farklı duyuldu. Yavaşça tekrar dene.';
+  return 'Tekrar deneyelim. Önce kısa parçalar halinde söyle.';
+};
+
+const buildRetrySuggestion = (
+  feedbackLevel: SpeechFeedbackLevel,
+  wordOrderHints: string[],
+  missingWords: string[],
+  extraWords: string[],
+) => {
+  if (feedbackLevel === 'excellent') {
+    return 'Bir kez daha doğal hızda söyleyerek akıcılığı güçlendir.';
+  }
+
+  if (wordOrderHints.length > 0) {
+    return 'Cümleyi soldan sağa aynı sırayla, küçük parçalar halinde tekrar et.';
+  }
+
+  if (missingWords.length > 0) {
+    return 'Önce eksik kelimeleri tek tek oku, sonra tüm cümleyi söyle.';
+  }
+
+  if (extraWords.length > 0) {
+    return 'Hedef cümleyi kısa tut ve ekstra kelime eklemeden tekrar dene.';
+  }
+
+  return 'Yavaş başla, sonra aynı cümleyi biraz daha akıcı söyle.';
 };
 
 export const compareTranscripts = (expectedText: string, transcript: string): TranscriptComparison => {
@@ -77,6 +171,8 @@ export const compareTranscripts = (expectedText: string, transcript: string): Tr
   const transcriptDisplayTokens = tokenize(transcript);
   const expectedCompareTokens = tokenize(expectedText, { looseEszett: true });
   const transcriptCompareTokens = tokenize(transcript, { looseEszett: true });
+  const normalizedExpectedWords = expectedCompareTokens;
+  const normalizedTranscriptWords = transcriptCompareTokens;
   const transcriptCounts = new Map<string, number>();
 
   for (const token of transcriptCompareTokens) {
@@ -112,17 +208,36 @@ export const compareTranscripts = (expectedText: string, transcript: string): Tr
 
   const tokenTotal = expectedCompareTokens.length + transcriptCompareTokens.length;
   const tokenScore = tokenTotal > 0 ? Math.round((matchedWords.length * 2 * 100) / tokenTotal) : 0;
-  const similarityScore = exactMatch || normalizedMatch ? 100 : Math.max(0, Math.min(100, tokenScore));
+  const baseSimilarityScore = exactMatch || normalizedMatch ? 100 : Math.max(0, Math.min(100, tokenScore));
+  const orderedMatchCount = getOrderedMatchCount(expectedCompareTokens, transcriptCompareTokens);
+  const hasWordOrderHint =
+    !exactMatch &&
+    !normalizedMatch &&
+    matchedWords.length >= 3 &&
+    orderedMatchCount < matchedWords.length &&
+    baseSimilarityScore >= 45;
+  const wordOrderHints = hasWordOrderHint
+    ? ['Kelime sırası biraz karışmış olabilir. Hedef cümleyi aynı sırayla tekrar et.']
+    : [];
+  const similarityScore = hasWordOrderHint ? Math.min(baseSimilarityScore, 78) : baseSimilarityScore;
   const similarityBucket = getSimilarityBucket(similarityScore);
+  const feedbackLevel = getFeedbackLevel(similarityScore, transcriptCompareTokens.length);
+  const retrySuggestionTr = buildRetrySuggestion(feedbackLevel, wordOrderHints, missingWords, extraWords);
 
   return {
     exactMatch,
     normalizedMatch,
+    normalizedExpectedWords,
+    normalizedTranscriptWords,
     missingWords,
     extraWords,
     matchedWords,
+    wordOrderHints,
     similarityScore,
+    scorePercent: similarityScore,
     similarityBucket,
-    shortFeedbackTr: buildFeedback(similarityScore, missingWords, extraWords),
+    feedbackLevel,
+    shortFeedbackTr: buildFeedback(similarityScore, missingWords, extraWords, wordOrderHints, feedbackLevel),
+    retrySuggestionTr,
   };
 };

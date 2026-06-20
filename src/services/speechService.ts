@@ -67,15 +67,27 @@ export type WordPronunciationFeedback = {
   suggestionTr: string;
 };
 
+export type SpeechFeedbackCategory = {
+  id: 'correctWords' | 'missingWords' | 'extraWords' | 'wordOrder' | 'retrySuggestion';
+  title: string;
+  messageTr?: string;
+  words?: string[];
+  tone: 'success' | 'warning' | 'info' | 'error';
+};
+
 export type PronunciationScore = {
   pronunciationScore: number;
   isMock: boolean;
-  provider: 'mock';
+  provider: 'local-transcript';
   comparison: TranscriptComparison;
+  scorePercent: number;
+  feedbackLevel: TranscriptComparison['feedbackLevel'];
   accuracyScore: number;
   fluencyScore: number;
   completenessScore: number;
   feedbackTr: string;
+  retrySuggestionTr: string;
+  feedbackCategories: SpeechFeedbackCategory[];
   wordFeedback: WordPronunciationFeedback[];
 };
 
@@ -673,41 +685,75 @@ export const scorePronunciation = async (
   expectedText: string,
   transcript?: string,
 ): Promise<PronunciationScore> => {
-  // TODO: pronunciation scoring should call Azure Pronunciation Assessment via backend.
   await wait(850);
 
   const comparison = compareTranscripts(expectedText, transcript ?? '');
+  const hasMissingWords = comparison.missingWords.length > 0;
+  const hasExtraWords = comparison.extraWords.length > 0;
+  const hasWordOrderHints = comparison.wordOrderHints.length > 0;
+  const isExcellent = comparison.feedbackLevel === 'excellent';
+  const isGood = comparison.feedbackLevel === 'good';
+  const feedbackCategories: SpeechFeedbackCategory[] = [
+    {
+      id: 'correctWords',
+      title: 'Doğru kelimeler',
+      words: comparison.matchedWords,
+      messageTr: comparison.matchedWords.length > 0
+        ? undefined
+        : 'Henüz hedef kelimeler net duyulmadı.',
+      tone: comparison.matchedWords.length > 0 ? 'success' : 'warning',
+    },
+    {
+      id: 'missingWords',
+      title: 'Eksik kelimeler',
+      words: comparison.missingWords,
+      messageTr: hasMissingWords ? undefined : 'Eksik kelime görünmüyor.',
+      tone: hasMissingWords ? 'warning' : 'success',
+    },
+    {
+      id: 'extraWords',
+      title: 'Fazla kelimeler',
+      words: comparison.extraWords,
+      messageTr: hasExtraWords ? undefined : 'Fazla kelime görünmüyor.',
+      tone: hasExtraWords ? 'warning' : 'success',
+    },
+  ];
+
+  if (hasWordOrderHints) {
+    feedbackCategories.push({
+      id: 'wordOrder',
+      title: 'Kelime sırası',
+      messageTr: comparison.wordOrderHints[0],
+      tone: 'info',
+    });
+  }
+
+  feedbackCategories.push({
+    id: 'retrySuggestion',
+    title: 'Tekrar önerisi',
+    messageTr: comparison.retrySuggestionTr,
+    tone: isExcellent ? 'success' : isGood ? 'info' : 'warning',
+  });
 
   if (!audioUri || !expectedText) {
     return {
       pronunciationScore: 0,
-      isMock: true,
-      provider: 'mock',
+      isMock: false,
+      provider: 'local-transcript',
       comparison,
+      scorePercent: 0,
+      feedbackLevel: comparison.feedbackLevel,
       accuracyScore: 0,
       fluencyScore: 0,
       completenessScore: 0,
       feedbackTr: 'Ses kaydı veya hedef cümle bulunamadı.',
+      retrySuggestionTr: 'Kaydı tekrar başlatıp hedef cümleyi oku.',
+      feedbackCategories: [],
       wordFeedback: [],
     };
   }
 
-  const hasMissingWords = comparison.missingWords.length > 0;
-  const hasExtraWords = comparison.extraWords.length > 0;
-  const isHighSimilarity = comparison.similarityScore >= 80;
-  const isLowSimilarity = comparison.similarityScore < 50;
-  const feedbackTr = isHighSimilarity
-    ? 'Cümlen hedefe çok yakın. Şimdi daha akıcı söylemeyi dene.'
-    : hasMissingWords
-      ? 'Bazı kelimeler eksik duyuldu: ' + comparison.missingWords.slice(0, 4).join(', ') + '.'
-      : hasExtraWords
-        ? 'Ekstra kelimeler duyuldu: ' + comparison.extraWords.slice(0, 4).join(', ') + '.'
-        : 'Cümle hedef cümleden farklı duyuldu. Yavaşça tekrar dene.';
-  const pronunciationScore = isHighSimilarity
-    ? 88
-    : isLowSimilarity
-      ? 58
-      : 74;
+  const pronunciationScore = comparison.scorePercent;
   const wordFeedback: WordPronunciationFeedback[] = [];
 
   if (hasMissingWords) {
@@ -726,6 +772,14 @@ export const scorePronunciation = async (
     });
   }
 
+  if (hasWordOrderHints) {
+    wordFeedback.push({
+      word: 'Kelime sırası',
+      issue: 'Sıra',
+      suggestionTr: comparison.wordOrderHints[0] ?? 'Hedef cümleyi aynı sırayla tekrar et.',
+    });
+  }
+
   if (wordFeedback.length === 0) {
     wordFeedback.push({
       word: 'Akıcılık',
@@ -736,13 +790,17 @@ export const scorePronunciation = async (
 
   return {
     pronunciationScore,
-    isMock: true,
-    provider: 'mock',
+    isMock: false,
+    provider: 'local-transcript',
     comparison,
-    accuracyScore: Math.max(40, comparison.similarityScore),
-    fluencyScore: isHighSimilarity ? 82 : 70,
+    scorePercent: comparison.scorePercent,
+    feedbackLevel: comparison.feedbackLevel,
+    accuracyScore: comparison.scorePercent,
+    fluencyScore: isExcellent ? 84 : isGood ? 74 : 62,
     completenessScore: hasMissingWords ? Math.max(45, 100 - comparison.missingWords.length * 18) : 92,
-    feedbackTr,
+    feedbackTr: comparison.shortFeedbackTr,
+    retrySuggestionTr: comparison.retrySuggestionTr,
+    feedbackCategories,
     wordFeedback,
   };
 };
