@@ -9,6 +9,11 @@ import {
 } from './lessonFactory';
 
 export const B1_PREVIEW_LESSON_ID = 'b1-preview-01-gorus-bildirme';
+export const B1_PREVIEW_LESSON_2_ID = 'b1-preview-02-neden-sonuc-anlatma';
+export const B1_PREVIEW_LESSON_IDS = [B1_PREVIEW_LESSON_ID, B1_PREVIEW_LESSON_2_ID] as const;
+
+export const isB1PreviewLessonId = (lessonId: string) =>
+  B1_PREVIEW_LESSON_IDS.includes(lessonId as (typeof B1_PREVIEW_LESSON_IDS)[number]);
 
 export const lessonsB1Preview: Lesson[] = [
   makeLesson({
@@ -149,6 +154,151 @@ export const lessonsB1Preview: Lesson[] = [
         correct: 'Ich stimme zu, weil der Plan klar ist.',
         distractors: ['Ich stimme zu, weil ist der Plan klar.', 'Ich stimme zu, aber der Plan klar ist.', 'Ich stimme, weil der Plan ist klar zu.'],
         explanation: 'weil yan cümlesinde fiil sona gider: der Plan klar ist.',
+      }),
+    ],
+  }),
+  makeLesson({
+    id: B1_PREVIEW_LESSON_2_ID,
+    unit: 2,
+    cefr: 'B1',
+    titleTr: 'B1 Ön İzleme 2: Neden-Sonuç Anlatma',
+    titleDe: 'Ursache und Folge erklären',
+    subtitleTr: 'weil, deshalb ve deswegen ile pratik cümleler',
+    goalTr: 'Bir olayın sebebini ve sonucunu kısa, anlaşılır Almanca cümlelerle anlatmak.',
+    descriptionTr: 'Bu kısa bir ön izleme. Tam B1 yolu yakında; burada neden-sonuç bağlaçlarını güvenli şekilde denersin.',
+    estimatedMinutes: 16,
+    objectives: [
+      'weil ile sebep cümlesinde fiili sona koyma',
+      'deshalb/deswegen/darum ile sonuç cümlesinde fiili ikinci sırada kullanma',
+      'kısa neden-sonuç cümlelerini günlük durumlarda kurma',
+    ],
+    vocabulary: [
+      { id: 'der-grund', german: 'der Grund', turkish: 'sebep / neden', article: 'der', plural: 'die Gründe', exampleDe: 'Der Grund ist einfach.', exampleTr: 'Sebep basit.', tags: ['cause', 'article'] },
+      { id: 'die-ursache', german: 'die Ursache', turkish: 'neden / kaynak', article: 'die', plural: 'die Ursachen', exampleDe: 'Die Ursache ist klar.', exampleTr: 'Neden açık.', tags: ['cause', 'article'] },
+      { id: 'die-folge', german: 'die Folge', turkish: 'sonuç', article: 'die', plural: 'die Folgen', exampleDe: 'Die Folge ist wichtig.', exampleTr: 'Sonuç önemli.', tags: ['effect', 'article'] },
+      { id: 'die-pause', german: 'die Pause', turkish: 'mola', article: 'die', plural: 'die Pausen', exampleDe: 'Ich mache eine Pause.', exampleTr: 'Mola veriyorum.', tags: ['daily', 'article'] },
+      { id: 'der-regenschirm', german: 'der Regenschirm', turkish: 'şemsiye', article: 'der', plural: 'die Regenschirme', exampleDe: 'Ich nehme einen Regenschirm.', exampleTr: 'Bir şemsiye alıyorum.', tags: ['daily', 'article'] },
+      { id: 'deshalb', german: 'deshalb', turkish: 'bu yüzden', exampleDe: 'Ich bin müde, deshalb mache ich eine Pause.', exampleTr: 'Yorgunum, bu yüzden mola veriyorum.', tags: ['connector'] },
+      { id: 'deswegen', german: 'deswegen', turkish: 'bu nedenle', exampleDe: 'Es regnet, deswegen nehme ich einen Regenschirm.', exampleTr: 'Yağmur yağıyor, bu nedenle şemsiye alıyorum.', tags: ['connector'] },
+      { id: 'aus-diesem-grund', german: 'aus diesem Grund', turkish: 'bu sebeple', exampleDe: 'Aus diesem Grund wiederhole ich die Wörter.', exampleTr: 'Bu sebeple kelimeleri tekrar ediyorum.', tags: ['connector'] },
+    ],
+    grammar: [
+      grammarTip('weil: sebep cümlesinde fiil sona gider', 'weil “çünkü” demektir. weil ile başlayan yan cümlede çekimli fiil en sona gider.', [
+        { german: 'Ich lerne Deutsch, weil ich in Deutschland arbeiten möchte.', turkish: 'Almanya’da çalışmak istediğim için Almanca öğreniyorum.' },
+        { german: 'Ich bleibe zu Hause, weil ich müde bin.', turkish: 'Yorgun olduğum için evde kalıyorum.' },
+      ]),
+      grammarTip('deshalb/deswegen/darum: sonuç cümlesi', 'Bu kelimeler “bu yüzden” gibi çalışır. Sonra fiil hemen gelir: deshalb mache ich..., deswegen nehme ich...', [
+        { german: 'Ich bin müde, deshalb mache ich eine Pause.', turkish: 'Yorgunum, bu yüzden mola veriyorum.' },
+        { german: 'Ich habe keine Zeit, darum komme ich später.', turkish: 'Vaktim yok, bu yüzden daha sonra geliyorum.' },
+      ]),
+      grammarTip('aus diesem Grund', 'Daha resmi ve sakin bir kalıptır. Kısa yazılarda güvenle kullanabilirsin.', [
+        { german: 'Aus diesem Grund wiederhole ich die Wörter.', turkish: 'Bu sebeple kelimeleri tekrar ediyorum.' },
+      ]),
+    ],
+    dialog: [
+      { speaker: 'Aylin', line: 'Warum lernst du heute?', translationTr: 'Bugün neden çalışıyorsun?' },
+      { speaker: 'Jonas', line: 'Ich lerne, weil ich morgen einen Termin habe.', translationTr: 'Çalışıyorum çünkü yarın randevum var.' },
+      { speaker: 'Aylin', line: 'Bist du müde?', translationTr: 'Yorgun musun?' },
+      { speaker: 'Jonas', line: 'Ja, deshalb mache ich später eine Pause.', translationTr: 'Evet, bu yüzden sonra mola vereceğim.' },
+    ],
+    commonMistakeTr: 'B1 Ön İzleme içinde weil ve deshalb karışabilir. weil cümlesinde fiil sona gider; deshalb sonrası fiil ikinci sıradadır.',
+    speakingPrompt: {
+      titleTr: 'Nedenini söyle',
+      promptDe: 'Ich lerne Deutsch, weil ich in Deutschland arbeiten möchte.',
+      promptTr: 'Cümleyi sakin oku. Sonra “arbeiten” yerine “studieren” deneyebilirsin.',
+    },
+    writingPrompt: {
+      titleTr: 'Kısa neden-sonuç yaz',
+      promptTr: 'Bir sebep ve bir sonuç cümlesi yaz.',
+      sampleAnswerDe: 'Ich bin müde, deshalb mache ich eine Pause.',
+    },
+    reviewSummaryTr: 'B1 Ön İzleme içinde weil, deshalb, deswegen ve aus diesem Grund ile kısa neden-sonuç cümleleri kurdun. Tam B1 yolu yakında.',
+    steps: [
+      { type: 'intro', titleTr: 'B1 Ön İzleme', bodyTr: 'Bu kısa bir ön izleme. Tam B1 yolu yakında; burada sadece neden-sonuç anlatımına güvenli bir bakış var.' },
+      { type: 'vocabulary', titleTr: 'Sebep ve sonuç kelimeleri' },
+      { type: 'grammar', titleTr: 'weil ve deshalb farkı' },
+      { type: 'speaking', titleTr: 'Sesli neden cümlesi', promptDe: 'Ich bin müde, deshalb mache ich eine Pause.', promptTr: 'Cümleyi net ve sakin söyle.' },
+      { type: 'writing', titleTr: 'Mini yazma', promptTr: 'Bir sebep + bir sonuç yaz.' },
+      { type: 'review', titleTr: 'Özet', bodyTr: 'B1 Ön İzleme kısa bir denemedir. Ana yol A0/A1/A2 olarak kalır.' },
+    ],
+    baseExercises: [
+      choiceExercise({
+        id: 'ex-b1-preview-02-neden-sonuc-01',
+        lessonId: B1_PREVIEW_LESSON_2_ID,
+        prompt: 'Doğru anlamı seç.',
+        question: 'der Grund',
+        correct: 'sebep / neden',
+        distractors: ['sonuç', 'mola', 'şemsiye'],
+        explanation: 'der Grund “sebep/neden” demektir. Neden-sonuç anlatırken sık kullanılır.',
+      }),
+      choiceExercise({
+        id: 'ex-b1-preview-02-neden-sonuc-02',
+        lessonId: B1_PREVIEW_LESSON_2_ID,
+        type: 'fillBlank',
+        skill: 'grammar',
+        prompt: 'Boşluğu tamamla.',
+        question: 'Ich lerne Deutsch, ___ ich in Deutschland arbeiten möchte.',
+        correct: 'weil',
+        distractors: ['deshalb', 'darum', 'trotzdem'],
+        explanation: 'Sebep cümlesi için weil kullanılır. Fiil sona gider: arbeiten möchte.',
+      }),
+      articleExercise({
+        id: 'ex-b1-preview-02-neden-sonuc-03',
+        lessonId: B1_PREVIEW_LESSON_2_ID,
+        question: '___ Regenschirm',
+        article: 'der',
+        explanation: 'Regenschirm kelimesi der alır: der Regenschirm.',
+      }),
+      choiceExercise({
+        id: 'ex-b1-preview-02-neden-sonuc-04',
+        lessonId: B1_PREVIEW_LESSON_2_ID,
+        skill: 'reading',
+        prompt: 'Almancayı Türkçeye çevir.',
+        question: 'Ich bin müde, deshalb mache ich eine Pause.',
+        correct: 'Yorgunum, bu yüzden mola veriyorum.',
+        distractors: ['Mola veriyorum çünkü yorgun değilim.', 'Yağmur yağıyor, şemsiye alıyorum.', 'Vaktim yok, daha sonra geliyorum.'],
+        explanation: 'deshalb “bu yüzden” anlamına gelir ve sonucu başlatır.',
+      }),
+      textExercise({
+        id: 'ex-b1-preview-02-neden-sonuc-05',
+        lessonId: B1_PREVIEW_LESSON_2_ID,
+        prompt: 'Almancaya çevir.',
+        question: 'Yağmur yağıyor, bu nedenle şemsiye alıyorum.',
+        correct: 'Es regnet, deswegen nehme ich einen Regenschirm.',
+        accepted: ['Es regnet, deshalb nehme ich einen Regenschirm.'],
+        explanation: 'deswegen/deshalb sonrasında fiil ikinci sıradadır: deswegen nehme ich...',
+      }),
+      buildExercise({
+        id: 'ex-b1-preview-02-neden-sonuc-06',
+        lessonId: B1_PREVIEW_LESSON_2_ID,
+        prompt: 'Kelime sırasını kur.',
+        question: 'Vaktim yok, bu yüzden daha sonra geliyorum.',
+        correct: 'Ich habe keine Zeit , darum komme ich später .',
+        words: ['später', 'darum', 'ich', 'komme', 'Zeit', 'habe', '.', 'Ich', ',', 'keine'],
+        explanation: 'darum sonrasında çekimli fiil ikinci sıraya gelir: darum komme ich später.',
+        speechText: 'Ich habe keine Zeit, darum komme ich später.',
+      }),
+      choiceExercise({
+        id: 'ex-b1-preview-02-neden-sonuc-07',
+        lessonId: B1_PREVIEW_LESSON_2_ID,
+        type: 'listening',
+        skill: 'listening',
+        prompt: 'Dinleme tarzı metin: doğru bilgiyi seç.',
+        question: 'Konuşan kişi neden kelimeleri tekrar ediyor?',
+        correct: 'Kelimeleri unutmak istemediği için.',
+        distractors: ['Yağmur yağdığı için.', 'Randevusu iptal olduğu için.', 'Daha sonra geleceği için.'],
+        explanation: 'Cümlede “Aus diesem Grund wiederhole ich die Wörter” sonucu anlatıyor.',
+        speechText: 'Ich möchte die Wörter nicht vergessen. Aus diesem Grund wiederhole ich sie.',
+      }),
+      choiceExercise({
+        id: 'ex-b1-preview-02-neden-sonuc-08',
+        lessonId: B1_PREVIEW_LESSON_2_ID,
+        skill: 'grammar',
+        prompt: 'Doğru cümleyi seç.',
+        question: '“Yorgunum, bu yüzden mola veriyorum.” için doğru cümle hangisi?',
+        correct: 'Ich bin müde, deshalb mache ich eine Pause.',
+        distractors: ['Ich bin müde, deshalb ich mache eine Pause.', 'Ich bin müde, weil mache ich eine Pause.', 'Ich bin müde, darum ich eine Pause mache.'],
+        explanation: 'deshalb sonrasında fiil ikinci sıradadır: deshalb mache ich...',
       }),
     ],
   }),

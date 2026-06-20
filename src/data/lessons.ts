@@ -13,7 +13,13 @@ const mainPathLessons: MainPathLesson[] = [...lessonsA0, ...lessonsA1, ...lesson
 
 export const playableLessons: Lesson[] = [...mainPathLessons, ...lessonsB1Preview];
 
-export { B1_PREVIEW_LESSON_ID, lessonsB1Preview } from './lessons.b1Preview';
+export {
+  B1_PREVIEW_LESSON_ID,
+  B1_PREVIEW_LESSON_2_ID,
+  B1_PREVIEW_LESSON_IDS,
+  isB1PreviewLessonId,
+  lessonsB1Preview,
+} from './lessons.b1Preview';
 export { lessonsA0, lessonsA1, lessonsA2 };
 
 export const playableLevelOrder: MainPathLevel[] = ['A0', 'A1', 'A2'];

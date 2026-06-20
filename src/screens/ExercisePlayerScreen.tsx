@@ -22,7 +22,7 @@ import { useDetailFooterSpacing } from '../components/layout';
 import { SpeakerButton } from '../components/SpeakerButton';
 import { XP } from '../data/constants';
 import { getChoiceText, shuffleWithSeed, withShuffledExerciseChoices } from '../lib/choiceUtils';
-import { B1_PREVIEW_LESSON_ID, getLessonById, getNextPlayableLesson } from '../data/lessons';
+import { getLessonById, getNextPlayableLesson, isB1PreviewLessonId } from '../data/lessons';
 import { articleColors, colors, radius, shadows, spacing, typography } from '../data/theme';
 import {
   buildExercisesForLesson,
@@ -289,7 +289,7 @@ export function ExercisePlayerScreen({
     const hasMistakes = completion.mistakeCount > 0;
     const hasNextLesson = Boolean(completion.nextLessonId);
     const isA2PathComplete = lesson.id === 'a2-12-a2-genel-tekrar' && !hasNextLesson;
-    const isB1PreviewComplete = lesson.id === B1_PREVIEW_LESSON_ID;
+    const isB1PreviewComplete = isB1PreviewLessonId(lesson.id);
     const selectCompletionAction = (actionId: string, runAction: () => void) => {
       trackLocalEvent({
         type: 'lesson_completion_action_selected',

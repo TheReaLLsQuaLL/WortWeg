@@ -1,6 +1,6 @@
 # WortWeg
 
-WortWeg is a mobile-first German learning MVP for Turkish speakers. It uses Expo React Native, TypeScript, React Navigation, local AsyncStorage persistence, original playable A0/A1/A2 content plus one optional B1 preview lesson, SRS vocabulary review, a secure local AI backend wrapper for Gemini text feedback, and backend German speech-to-text for speaking practice.
+WortWeg is a mobile-first German learning MVP for Turkish speakers. It uses Expo React Native, TypeScript, React Navigation, local AsyncStorage persistence, original playable A0/A1/A2 content plus two optional B1 preview lessons, SRS vocabulary review, a secure local AI backend wrapper for Gemini text feedback, and backend German speech-to-text for speaking practice.
 
 ## Requirements
 
@@ -111,7 +111,7 @@ npm run typecheck
 ## Current MVP Behavior
 
 - Onboarding persists locally with `@react-native-async-storage/async-storage`.
-- The playable learning path covers A0, A1, and A2. There is one optional limited “B1 Ön İzleme” lesson; the full B1/B2 tracks remain coming soon.
+- The playable learning path covers A0, A1, and A2. There are two optional limited “B1 Ön İzleme” lessons; the full B1/B2 tracks remain coming soon.
 - Exam practice content is original and lives in `src/data/exam.a1.ts`.
 - Lesson completion awards XP, updates local-date streaks, adds SRS cards, and records mistakes.
 - SRS review uses `src/lib/srs.ts`.
@@ -444,7 +444,7 @@ Alpha test checklist:
 3. Reset, complete onboarding with placement, accept the recommendation, then confirm Home opens.
 4. Start A0.1 from Home, answer at least one question wrong, finish the lesson, and confirm XP/progress updates.
 5. Open Kelime review and Hatalarım.
-6. Open CurriculumMap and confirm A0/A1/A2 lessons open, B1 shows only the optional “B1 Ön İzleme,” and full B1/B2 modules show coming-soon behavior.
+6. Open CurriculumMap and confirm A0/A1/A2 lessons open, B1 shows only the two optional “B1 Ön İzleme” lessons, and full B1/B2 modules show coming-soon behavior.
 7. Open AI chat and send a short A1 message.
 8. Open speaking practice, press and hold the microphone, speak, release, replay, and confirm:
    - Release starts the animated analysis state.
@@ -482,7 +482,7 @@ Privacy expectations:
 
 Known alpha limitations:
 
-- A0/A1/A2 lessons are playable. One optional limited “B1 Ön İzleme” lesson is available; full B1/B2 tracks remain curriculum metadata and are marked as coming soon.
+- A0/A1/A2 lessons are playable. Two optional limited “B1 Ön İzleme” lessons are available; full B1/B2 tracks remain curriculum metadata and are marked as coming soon.
 - Speaking transcript uses backend OpenAI STT and requires local backend reachability plus OpenAI API quota.
 - Speaking feedback is transcript-comparison based, not real phonetic pronunciation scoring.
 - This is Expo Go/dev-build testing only for now.
@@ -495,6 +495,6 @@ See also: `docs/alpha-test-checklist.md` for a short tester-facing Turkish check
 ## Product Notes
 
 - User-facing explanations and feedback are in Turkish.
-- German content currently covers playable A0, A1, and A2 lessons, plus one optional limited “B1 Ön İzleme” lesson.
+- German content currently covers playable A0, A1, and A2 lessons, plus two optional limited “B1 Ön İzleme” lessons.
 - Exam text is described as “A1 sınav tarzı pratik,” not as an official Goethe/telc/ÖSD product.
 - All included lesson and exam content is original starter content.

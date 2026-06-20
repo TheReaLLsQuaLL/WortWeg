@@ -67,4 +67,4 @@ This document parks backend/server work for later. It is not an implementation p
 
 ## 8. Current Priority
 
-For now, keep focus on app/content quality: playable A0/A1/A2 lessons, the optional limited B1 preview, onboarding persistence, SRS, mistakes, speaking UX, and safe tester reporting. Full B1/B2 remain coming soon until a later content pass.
+For now, keep focus on app/content quality: playable A0/A1/A2 lessons, the optional limited B1 preview lessons, onboarding persistence, SRS, mistakes, speaking UX, and safe tester reporting. Full B1/B2 remain coming soon until a later content pass.
