@@ -108,6 +108,24 @@ npm run dev:all
 npm run typecheck
 ```
 
+## Local Quality Check
+
+Run the safe pre-commit checks with one command:
+
+```bash
+npm run quality
+```
+
+This runs `npm run typecheck`, `npm run content:qa`, `npm run server:check`, and `git diff --check`. It does not require the backend to be running. Expected content totals are 36 lessons, 288 exercises, and 288 vocabulary items.
+
+Backend smoke remains optional and requires an already-running backend:
+
+```bash
+npm run quality:backend
+```
+
+Deployment is still blocked until the real-device phone smoke test passes.
+
 ## Current MVP Behavior
 
 - Onboarding persists locally with `@react-native-async-storage/async-storage`.

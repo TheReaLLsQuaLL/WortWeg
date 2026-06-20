@@ -287,6 +287,7 @@ Recommendation:
 - Added explicit provider request timeouts for Gemini and OpenAI STT calls.
 - Added dependency-free in-memory rate limiting for `/health`, `/ai/teacher`, and `/speech/*`.
 - Added `server:smoke` for local backend readiness checks without printing secrets or raw provider payloads.
+- Added `npm run quality` for local pre-commit checks that do not require a running backend.
 - Omitted provider/model diagnostics from production AI and speech responses while keeping development diagnostics available.
 - Relaxed app service parsers so production provider-neutral responses do not break existing flows.
 

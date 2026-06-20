@@ -15,7 +15,9 @@
     "env:check:openai": "node scripts/check-openai-env.cjs",
     "server:start": "NODE_ENV=production tsx server/index.ts",
     "server:check": "tsx server/checkConfig.ts",
-    "server:smoke": "tsx server/smokeTest.ts"
+    "server:smoke": "tsx server/smokeTest.ts",
+    "quality": "npm run typecheck && npm run content:qa && npm run server:check && git diff --check",
+    "quality:backend": "npm run server:smoke"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",
