@@ -1,5 +1,5 @@
 import { BookOpen, CheckCircle2, Home, RotateCcw } from 'lucide-react-native';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { AppButton } from '../components/AppButton';
@@ -33,13 +33,45 @@ export function VocabScreen({ navigation, userState, onUpdateState }: VocabScree
   const [revealed, setRevealed] = useState(false);
   const [reviewedThisSession, setReviewedThisSession] = useState(0);
   const [sessionCompleted, setSessionCompleted] = useState(false);
-  const dueCards = getDueReviewCards(userState.reviewCards);
+  const [sessionStarted, setSessionStarted] = useState(false);
+  const [sessionQueueIds, setSessionQueueIds] = useState<string[]>(() =>
+    getDueReviewCards(userState.reviewCards).map((item) => item.id),
+  );
+  const [repeatQueuedIds, setRepeatQueuedIds] = useState<string[]>([]);
+  const dueCards = useMemo(() => getDueReviewCards(userState.reviewCards), [userState.reviewCards]);
+  const reviewCardById = useMemo(
+    () => new Map(userState.reviewCards.map((item) => [item.id, item])),
+    [userState.reviewCards],
+  );
+  const dueCardIds = useMemo(() => dueCards.map((item) => item.id), [dueCards]);
+  const dueCardIdsKey = dueCardIds.join('|');
+  const sessionQueue = sessionQueueIds
+    .map((id) => reviewCardById.get(id))
+    .filter((item): item is NonNullable<typeof item> => Boolean(item));
   const knownCards = getKnownReviewCardCount(userState.reviewCards);
-  const card = dueCards[0];
+  const card = sessionQueue[0];
+  const safeReviewedThisSession = Number.isFinite(reviewedThisSession)
+    ? Math.max(0, reviewedThisSession)
+    : 0;
+  const sessionTotalCount = Math.max(safeReviewedThisSession + sessionQueue.length, sessionQueue.length);
+  const currentCardPosition = sessionTotalCount > 0
+    ? Math.min(safeReviewedThisSession + 1, sessionTotalCount)
+    : 0;
 
   useEffect(() => {
     trackLocalEvent({ type: 'srs_opened', screen: 'Vocab' });
   }, []);
+
+  useEffect(() => {
+    if (sessionStarted || sessionCompleted) {
+      return;
+    }
+
+    setSessionQueueIds(dueCardIds);
+    setRepeatQueuedIds([]);
+    setReviewedThisSession(0);
+    setRevealed(false);
+  }, [dueCardIdsKey, dueCardIds, sessionCompleted, sessionStarted]);
 
   const review = async (quality: Extract<ReviewQuality, 'again' | 'good'>) => {
     if (!card) {
@@ -47,6 +79,18 @@ export function VocabScreen({ navigation, userState, onUpdateState }: VocabScree
     }
 
     const updatedCard = answerReviewCard(card, quality);
+    const currentQueueIds = sessionQueue.map((item) => item.id);
+    const remainingQueueIds = currentQueueIds.slice(1);
+    const wasAlreadyQueuedForRepeat = repeatQueuedIds.includes(card.id);
+    const shouldRepeatInSession = quality === 'again' && !wasAlreadyQueuedForRepeat;
+    const nextQueueIds = shouldRepeatInSession
+      ? [...remainingQueueIds, card.id]
+      : remainingQueueIds;
+    const nextRepeatQueuedIds = shouldRepeatInSession
+      ? [...repeatQueuedIds, card.id]
+      : repeatQueuedIds;
+
+    setSessionStarted(true);
     await onUpdateState((state) =>
       awardXpForStudy(
         {
@@ -57,8 +101,10 @@ export function VocabScreen({ navigation, userState, onUpdateState }: VocabScree
       ),
     );
 
-    const nextReviewedCount = reviewedThisSession + 1;
+    const nextReviewedCount = safeReviewedThisSession + 1;
     setReviewedThisSession(nextReviewedCount);
+    setSessionQueueIds(nextQueueIds);
+    setRepeatQueuedIds(nextRepeatQueuedIds);
     setRevealed(false);
 
     trackLocalEvent({
@@ -71,7 +117,7 @@ export function VocabScreen({ navigation, userState, onUpdateState }: VocabScree
       },
     });
 
-    if (quality !== 'again' && dueCards.length <= 1) {
+    if (nextQueueIds.length === 0) {
       setSessionCompleted(true);
       trackLocalEvent({
         type: 'srs_completed',
@@ -81,11 +127,13 @@ export function VocabScreen({ navigation, userState, onUpdateState }: VocabScree
     }
   };
 
-  const subtitle = dueCards.length > 0
-    ? dueCards.length + ' kelime tekrar zamanı'
-    : userState.reviewCards.length > 0
-      ? 'Bugünlük tekrar tamam'
-      : 'Ders bitirince kartlar açılır';
+  const subtitle = sessionCompleted
+    ? 'Bugünlük tekrar tamam'
+    : sessionQueue.length > 0
+      ? sessionQueue.length + ' kartlık tekrar'
+      : userState.reviewCards.length > 0
+        ? 'Bugünlük tekrar tamam'
+        : 'Ders bitirince kartlar açılır';
 
   return (
     <Screen backgroundColor={colors.lavenderBackground}>
@@ -106,7 +154,7 @@ export function VocabScreen({ navigation, userState, onUpdateState }: VocabScree
             ) : null}
             <View style={styles.reviewHeader}>
               <View style={styles.flexCopy}>
-                <Text style={styles.kicker}>Kart {reviewedThisSession + 1} · {dueCards.length} kaldı</Text>
+                <Text style={styles.kicker}>Kart {currentCardPosition} / {sessionTotalCount}</Text>
                 <Text style={styles.title}>{card.german}</Text>
                 <Text style={styles.body}>Kutu {card.box + 1}/5</Text>
               </View>
