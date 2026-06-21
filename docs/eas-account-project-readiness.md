@@ -235,9 +235,9 @@ Before testers are invited:
 - Private alpha tester guide is finalized.
 - Final brand/icon/splash/Wolli asset expectations are clear; temporary assets are acceptable only for internal preview.
 - Optional backend error-copy installed-build test is completed or documented as skipped.
-- Production backend start no longer depends on `tsx`, or that limitation is accepted for the current private preview scope.
+- Render has been redeployed with the compiled backend start path and hosted smoke has been rerun.
 - iOS/TestFlight path remains later and unclaimed.
 
 ## 13. Next Prompt Title
 
-Define private alpha tester distribution and support process.
+Fill approved APK link and feedback channel, then send to the first private Android tester group.

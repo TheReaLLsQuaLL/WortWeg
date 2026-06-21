@@ -12,7 +12,7 @@ Client secret rule: the mobile app must never contain `OPENAI_API_KEY`, `GEMINI_
 
 - Backend entrypoint: `server/index.ts`.
 - Development command: `npm run server:dev`.
-- Production build command: `npm run server:build` compiles backend TypeScript to `dist-server/`.
+- Production build command: `npm run server:build` compiles backend TypeScript to `dist-server/index.js` and sibling runtime modules.
 - Production start command: `npm run server:start` runs compiled JavaScript with Node.
 - Local development still uses TypeScript via `tsx`.
 - Host/port: `HOST` defaults to `0.0.0.0`; `PORT` defaults to `3001`.
@@ -64,7 +64,7 @@ Gaps:
 
 Recommendation:
 
-- Update the Render dashboard build command to `npm install && npm run server:build`, keep start command as `npm run server:start`, then rerun hosted smoke.
+- Keep the Render dashboard build command as `npm install && npm run server:build`, keep start command as `npm run server:start`, then rerun hosted smoke after redeploy.
 - Add Node runtime documentation or `engines` once the production start strategy is finalized.
 - Keep `/health`, and consider a non-secret readiness endpoint or startup config validation before remote testers.
 
@@ -300,7 +300,7 @@ Recommendation:
 - Added dependency-free in-memory rate limiting for `/health`, `/ai/teacher`, and `/speech/*`.
 - Added `server:smoke` for local backend readiness checks without printing secrets or raw provider payloads.
 - Added `npm run quality` for local pre-commit checks that do not require a running backend.
-- Added `server:build` and changed `server:start` to run compiled JavaScript from `dist-server/` instead of `tsx`.
+- Added `server:build` and changed `server:start` to run compiled JavaScript from `dist-server/index.js` instead of `tsx`.
 - Omitted provider/model diagnostics from production AI and speech responses while keeping development diagnostics available.
 - Relaxed app service parsers so production provider-neutral responses do not break existing flows.
 
@@ -309,8 +309,8 @@ Recommendation:
 These should be fixed or verified before the hosted backend is shared with remote testers:
 
 1. Approved APK link, feedback channel, support owner, and actual tester send are not finalized.
-2. Render has not yet been redeployed with `npm install && npm run server:build`.
-3. Hosted `/health` and `server:smoke` must be rerun after the Render command change.
+2. Render compiled-start redeploy smoke must pass with `npm install && npm run server:build` and `npm run server:start`.
+3. Hosted `/health` and `server:smoke` must be rerun after the compiled-start deploy.
 4. Backend error-copy phone check was skipped/not tested.
 5. No hosted deployment runbook exists beyond the predeployment checklist.
 6. Speech temp-file cleanup has not been verified on the selected host.
@@ -368,7 +368,7 @@ These should be fixed or verified before the hosted backend is shared with remot
 ## Suggested Implementation Order
 
 1. Private build/install and tester support process documentation.
-2. Render command update and hosted smoke verification.
+2. Render compiled-start hosted smoke verification.
 3. Centralized safe error shape commit.
 4. Safe logging helper commit.
 5. AI context schema tightening commit.

@@ -20,7 +20,7 @@ Important status: the first hosted backend smoke passed on Render after the phon
 - Local Express backend runs from `server/`.
 - Development command: `npm run server:dev`.
 - Production build command: `npm run server:build`.
-- Production start command: `npm run server:start`, which runs compiled JavaScript from `dist-server/`.
+- Production start command: `npm run server:start`, which runs compiled JavaScript from `dist-server/index.js`.
 - Backend listens on `http://0.0.0.0:3001`.
 - Backend exposes `/health` for reachability checks.
 - Backend supports the AI teacher route used by Wolli chat and feedback flows.
@@ -37,9 +37,9 @@ Current hosted smoke status:
 - Hosted URL: `https://wortweg.onrender.com`.
 - Branch: `feature/b1-preview-foundation`.
 - Build command for first smoke: `npm install --include=dev`.
-- Updated build command after production-start cleanup: `npm install && npm run server:build`.
+- Compiled build command after production-start cleanup: `npm install && npm run server:build`.
 - Start command: `npm run server:start`.
-- `server:start` now runs compiled JavaScript and no longer depends on `tsx` at runtime.
+- `server:start` now runs `dist-server/index.js` and no longer depends on `tsx` at runtime.
 - `/health` returned `{"ok":true,"service":"wortweg-ai"}`.
 - `BACKEND_SMOKE_URL=https://wortweg.onrender.com npm run server:smoke` passed health, CORS, AI route, and speech validation; rate-limit stress skipped by design.
 - Phone hosted AI/speech passed.
@@ -147,7 +147,7 @@ Render was selected for the first low-friction hosted smoke. Longer-term hosting
 
 | Option | Evaluation criteria |
 | --- | --- |
-| Render | First hosted smoke passed at `https://wortweg.onrender.com`. Phone AI/speech passed. Production start now uses compiled JS; redeploy with the updated build command and rerun hosted smoke before testers. |
+| Render | First hosted smoke passed at `https://wortweg.onrender.com`. Phone AI/speech passed. Production start now uses compiled JS from `dist-server/index.js`; rerun hosted smoke after compiled-start redeploy before testers. |
 | Fly.io | Node/container support, region choice near Turkey/EU, HTTPS, secrets handling, request limits, operational complexity, rollback controls. |
 | Railway | Ease of setup, env var handling, Node support, HTTPS, logs/secrets handling, timeout behavior, cost predictability. |
 | Google Cloud Run | Container/runtime fit, HTTPS, secrets/env handling, request size and timeout limits, logs, region options, operational overhead. |
@@ -198,7 +198,7 @@ EXPO_PUBLIC_AI_BACKEND_URL=https://YOUR_BACKEND_HOST
 
 ### Phase 2 - Backend production hardening
 
-- Production start now runs compiled JS from `dist-server/`; keep this path verified in hosted smoke.
+- Production start now runs compiled JS from `dist-server/index.js`; keep this path verified in hosted smoke.
 - Verify rate limiting, request limits, safe errors, safe logs, and CORS config.
 - Keep OpenAI STT path working.
 

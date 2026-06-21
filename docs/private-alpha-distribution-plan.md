@@ -65,7 +65,7 @@ Findings:
 | Are microphone permissions declared? | Yes for the current Android preview smoke and iOS config text; keep verifying permissions on every native build. |
 | Is hosted backend available for release builds? | Yes, via `EXPO_PUBLIC_AI_BACKEND_URL=https://wortweg.onrender.com` in the build environment. Do not hardcode secrets or provider keys. |
 | Are secrets backend-only? | Yes by design. Keep provider keys only in backend/Render environment variables. |
-| What blocks private alpha tester distribution? | Approved APK link, selected feedback channel, support owner/response expectations, final brand asset expectations, iOS/TestFlight later, production backend start without `tsx`, and optional backend error-copy installed-build test. |
+| What blocks private alpha tester distribution? | Approved APK link, selected feedback channel, support owner/response expectations, final brand asset expectations, iOS/TestFlight later, Render redeploy with compiled backend start plus hosted smoke rerun, and optional backend error-copy installed-build test. |
 
 ## 4. Recommended Private-Alpha Path
 
@@ -190,7 +190,7 @@ Before inviting testers, verify the message includes:
 - Temporary icon/splash/adaptive assets are present; final brand assets are still pending.
 - Microphone permission must be verified in a real native build.
 - Hosted backend cold start or Render sleep behavior may affect first AI/speech request.
-- Current `server:start` uses `tsx`, so Render currently needs dev dependencies. Replace with compiled JS or another production-safe start before broader alpha use.
+- Backend production start now uses compiled JavaScript locally. Update Render to build with `npm install && npm run server:build`, keep `npm run server:start`, and rerun hosted smoke before broader alpha use.
 - Speech scoring is transcript-based, so it cannot judge accent/fluency/prosody yet.
 - No auth/cloud sync means tester progress is local-device only.
 - No public launch, App Store readiness, or Play Store readiness should be claimed.

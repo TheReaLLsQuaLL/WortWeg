@@ -132,11 +132,12 @@ First Render hosted smoke record:
 - URL: `https://wortweg.onrender.com`.
 - Branch: `feature/b1-preview-foundation`.
 - First-smoke build command: `npm install --include=dev`.
-- Updated build command: `npm install && npm run server:build`.
+- Compiled build command: `npm install && npm run server:build`.
 - Start command: `npm run server:start`.
+- Compiled entry expected after build: `dist-server/index.js`.
 - `/health` passed with `{"ok":true,"service":"wortweg-ai"}`.
 - Hosted `server:smoke` passed health, CORS, AI route, and speech validation; rate-limit stress skipped by design.
-- Follow-up: after manually updating Render to the new build command, rerun hosted `/health` and `server:smoke`.
+- Follow-up: after compiled-start redeploy, rerun hosted `/health` and `server:smoke`.
 
 ## 6. Railway Checklist
 

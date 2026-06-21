@@ -142,7 +142,7 @@ git push
 ## 9. Current Deployment Gate
 
 - First hosted backend smoke passed on Render at `https://wortweg.onrender.com`.
-- No tester distribution until hosted phone AI/speech is documented as passed and packaging/install path is ready.
+- No tester distribution until the approved APK link, feedback channel, support process, and post-redeploy hosted smoke are ready.
 - Azure remains design/prototype only, not implemented.
 - Do not treat hosted smoke as public launch or production readiness.
 

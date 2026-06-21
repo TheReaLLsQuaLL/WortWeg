@@ -32,6 +32,7 @@ This document is a planning sheet for product features and technical architectur
 - Backend remains local-first for development.
 - First hosted Render smoke and phone hosted AI/speech smoke passed for private backend testing; this is not a public launch.
 - Android EAS preview APK build and installed smoke passed for private/internal preview. This is not App Store or Play Store readiness.
+- Backend production start now uses compiled JavaScript from `dist-server/index.js`; Render should keep the compiled build/start commands and post-compiled redeploy smoke must pass.
 - No auth or cloud sync yet.
 - No production/public launch deployment yet.
 - No Azure production integration yet.
@@ -59,7 +60,7 @@ This document is a planning sheet for product features and technical architectur
 | Priority | Feature | Description | Why it matters | Risk | Suggested commit size |
 | --- | --- | --- | --- | --- | --- |
 | P0 | First private Android tester send | Fill approved APK link, feedback channel, and support owner, then send to the selected small tester group. | Turns the prepared process into real feedback. | Low/Medium | Docs/process plus manual send. |
-| P1 | Production-safe backend start | Replace `tsx` runtime production start with compiled JS or another production-safe start so Render does not require dev dependencies. | Makes hosted backend less fragile. | Medium | Backend-only commit. |
+| P1 | Render compiled-start smoke rerun | Keep Render build command `npm install && npm run server:build`, keep `npm run server:start`, then rerun hosted smoke after redeploy. | Confirms the compiled backend start path on the host. | Medium | Host config plus smoke verification. |
 | P1 | Final brand/icon/splash/Wolli assets | Replace temporary internal-preview assets with final approved brand assets. | Improves trust before broader tester distribution. | Medium | Asset/UI-only commit. |
 | P1 | iOS/TestFlight path | Plan iOS install path later after Apple account/distribution decisions. | Expands tester coverage when needed. | Medium | Planning/build-config commit. |
 | P2 | Azure pronunciation backend prototype | Backend-only feature-flagged spike based on `docs/azure-pronunciation-prototype.md`. | Tests whether Azure adds useful pronunciation feedback. | Medium/High | Prototype branch/commit, not user-visible. |
@@ -172,7 +173,7 @@ This document is a planning sheet for product features and technical architectur
 - First private Android tester send after APK link, feedback channel, and support owner are confirmed.
 - Optional backend error-copy phone check.
 - Safer production AI/STT error states and monitoring.
-- Production-safe backend start without `tsx` dev dependency.
+- Render compiled-start hosted smoke rerun.
 - Wolli final mascot asset replacement.
 - App Store / TestFlight-style preparation.
 - Content analytics review based on private alpha feedback.
@@ -193,7 +194,7 @@ This document is a planning sheet for product features and technical architectur
 
 1. Fill approved APK link, feedback channel, and support owner in the tester message.
 2. Send to the selected small Android tester group.
-3. Replace `tsx` runtime production start with compiled JS or production-safe backend start.
+3. Keep Render compiled build/start commands and rerun hosted `/health` plus `server:smoke` after redeploy.
 4. Optionally run backend error-copy installed-build test.
 5. Replace temporary icon/splash/Wolli brand assets when final assets are ready.
 6. Plan iOS/TestFlight path later.
@@ -214,7 +215,7 @@ This document is a planning sheet for product features and technical architectur
 - Keep Turkish-first explanations.
 - Keep current OpenAI STT path working before experimenting with Azure.
 - Azure pronunciation work must be backend-only first, feature-flagged, and not user-visible until validated.
-- Do not claim public launch or production readiness from the first Render hosted smoke.
+- Do not claim public launch or production readiness from the first Render hosted smoke or the compiled start cleanup.
 - Do not claim App Store or Play Store readiness from the installed Android preview smoke.
 
 ## 13. Next Suggested Task

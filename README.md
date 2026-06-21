@@ -126,7 +126,7 @@ npm run quality:backend
 
 First Render hosted backend smoke, phone hosted AI/speech smoke, and installed Android EAS preview APK smoke passed at `https://wortweg.onrender.com`, but this is not a public launch and not App Store / Play Store readiness. The first installed APK native launch crash was fixed by aligning `expo-asset` with the Expo SDK module set. Tester distribution docs now exist; the approved APK link, feedback channel, support owner, final brand assets, iOS/TestFlight later, Render redeploy with the compiled backend start path, and optional backend error-copy installed-build testing remain open before inviting testers.
 
-Backend production start note: `server:start` now runs compiled JavaScript from `dist-server/`. For Render, update the build command to `npm install && npm run server:build` and keep the start command as `npm run server:start`, then rerun hosted smoke before tester use.
+Backend production start note: `server:start` now runs compiled JavaScript from `dist-server/index.js`. For Render, keep the build command as `npm install && npm run server:build` and the start command as `npm run server:start`, then rerun hosted smoke before tester use.
 
 ## Current MVP Behavior
 
@@ -276,7 +276,7 @@ curl https://wortweg.onrender.com/health
 BACKEND_SMOKE_URL=https://wortweg.onrender.com npm run server:smoke
 ```
 
-Both passed for the first Render Web Service smoke. Phone hosted AI/speech also passed for AI chat, correct-sentence speaking, silence/no-voice, and wrong-speech low-score behavior; backend error-copy testing was skipped. The backend now has a compiled production start path, so Render should be updated from the first-smoke build command to `npm install && npm run server:build`; the start command remains `npm run server:start`. Rerun hosted smoke after redeploy.
+Both passed for the first Render Web Service smoke. Phone hosted AI/speech also passed for AI chat, correct-sentence speaking, silence/no-voice, and wrong-speech low-score behavior; backend error-copy testing was skipped. The backend now has a compiled production start path at `dist-server/index.js`, so Render should keep build command `npm install && npm run server:build`; the start command remains `npm run server:start`. Rerun hosted smoke after redeploy.
 
 To force the rate-limit check, start a temporary backend with low rate-limit env values and run:
 

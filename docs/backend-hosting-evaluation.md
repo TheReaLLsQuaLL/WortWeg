@@ -2,7 +2,7 @@
 
 This document is a planning artifact only. It does not deploy anything, create hosting accounts, install packages, change app code, change backend code, or change environment files.
 
-Current deployment status: first hosted backend smoke passed on Render at `https://wortweg.onrender.com`. Hosted phone AI/speech result is not documented yet, and this is not a public launch.
+Current deployment status: first hosted backend smoke passed on Render at `https://wortweg.onrender.com`, and hosted phone AI/speech smoke passed. This is not a public launch.
 
 Last reviewed: 2026-06-21.
 
@@ -14,6 +14,7 @@ WortWeg needs a small, secure hosted backend for private alpha testing. Render h
 - `GET /health`.
 - AI teacher endpoint.
 - Speech transcription endpoint.
+- Compiled backend production start with `npm run server:build` and `npm run server:start`.
 - OpenAI STT through backend only.
 - Gemini AI teacher endpoint through backend only.
 - Environment-driven CORS.
@@ -38,7 +39,7 @@ The selected host must support:
 
 - Current Node/Express backend.
 - Node 22 or a production-compatible Node runtime verified against the repo.
-- `npm run server:start` or an equivalent production start command.
+- `npm run server:build` followed by `npm run server:start`, or an equivalent compiled production start command.
 - Server-side environment variables:
   - `OPENAI_API_KEY`
   - `GEMINI_API_KEY`
@@ -58,19 +59,19 @@ The mobile app must never contain provider API keys. The app should only receive
 
 ## Deployment Blockers Still Remaining
 
-- Hosted phone AI/speech result is not documented yet.
 - Render hosted `/health` passed.
 - Render hosted `npm run server:smoke` passed health, CORS, AI route, and speech validation; rate-limit stress skipped by design.
-- Render build currently uses `npm install --include=dev` because `server:start` depends on `tsx` from dev dependencies.
-- No provider-specific real phone upload, timeout, temp filesystem, or logging behavior has been fully verified with hosted speech on phone.
+- Hosted phone AI/speech passed for AI chat, correct-sentence speaking, silence/no-voice, and wrong-speech low-score behavior.
+- Backend production start now uses compiled JavaScript; Render should keep build command `npm install && npm run server:build` and start command `npm run server:start`, then post-compiled redeploy smoke must pass before tester use.
+- Backend error-copy behavior in an installed build is still optional/not fully tested.
 
-Do not publish to testers until hosted phone AI/speech passes and packaging/install flow is ready.
+Do not publish to testers until the approved APK link, feedback channel, support process, and post-redeploy hosted smoke are ready.
 
 ## Candidate Comparison Table
 
 | Candidate | Node/Express fit | Env/secrets | HTTPS/public URL | Audio/STT fit | Cold start/latency | Logs/privacy | Cost predictability | Operational complexity | Current phase fit |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Render | First hosted smoke passed. Current start works with dev dependencies because `tsx` is required. | Dashboard env vars and secrets; keep keys server-side. | `https://wortweg.onrender.com` is live for private smoke. | Hosted speech phone behavior still needs documented pass. | Possible cold start risk depending service type/plan; verify before testers. | Dashboard logs available; app must avoid logging sensitive data. | Medium; verify current plan behavior before broader use. | Low to medium. | First smoke candidate used; keep hardening before testers. |
+| Render | First hosted smoke passed. Compiled production start is ready locally; keep compiled build/start commands and rerun hosted smoke after redeploy. | Dashboard env vars and secrets; keep keys server-side. | `https://wortweg.onrender.com` is live for private smoke. | Hosted phone AI/speech passed; rerun after compiled-start deploy. | Possible cold start risk depending service type/plan; verify before testers. | Dashboard logs available; app must avoid logging sensitive data. | Medium; verify current plan behavior before broader use. | Low to medium. | First smoke candidate used; keep hardening before testers. |
 | Fly.io | Strong container/runtime fit; good regional control. | Runtime secrets supported. | Public networking and TLS support. | Likely viable, but machine/filesystem behavior and request limits need validation. | Potentially good if region is selected near users; needs more operational awareness. | Logs and secrets tooling exist; operational discipline needed. | Medium; verify current resource model. | Medium. | Good if region control matters. |
 | Railway | Strong simple Express fit; docs include Express, variables, start commands. | Variables supported. | Public service URL support. | Needs upload/timeout validation. | Likely acceptable for low traffic, but verify cold start/sleep behavior. | Logs available; privacy depends on backend logging discipline. | Medium; verify current usage model. | Low. | Strong first experiment candidate. |
 | Google Cloud Run | Strong container/service fit; supports Node source/container workflows. | Env vars and secrets available through Google Cloud tooling. | HTTPS service URL. | Good candidate if request timeout/body/temp behavior is configured correctly. | Cold starts possible; can be tuned later. Regions are broad. | Cloud Logging is powerful; privacy controls must be explicit. | Medium to high predictability if configured carefully, but verify. | Medium to high. | Better for later scale/control than first low-friction alpha. |
@@ -81,7 +82,7 @@ Do not publish to testers until hosted phone AI/speech passes and packaging/inst
 
 ### Render
 
-Render was used for the first hosted smoke. `/health` and `server:smoke` passed at `https://wortweg.onrender.com`. The exact hosted phone speech behavior, audio upload timing, logs, and timeout behavior still need documented phone results before testers. The current Render build uses `npm install --include=dev` because `server:start` depends on `tsx`; replace that with compiled JS or another production-safe start before broader use.
+Render was used for the first hosted smoke. `/health`, `server:smoke`, hosted phone AI chat, hosted phone speaking, silence/no-voice, and wrong-speech low-score behavior passed at `https://wortweg.onrender.com`. Backend production start now uses compiled JavaScript at `dist-server/index.js`. Keep Render build command `npm install && npm run server:build`, keep start command as `npm run server:start`, and rerun hosted smoke after redeploy.
 
 Potential fit:
 
@@ -229,7 +230,7 @@ Reason: App Runner currently appears unavailable to new customers. VPS adds too 
 
 For each candidate, verify the following from current official docs and a small backend smoke deployment:
 
-- Can it run the current `npm run server:start` script, or does it require a compiled server build?
+- Can it run `npm run server:build` during build and `npm run server:start` at runtime without installing dev dependencies for runtime?
 - Which Node runtime version is available, and can Node 22 be selected or approximated safely?
 - How are environment variables and secrets configured?
 - Does it provide a stable HTTPS URL suitable for `EXPO_PUBLIC_AI_BACKEND_URL`?
@@ -275,4 +276,4 @@ These sources were checked only for high-level capability signals. Pricing and l
 
 ## Next Prompt
 
-Replace tsx runtime production start with compiled JS or production-safe backend start.
+Redeploy Render with compiled backend build/start and rerun hosted smoke.

@@ -91,7 +91,7 @@ Docs consistently state:
 - B1 preview is limited to 8 optional lessons.
 - Full B1/B2 paths are coming soon.
 - First Render hosted backend smoke passed at `https://wortweg.onrender.com`.
-- Hosted phone AI/speech result and tester distribution still need a documented pass.
+- Hosted phone AI/speech and installed Android preview smoke passed.
 - Azure pronunciation assessment is not implemented.
 - No public launch is claimed.
 - No official exam affiliation/certification is claimed.
@@ -132,9 +132,9 @@ This task only created this audit report:
 
 ## Remaining Blockers
 
-- Hosted phone AI/speech result is not documented in the latest docs update.
 - Hosted backend runtime has been smoke-tested on Render at `https://wortweg.onrender.com`.
-- Render was selected for the first hosted smoke.
+- Backend production start now uses compiled JavaScript locally; Render compiled-start hosted smoke must pass before tester use.
+- Tester distribution/support process docs exist, but the approved APK link, feedback channel, and support owner still need to be filled.
 - No private testers have been invited.
 - Final Wolli mascot asset is not ready.
 - Azure pronunciation assessment is not implemented.
@@ -143,6 +143,6 @@ This task only created this audit report:
 
 Local repo readiness: PASS.
 
-Deployment readiness for testers: NO. Hosted backend smoke passed, but hosted phone AI/speech result and tester distribution still need a documented pass.
+Deployment readiness for testers: NO. Hosted backend, hosted phone AI/speech, and installed Android preview smoke passed, but Render still needs the compiled-start command update plus smoke rerun, and tester distribution details must be filled.
 
-Next action: document hosted phone AI/speech result for `https://wortweg.onrender.com`, then finalize private alpha packaging/install path.
+Next action: update Render to `npm install && npm run server:build` with `npm run server:start`, rerun hosted smoke, then fill approved APK link and feedback channel for private Android testers.

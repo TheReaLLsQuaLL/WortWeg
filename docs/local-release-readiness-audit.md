@@ -80,7 +80,7 @@ This document has been updated after later smoke milestones to reflect:
 - Phone hosted AI/speech smoke passed.
 - Installed Android EAS preview APK smoke passed after Expo asset/module alignment.
 - Private alpha Android tester distribution process and tester message draft exist.
-- Backend production start now uses compiled JavaScript from `dist-server/`; Render still needs a manual build-command update and hosted smoke rerun.
+- Backend production start now uses compiled JavaScript from `dist-server/index.js`; Render should keep the compiled build/start commands and post-compiled redeploy smoke must pass.
 
 ## Feature Consistency Findings
 
@@ -137,7 +137,7 @@ This document has been updated after later smoke milestones to reflect:
 
 - Android private build/install path is proven for internal smoke testing.
 - Tester distribution/support process is documented, but the approved APK link, feedback channel, support owner, and actual tester send are not finalized.
-- Hosted runtime has been smoke-tested on Render, but Render has not yet been redeployed with `npm install && npm run server:build`.
+- Hosted runtime has been smoke-tested on Render; post-compiled redeploy smoke must pass with `npm install && npm run server:build` and `npm run server:start` before tester use.
 - Backend error-copy phone check was skipped/not tested.
 - No external/private testers yet.
 - Final Wolli mascot/final brand icon/splash assets are not ready; temporary assets passed internal preview smoke only.
@@ -151,7 +151,7 @@ Fill `APK_LINK_HERE` and `FEEDBACK_CHANNEL_HERE` in `docs/private-alpha-tester-m
 Next backend hardening step:
 
 ```text
-Update Render build command to `npm install && npm run server:build`, keep `npm run server:start`, then rerun hosted smoke.
+Keep Render build command `npm install && npm run server:build`, keep `npm run server:start`, then rerun hosted smoke after redeploy.
 ```
 
 ## Release Decision

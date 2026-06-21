@@ -70,14 +70,14 @@ This is the current single-source-of-truth snapshot for WortWeg planning.
 - EAS project linked under `@therealsquall/wortweg`.
 - Android preview APK build and installed-build smoke passed after Expo asset/module alignment.
 - Private alpha Android tester distribution process and tester message draft documented.
-- Backend production start now runs compiled JavaScript from `dist-server/` instead of `tsx`.
+- Backend production start now runs compiled JavaScript from `dist-server/index.js` instead of `tsx`.
 
 ## 4. Current Blockers
 
 - Hosted backend smoke passed on Render.
 - Android private preview install path is proven for internal smoke testing.
 - Tester distribution/support process is documented, but the approved APK link, feedback channel, support owner, and actual tester send are not finalized.
-- Render dashboard still needs to be updated to build with `npm install && npm run server:build`; hosted smoke must be rerun after redeploy.
+- Render should use build command `npm install && npm run server:build` and start command `npm run server:start`; post-compiled redeploy smoke must pass before tester use.
 - Backend error-copy phone check was skipped/not tested.
 - No external/private testers yet.
 - Final Wolli mascot/brand asset set is not ready; temporary private-alpha icon/splash assets are present.
@@ -100,7 +100,7 @@ This is the current single-source-of-truth snapshot for WortWeg planning.
 
 1. Fill approved APK link and feedback channel in the tester message.
 2. Send only to the selected private Android tester group.
-3. Update Render build command and rerun hosted `/health` plus `server:smoke`.
+3. Keep Render on `npm install && npm run server:build` plus `npm run server:start`, then rerun hosted `/health` and `server:smoke` after redeploy.
 4. Optionally run backend error-copy installed-build test.
 5. Replace temporary icon/splash/Wolli brand assets when final assets are ready.
 6. Plan iOS/TestFlight path later.
