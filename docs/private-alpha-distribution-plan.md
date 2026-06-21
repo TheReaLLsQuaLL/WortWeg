@@ -5,12 +5,16 @@ This document prepares the install/distribution path for WortWeg private alpha. 
 ## 1. Current Status
 
 - App type: Expo React Native managed project.
-- Current test path: Expo Go from local Metro bundler.
+- Current test paths: Expo Go from local Metro bundler and installed Android EAS preview APK.
 - Hosted backend: Render Web Service at `https://wortweg.onrender.com`.
 - EAS preview plan: `docs/eas-preview-build-plan.md`.
 - Asset requirements: `docs/app-asset-requirements.md`.
 - Mac hosted backend smoke: passed.
 - Phone hosted smoke: passed for AI chat, correct-sentence speaking, silence/no-voice, and wrong-speech low-score behavior.
+- Installed Android EAS preview APK smoke: passed.
+- Previous installed APK native launch crash was fixed by aligning `expo-asset` with the Expo SDK module set, then rebuilding Android preview with a clear EAS cache.
+- Installed build can open, enter the app, load onboarding/Home, use hosted AI chat, and use hosted speaking.
+- Temporary icon/splash assets are acceptable for internal preview, not final brand or store assets.
 - Backend error-copy phone check: skipped/not tested.
 - Content scope:
   - A0/A1/A2 fully playable.
@@ -51,31 +55,31 @@ Findings:
 
 | Question | Current answer |
 | --- | --- |
-| Is this currently Expo Go only? | Yes. The verified install path is Expo Go with a local Metro server. |
-| Is EAS configured? | Partially. A minimal preview-only `eas.json` exists, but credentials, final assets, account/project ownership, and real builds are not configured. |
+| Is this currently Expo Go only? | No. Expo Go remains supported for development, and an installed Android EAS preview APK now passes smoke testing. |
+| Is EAS configured? | Yes for Android internal preview smoke. `eas.json` has a preview-only profile, the EAS project is linked under `@therealsquall/wortweg`, and Android remote keystore material exists on Expo servers. |
 | Is an iOS bundle identifier configured? | Yes: `com.toprakyildiz.wortweg`. |
 | Is an Android package name configured? | Yes: `com.toprakyildiz.wortweg`. |
-| Are icon/splash assets production-like? | Temporary internal-preview assets are present; final brand/store-quality assets are still pending. |
-| Are microphone permissions declared? | Partially yes. iOS text and Expo Audio plugin text are present; Android native permission should be verified through Expo/EAS config output before a native build. |
+| Are icon/splash assets production-like? | Temporary internal-preview assets are present and passed the installed APK smoke well enough for internal preview; final brand/store-quality assets are still pending. |
+| Are microphone permissions declared? | Yes for the current Android preview smoke and iOS config text; keep verifying permissions on every native build. |
 | Is hosted backend available for release builds? | Yes, via `EXPO_PUBLIC_AI_BACKEND_URL=https://wortweg.onrender.com` in the build environment. Do not hardcode secrets or provider keys. |
 | Are secrets backend-only? | Yes by design. Keep provider keys only in backend/Render environment variables. |
-| What blocks a private alpha install? | Account/credential decisions, install/distribution process, tester support flow, real build smoke, and final brand asset review before broader tester distribution. |
+| What blocks private alpha tester distribution? | Tester distribution/support process, final brand asset expectations, iOS/TestFlight later, production backend start without `tsx`, and optional backend error-copy installed-build test. |
 
 ## 4. Recommended Private-Alpha Path
 
-Recommended next path: create a private install build using EAS after configuration is prepared.
+Recommended next path: use the successful Android preview APK as the first internal install path, then define the tester distribution/support process before inviting anyone.
 
 Do not publish to public app stores. Do not call this production-ready. Keep the first tester group small and trusted.
 
 Suggested staged path:
 
-1. Keep Expo Go for developer smoke while the install path is prepared.
-2. Use the minimal preview `eas.json` and configured app identifiers as a starting point before any real build attempt.
-3. Configure build-time `EXPO_PUBLIC_AI_BACKEND_URL=https://wortweg.onrender.com` through EAS/build environment, not through committed secrets.
-4. Create an Android internal/test APK or internal distribution build first, because Android is usually lower-friction for a first install test.
+1. Keep Expo Go for developer smoke and rapid iteration.
+2. Keep the Android EAS preview APK path as the proven internal install smoke path.
+3. Continue using `EXPO_PUBLIC_AI_BACKEND_URL=https://wortweg.onrender.com` through EAS/build environment, not through committed secrets.
+4. Define tester distribution, support/contact, and issue triage before inviting testers.
 5. Prepare iOS TestFlight later if Apple Developer access and bundle identifier are ready.
-6. Run the full phone smoke checklist on the install build before inviting testers.
-7. Invite only private alpha testers after install, backend, privacy, and support flows are verified.
+6. Re-run the full phone smoke checklist on every new installed build before inviting testers.
+7. Invite only private alpha testers after install, backend, privacy, support, and limitation wording are verified.
 
 ## 5. iOS Options
 
@@ -105,8 +109,9 @@ Possible later paths:
 Current platform requirements:
 
 - Android package name is configured as `com.toprakyildiz.wortweg`.
-- Minimal preview `eas.json` exists, but no build has been run yet.
-- Temporary Android icon/adaptive foreground/splash assets are present; final brand assets are still pending.
+- Minimal preview `eas.json` exists and the Android preview APK build has passed installed smoke.
+- EAS project is linked under `@therealsquall/wortweg` and Android remote keystore exists on Expo servers.
+- Temporary Android icon/adaptive foreground/splash assets are present and acceptable for internal preview; final brand assets are still pending.
 - Play Console status is not documented.
 
 Do not claim Play Store readiness until a real internal track or install path is proven.
@@ -135,7 +140,8 @@ Before running any native/private build:
 BACKEND_SMOKE_URL=https://wortweg.onrender.com npm run server:smoke
 ```
 
-- Run phone smoke on the built app before inviting testers.
+- Run phone smoke on every new built app before inviting testers.
+- Current Android preview APK installed-build smoke has passed.
 
 ## 8. App Metadata Placeholders
 
@@ -144,6 +150,7 @@ Do not publish these as store copy without review.
 - App name: WortWeg
 - One-line purpose: Turkish-first German learning practice for A0/A1/A2 with optional B1 preview.
 - Backend status: hosted backend works for private smoke testing.
+- Android preview status: installed APK opens and hosted AI/speech work.
 - Content status: A0/A1/A2 playable; B1 preview limited to 8 optional lessons; full B1/B2 coming soon.
 - Speech status: transcript-based speaking feedback, not full pronunciation scoring.
 - Privacy note: no API keys in the mobile app; avoid sharing sensitive personal information in AI chat.
@@ -171,7 +178,7 @@ Before inviting testers, prepare a short guide with:
 
 ## 10. Risks
 
-- EAS/native build may reveal missing native config not visible in Expo Go.
+- EAS/native build did reveal an Expo native module mismatch in the first APK; this was fixed by aligning `expo-asset` with the SDK-compatible Expo module set.
 - App identifiers are configured, but should be treated as stable before any build credentials are created.
 - Temporary icon/splash/adaptive assets are present; final brand assets are still pending.
 - Microphone permission must be verified in a real native build.
@@ -191,8 +198,8 @@ BACKEND_SMOKE_URL=https://wortweg.onrender.com npm run server:smoke
 git status --short
 ```
 
-Do not run native builds until account/project ownership and tester process are chosen; final brand assets can replace the temporary preview assets later.
+Do not run another native build unless a specific fix or smoke target requires it and local checks pass first; final brand assets can replace the temporary preview assets later.
 
 ## 12. Recommended Next Step
 
-Next task: Prepare first EAS preview build smoke checklist without running build.
+Next task: Define private alpha tester distribution and support process.

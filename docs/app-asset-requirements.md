@@ -1,6 +1,6 @@
 # WortWeg App Asset Requirements
 
-This document defines the app asset requirements for the first EAS preview build. It records the temporary private-alpha assets now in the repo and keeps final brand/Wolli assets as pending. It does not create credentials, native folders, or App Store / Play Store readiness claims.
+This document defines the app asset requirements for WortWeg preview builds. It records the temporary private-alpha assets now in the repo, notes that they passed installed Android preview smoke, and keeps final brand/Wolli assets as pending. It does not create credentials, native folders, or App Store / Play Store readiness claims.
 
 ## 1. Current Config Status
 
@@ -22,6 +22,7 @@ Current asset folder status:
 - `assets/icon.png` exists as a temporary private-alpha icon.
 - `assets/splash.png` exists as a temporary private-alpha splash image.
 - `assets/adaptive-icon.png` exists as a temporary private-alpha Android adaptive foreground.
+- The temporary asset set passed the installed Android EAS preview APK smoke well enough for internal preview use.
 - No final Wolli mascot asset is present.
 - Final brand/store-quality assets are still pending.
 
@@ -52,7 +53,7 @@ Design direction:
 - No Stitch asset reuse.
 - No green owl, Duolingo-like owl, sheep, cat, wolf, or person mascot.
 
-These assets are acceptable for an internal preview build smoke test, but they are not final store or public-launch brand assets.
+These assets are acceptable for internal preview build smoke testing, and the installed Android preview APK opened successfully with them. They are not final store, public-launch, or final brand assets.
 
 ## 3. App Icon Requirement
 
@@ -131,13 +132,14 @@ Future final assets should fit the current WortWeg visual system:
 
 ## 8. Ready vs Missing
 
-Ready now for a first internal preview smoke, not public release:
+Ready now for internal Android preview smoke, not public release:
 
 - App identifiers are set in `app.json`.
 - Microphone permission copy is present.
 - Hosted backend URL is available through the EAS preview public env.
 - `eas.json` has a preview-only internal distribution profile.
 - Temporary `icon.png`, `splash.png`, and `adaptive-icon.png` are present and referenced by `app.json`.
+- Installed Android preview build launches and reaches the app with these temporary assets.
 
 Still missing before broader tester distribution or final brand review:
 
@@ -145,7 +147,6 @@ Still missing before broader tester distribution or final brand review:
 - Final splash image or final splash configuration.
 - Final Android adaptive icon foreground/background review.
 - Final Wolli mascot asset pack.
-- Visual phone smoke on a built install package.
 - Asset origin/license note for final assets.
 
 ## 9. Acceptance Checklist
@@ -160,8 +161,8 @@ Before committing final app assets:
 - File sizes are reasonable for a mobile app.
 - `npm run quality` passes.
 - Content totals remain 36 lessons, 288 exercises, 288 vocabulary items.
-- Installed preview build launches and displays icon/splash correctly.
+- Installed preview build launches and displays icon/splash correctly. Current temporary assets passed for internal preview; final assets still need separate review.
 
 ## 10. Next Prompt Title
 
-Prepare first EAS preview build smoke checklist without running build.
+Define private alpha tester distribution and support process.

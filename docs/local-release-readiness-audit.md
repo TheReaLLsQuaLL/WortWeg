@@ -4,7 +4,7 @@ Date: 2026-06-21
 
 ## Audit Scope
 
-This audit verifies repository readiness from local code, docs, scripts, backend smoke checks, and the hosted Render phone smoke result. Phone hosted AI/speech passed; this is still not a public launch.
+This audit verifies repository readiness from local code, docs, scripts, backend smoke checks, the hosted Render phone smoke result, and the installed Android EAS preview APK smoke result. Phone hosted AI/speech and installed Android preview smoke passed; this is still not a public launch.
 
 Reference docs reviewed:
 
@@ -49,12 +49,13 @@ Content QA totals:
 | Quality scripts | PASS | `npm run quality` passed with expected content totals. |
 | Backend config | PASS | `server:check` passed and did not print secrets. |
 | Backend smoke | PASS | Local smoke checks passed; optional forced rate-limit mode remains documented, not required by default. |
-| Documentation consistency | PASS | Docs describe A0/A1/A2 playable, optional 8-lesson B1 preview, full B1/B2 coming soon, first Render hosted smoke passed, and Azure not implemented. |
+| Documentation consistency | PASS | Docs describe A0/A1/A2 playable, optional 8-lesson B1 preview, full B1/B2 coming soon, first Render hosted smoke passed, installed Android preview smoke passed, and Azure not implemented. |
 | Privacy/safety scan | PASS | No raw transcript/audioUri console logging found; `dotenv` usage is backend/script-only; app uses `EXPO_PUBLIC_*` env reads only. |
 | Feature consistency | PASS | Home review routes, dedicated Mistakes route, Speaking Library, Speaking Stats, vocab repeat queue, and B1 preview guardrails are present in code. |
 | Hosted backend smoke | PASS | Render hosted `/health` and `server:smoke` passed at `https://wortweg.onrender.com`. |
 | Hosted phone AI/speech | PASS | AI chat, correct-sentence speaking, silence/no-voice, and wrong-speech low-score behavior passed against Render. Backend error-copy check was skipped/not tested. |
-| Deployment readiness | PARTIAL | Hosted backend and phone AI/speech passed, but tester packaging/distribution, support process, and production start without `tsx` remain open. |
+| Installed Android EAS preview APK smoke | PASS | App installs, opens, enters the app, loads onboarding/Home, uses hosted AI/speech, preserves silence/no-voice behavior, and shows low score/missing words for wrong speech. |
+| Deployment readiness | PARTIAL | Hosted backend, phone AI/speech, and Android installed preview passed, but tester distribution/support, final assets, iOS/TestFlight, production start without `tsx`, and optional backend error-copy installed-build test remain open. |
 
 ## Issues Found
 
@@ -66,15 +67,18 @@ Notes:
 - Provider/model/endpoint fields still exist in DEV diagnostics and internal service types. Production backend responses strip provider/model diagnostics, and normal chat copy is sanitized.
 - The speaking result screen shows the learner's transcript as immediate feedback. The audit found no raw transcript persistence or transcript console logging.
 - Current speaking scoring is transcript-based. It detects silence/no voice, real speech, expected words, and wrong/missing/extra words. It does not score accent quality, phoneme-level pronunciation, natural speed, fluency, or prosody; slow but word-correct speech can score 100.
+- The first installed Android APK crashed before JS startup due to an Expo native module mismatch involving `expo-asset` and Expo modules. The mismatch was fixed by aligning `expo-asset` to the SDK-compatible version, `npx expo-doctor` passed, and the rebuilt APK passed installed smoke.
 - Some DEV/profile alpha diagnostics use operational labels such as `Speech endpoint`; these are DEV-gated and are not deployment blockers.
 
 ## Fixes Made
 
-None. This was an audit-only task.
+No app/backend/content fixes were made by this audit record.
 
-The only file added by this task is:
+This document has been updated after later smoke milestones to reflect:
 
-- `docs/local-release-readiness-audit.md`
+- Render hosted backend smoke passed.
+- Phone hosted AI/speech smoke passed.
+- Installed Android EAS preview APK smoke passed after Expo asset/module alignment.
 
 ## Feature Consistency Findings
 
@@ -122,23 +126,25 @@ The only file added by this task is:
 - B1 preview is described as optional and limited to 8 lessons.
 - Full B1/B2 are described as coming soon, not fully playable.
 - Backend docs now record the first Render hosted smoke at `https://wortweg.onrender.com`; this is not public launch readiness.
+- EAS/private-alpha docs now record that the installed Android preview APK smoke passed after Expo asset/module alignment.
 - Azure is described as not implemented and future/prototype-only.
 - No hardcoded old LAN IP is presented as a permanent backend value.
 - Official Goethe/telc/ÖSD mentions appear only as guardrail/non-affiliation style documentation, not as app claims.
 
 ## Remaining Blockers
 
-- Private build/install distribution path is not finalized; initial distribution and EAS preview plans now exist in `docs/private-alpha-distribution-plan.md` and `docs/eas-preview-build-plan.md`.
+- Android private build/install path is proven for internal smoke testing.
 - Tester distribution/support process is not finalized.
 - Hosted runtime has been smoke-tested on Render, but production start still depends on `tsx` from dev dependencies.
 - Backend error-copy phone check was skipped/not tested.
 - No external/private testers yet.
-- Final Wolli mascot asset is not ready.
+- Final Wolli mascot/final brand icon/splash assets are not ready; temporary assets passed internal preview smoke only.
+- iOS/TestFlight path is not done.
 - Azure pronunciation assessment is not implemented.
 
 ## Next Recommended Action
 
-Use `docs/eas-preview-build-plan.md` to finalize app identifiers/assets, then prepare the first private install path and tester support before inviting testers. Keep hosted backend smoke checks in the release checklist.
+Use `docs/private-alpha-distribution-plan.md` to define tester distribution/support before inviting testers. Keep hosted backend smoke and installed-build phone smoke checks in the release checklist.
 
 Next backend hardening step:
 
@@ -152,4 +158,4 @@ Local repository readiness: PASS.
 
 Ready to commit local readiness/docs work: YES.
 
-Ready to deploy to testers: NO. Hosted backend and phone AI/speech passed, but tester distribution/support, private install path, `tsx` production-start hardening, and optional backend error-copy test remain.
+Ready to deploy to testers: NO. Hosted backend, phone AI/speech, and Android installed preview passed, but tester distribution/support, final assets, iOS/TestFlight later, `tsx` production-start hardening, and optional backend error-copy installed-build test remain.

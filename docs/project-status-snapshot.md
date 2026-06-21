@@ -21,6 +21,13 @@ This is the current single-source-of-truth snapshot for WortWeg planning.
   - Silence/no-voice behavior passed.
   - Wrong speech low score/missing words passed.
   - Backend error copy was skipped/not tested.
+- Installed Android EAS preview APK smoke passed after fixing the native Expo module mismatch:
+  - App installs and opens.
+  - User can enter the app.
+  - Onboarding/Home loads.
+  - Hosted AI chat and hosted speaking work in the installed build.
+  - Silence/no-voice and wrong-speech low-score behavior still pass.
+  - Temporary icon/splash assets are acceptable for internal preview smoke, not final store assets.
 - This is not a public launch.
 
 ## 2. Completed Product Features
@@ -59,16 +66,19 @@ This is the current single-source-of-truth snapshot for WortWeg planning.
 - EAS preview build plan and minimal preview config.
 - App identifiers configured for EAS preview build.
 - Temporary private-alpha app assets configured.
+- EAS project linked under `@therealsquall/wortweg`.
+- Android preview APK build and installed-build smoke passed after Expo asset/module alignment.
 
 ## 4. Current Blockers
 
 - Hosted backend smoke passed on Render.
-- Private alpha packaging/install path is not finalized; distribution, EAS preview, and asset requirement plans now exist in docs.
+- Android private preview install path is proven for internal smoke testing.
 - Tester distribution/support process is not finalized.
 - Production start still depends on `tsx` from dev dependencies.
 - Backend error-copy phone check was skipped/not tested.
 - No external/private testers yet.
 - Final Wolli mascot/brand asset set is not ready; temporary private-alpha icon/splash assets are present.
+- iOS/TestFlight path is not done.
 - Azure pronunciation assessment is not implemented.
 
 ## 5. Guardrails
@@ -85,16 +95,15 @@ This is the current single-source-of-truth snapshot for WortWeg planning.
 
 ## 6. Next Recommended Order
 
-1. Prepare first EAS preview build smoke checklist without running build.
-2. Finalize private build/install distribution path.
-3. Define tester distribution/support process.
-4. Replace the `tsx` runtime production start with compiled JS or another production-safe start.
-5. Optionally run backend error-copy phone check.
+1. Define tester distribution/support process.
+2. Replace the `tsx` runtime production start with compiled JS or another production-safe start.
+3. Optionally run backend error-copy installed-build test.
+4. Replace temporary icon/splash/Wolli brand assets when final assets are ready.
+5. Plan iOS/TestFlight path later.
 6. Continue production backend hardening and monitoring.
 7. Optional Azure backend prototype behind feature flag for nuanced pronunciation assessment.
-8. Wolli final mascot asset replacement.
-9. Private tester guide.
-10. Full B1 path planning.
+8. Private tester guide.
+9. Full B1 path planning.
 
 ## 7. Useful Commands
 
@@ -117,5 +126,6 @@ git status --short
   - 288 vocabulary items
 - Hosted backend smoke passed on Render at `https://wortweg.onrender.com`.
 - Phone hosted AI/speech smoke passed against Render.
+- Installed Android EAS preview APK smoke passed after fixing Expo asset/module alignment.
 - Public launch is not ready.
 - Current speaking score is transcript-based; nuanced pronunciation scoring is future Azure prototype work, not implemented.

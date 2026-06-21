@@ -1,22 +1,26 @@
 # WortWeg EAS Account / Project Readiness Checklist
 
-This checklist prepares the first EAS preview build decision path for WortWeg private alpha. It does not run EAS, create credentials, add native folders, add Apple/Google account data, or claim App Store / Play Store readiness.
+This checklist records the EAS account/project status for WortWeg private alpha and keeps future rebuild steps safe. It does not run EAS, create credentials, add native folders, add Apple/Google account data, or claim App Store / Play Store readiness.
 
 ## 1. Current Status
 
 - Project type: Expo React Native managed app.
-- Current verified testing path: Expo Go.
+- Current verified testing paths: Expo Go and installed Android EAS preview APK.
 - Hosted backend: `https://wortweg.onrender.com`.
 - Mac hosted smoke: passed.
 - Phone hosted AI/speech smoke: passed.
 - `eas.json`: present with a preview-only internal distribution profile.
+- EAS project: linked under `@therealsquall/wortweg`.
 - iOS identifier: `com.toprakyildiz.wortweg`.
 - Android package: `com.toprakyildiz.wortweg`.
 - Temporary private-alpha assets are present:
   - `assets/icon.png`: 1024x1024.
   - `assets/adaptive-icon.png`: 1024x1024.
   - `assets/splash.png`: 1242x2436.
-- No real EAS build has been run yet.
+- Android EAS preview APK build has been run successfully.
+- Installed Android APK smoke passed: install, launch, enter app, onboarding/Home, hosted AI chat, hosted speaking, silence/no-voice, and wrong-speech low-score behavior.
+- The first installed APK native launch crash was fixed by aligning `expo-asset` with the Expo SDK module set before rebuilding with a clear EAS cache.
+- Android remote keystore exists on Expo servers; do not paste or commit signing credentials.
 - No native `ios/` or `android/` folders are committed.
 - No Azure implementation.
 - This is private-alpha preparation only, not public launch readiness.
@@ -30,20 +34,24 @@ Current package/script audit:
 - No local `node_modules/.bin/eas` or `node_modules/.bin/eas-cli` binary is present.
 - Future commands should use `npx eas-cli ...` unless the project later chooses to add a pinned local EAS CLI dependency.
 
-Do not install EAS CLI or run EAS commands until the account/project decisions below are confirmed.
+Do not install EAS CLI or run EAS commands unless a specific future build/account task is approved.
 
-## 3. Required Expo Account Decision
+## 3. Expo Account Status
 
-Before `eas init`, decide:
+Current selected Expo owner:
+
+- `therealsquall`
+
+If ownership ever needs to change, decide:
 
 - Which Expo account will own the project.
 - Whether the project should live under a personal Expo account or an organization.
 - Who can access builds and project settings.
-- Whether the selected owner name should be committed in `app.json` as `owner` after initialization.
+- Whether the selected owner name should remain committed in `app.json` as `owner`.
 
 Do not put passwords, tokens, session IDs, recovery codes, or account secrets in docs or chat.
 
-Safe output to paste back later:
+Safe output to paste back later if ownership changes:
 
 ```text
 Expo owner selected: <username-or-org-name>
@@ -61,15 +69,14 @@ Avoid pasting:
 
 Current config status:
 
-- `app.json` has no `owner` field.
-- `app.json` has no `extra.eas.projectId` field.
-- `eas.json` has no account-specific values.
+- `app.json` has `owner` set to `therealsquall`.
+- `app.json` has `extra.eas.projectId` set for the linked EAS project.
+- `eas.json` contains only the preview build profile and public Expo env values.
 
 Expected later behavior:
 
-- `npx eas-cli init` may ask which Expo account/owner should own the project.
-- `eas init` may add an EAS project ID to app config.
-- If config is changed by `eas init`, inspect the diff before committing.
+- Do not re-run `eas init` unless project metadata needs to be repaired.
+- If EAS metadata changes later, inspect the diff before committing.
 
 Safe output to paste back later:
 
@@ -83,9 +90,9 @@ Config files changed by eas init: <file list>
 
 ## 5. Credentials Expectations
 
-Android first preview:
+Android preview:
 
-- EAS may create or manage Android signing material when the first Android build runs.
+- EAS has created/managed Android signing material for the successful preview build.
 - Do not paste keystore passwords, credential JSON, or signing material into docs or chat.
 - Let EAS manage credentials unless there is a deliberate reason to use local credentials later.
 
@@ -95,9 +102,9 @@ IOS later:
 - Do not add Apple account data in this repo.
 - Do not attempt iOS first unless Apple account/device/tester setup is known.
 
-## 6. Recommended First Build Target
+## 6. Recommended Build Target
 
-Recommended first target: Android preview APK.
+First target completed: Android preview APK.
 
 Reasoning:
 
@@ -105,7 +112,7 @@ Reasoning:
 - Android internal install is usually lower-friction for a first private device smoke.
 - It avoids iOS device registration/TestFlight/account complexity for the first install test.
 
-Do not invite testers from this first build until install, backend, speech, privacy, and support flows are verified on at least one real phone.
+Do not invite testers from this build until tester distribution, support, privacy wording, and known limitations are finalized.
 
 ## 7. IOS / TestFlight Later Path
 
@@ -131,18 +138,17 @@ npm run quality
 BACKEND_SMOKE_URL=https://wortweg.onrender.com npm run server:smoke
 ```
 
-Manual EAS account/project setup commands, later only:
+Manual EAS account/project commands, only if project metadata needs to be checked or repaired later:
 
 ```sh
 npx eas-cli login
 npx eas-cli whoami
-npx eas-cli init
 ```
 
-Manual first Android preview build command, later only:
+Manual Android preview rebuild command, later only after user approval:
 
 ```sh
-npx eas-cli build --platform android --profile preview
+npx eas-cli build --platform android --profile preview --clear-cache
 ```
 
 Do not run an iOS build until Apple account and distribution path are confirmed.
@@ -156,7 +162,7 @@ EAS login: passed/failed
 EAS account shown by whoami: <username-or-owner>
 ```
 
-After `npx eas-cli init`:
+If `npx eas-cli init` is ever re-run:
 
 ```text
 EAS init: passed/failed
@@ -166,17 +172,18 @@ Files changed by EAS: <file list>
 Any warning shown:
 ```
 
-After the first Android preview build is eventually run:
+Current Android preview build smoke result:
 
 ```text
-Android preview build: passed/failed
-Build URL or ID: <non-secret build link/id>
-Artifact type: APK/AAB
-Install tested on phone: passed/failed
-AI via hosted backend: passed/failed
-Speaking via hosted backend: passed/failed
-Silence/no-voice guard: passed/failed
-Any error seen:
+Android preview build: passed
+Artifact type: APK
+Install tested on phone: passed
+App opens and user can enter app: passed
+AI via hosted backend: passed
+Speaking via hosted backend: passed
+Silence/no-voice guard: passed
+Wrong speech low-score behavior: passed
+Temporary icon/splash acceptable for internal preview: passed enough
 ```
 
 Do not paste secrets, signing credentials, Apple/Google private data, or `.env` values.
@@ -190,7 +197,7 @@ If `eas init` changes the wrong owner/project:
 - Do not commit account metadata until the owner/project is confirmed.
 - Ask whether to keep or revise the EAS metadata.
 
-If the Android build fails:
+If a future Android build fails:
 
 - Do not invite testers.
 - Capture the safe error summary and build phase.
@@ -220,27 +227,17 @@ BACKEND_SMOKE_URL=https://wortweg.onrender.com npm run server:smoke
 - Keep `.env` local and untracked.
 - Keep final brand/Wolli assets pending until approved.
 
-## 12. Remaining Blockers Before First Build
-
-Before the first Android preview build command is run:
-
-- User confirms Expo account/owner.
-- User manually logs in with `npx eas-cli login`.
-- User confirms `npx eas-cli whoami` output.
-- User manually runs `npx eas-cli init` or explicitly approves running it.
-- Any `owner`/`projectId` config diff is reviewed.
-- `npm run quality` passes.
-- Hosted backend smoke passes.
+## 12. Remaining Blockers Before Tester Distribution
 
 Before testers are invited:
 
-- Android preview build installs on a real phone.
-- AI chat works through hosted backend.
-- Speaking works through hosted backend.
-- Silence/no-voice guard still blocks false perfect scores.
 - Tester support/contact process is defined.
 - Private alpha tester guide is finalized.
+- Final brand/icon/splash/Wolli asset expectations are clear; temporary assets are acceptable only for internal preview.
+- Optional backend error-copy installed-build test is completed or documented as skipped.
+- Production backend start no longer depends on `tsx`, or that limitation is accepted for the current private preview scope.
+- iOS/TestFlight path remains later and unclaimed.
 
 ## 13. Next Prompt Title
 
-Prepare first EAS Android preview build after manual account/init confirmation.
+Define private alpha tester distribution and support process.

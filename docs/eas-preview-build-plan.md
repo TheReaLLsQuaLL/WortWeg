@@ -5,12 +5,14 @@ This document prepares a safe EAS preview-build path for WortWeg private alpha. 
 ## 1. Current Status
 
 - Project type: Expo React Native managed app.
-- Current verified install path: Expo Go with local Metro.
+- Current verified install paths: Expo Go with local Metro and installed Android EAS preview APK.
 - Hosted backend: Render at `https://wortweg.onrender.com`.
 - Asset requirements: `docs/app-asset-requirements.md`.
 - EAS account/project readiness: `docs/eas-account-project-readiness.md`.
 - Mac hosted backend smoke: passed.
 - Phone hosted AI/speech smoke: passed.
+- Installed Android EAS preview APK smoke: passed after Expo asset/module alignment.
+- First installed APK native launch crash was fixed by aligning `expo-asset` with the Expo SDK module set; `npx expo-doctor` and `npm run quality` passed before the rebuild.
 - Content status:
   - A0/A1/A2 fully playable.
   - B1 preview limited to 8 optional lessons.
@@ -47,13 +49,21 @@ Findings:
 - Expo Audio plugin microphone copy exists at `plugins.expo-audio.microphonePermission`.
 - iOS `bundleIdentifier` is configured as `com.toprakyildiz.wortweg`.
 - Android `package` is configured as `com.toprakyildiz.wortweg`.
-- No Expo `owner` or EAS `projectId` is configured.
+- Expo `owner` is configured as `therealsquall`.
+- EAS `projectId` is configured under `extra.eas.projectId`.
 - Mobile backend URL resolution uses `EXPO_PUBLIC_AI_BACKEND_URL` through `src/config/backend.ts`.
 - No provider API keys should be placed in app config, Expo public env, source code, or docs.
 
 ## 3. EAS Config Status
 
 A minimal `eas.json` preview profile now exists so future private install testing has a clear starting point.
+
+EAS project status:
+
+- Project linked under `@therealsquall/wortweg`.
+- Android preview APK build succeeded after the Expo asset/module dependency fix.
+- Android remote keystore exists on Expo servers. Do not paste or commit signing credentials.
+- This remains private/internal preview only, not App Store or Play Store readiness.
 
 Current preview profile intent:
 
@@ -125,31 +135,32 @@ Treat these as stable unless there is a deliberate product/account reason to cha
 
 ## 7. Icon / Splash Asset Readiness
 
-Current status: temporary private-alpha assets are present and referenced by `app.json`.
+Current status: temporary private-alpha assets are present, referenced by `app.json`, and acceptable for the successful internal Android preview smoke.
 
-Ready for first internal preview smoke:
+Ready for internal preview smoke:
 
 - `assets/icon.png` at 1024x1024.
 - `assets/adaptive-icon.png` at 1024x1024.
 - `assets/splash.png` at 1242x2436.
+- Installed Android preview build launched with these assets.
 
-Still needed before broader tester distribution or final brand review:
+Still needed before broader tester distribution or final brand/public review:
 
 - Final app icon.
 - Final splash image or final splash configuration.
 - Final Android adaptive icon foreground/background review.
 - Final Wolli mascot asset pack if Wolli is used in brand surfaces.
-- Visual phone smoke on a built install package.
 
 ## 8. Tester Install Path
 
 Recommended order:
 
-1. Android internal APK/install test first.
-2. iOS internal distribution or TestFlight later only after Apple credential/account status is known.
-3. Keep tester group very small for the first install smoke.
-4. Run phone smoke on the installed build before inviting testers.
-5. Send tester guide only after install, backend, support, and privacy wording are ready.
+1. Keep the successful Android installed APK smoke as the first proven private install path.
+2. Define the tester distribution/support process before sharing builds.
+3. Keep tester group very small for the first private alpha.
+4. Re-run installed-build phone smoke after any native dependency, build config, backend URL, or asset change.
+5. Prepare iOS internal distribution or TestFlight later only after Apple credential/account status is known.
+6. Send tester guide only after install, backend, support, and privacy wording are ready.
 
 Do not claim App Store or Play Store readiness. This is private alpha installation planning only.
 
@@ -202,28 +213,25 @@ BACKEND_SMOKE_URL=https://wortweg.onrender.com npm run server:smoke
 git status --short
 ```
 
-Later EAS setup/build commands, only after decisions are made:
+Future Android rebuild command, only after changes are reviewed and the user approves a build:
 
 ```sh
-npx eas-cli login
-npx eas-cli whoami
-npx eas-cli init
 npx eas-cli build --platform android --profile preview
 ```
+
+Use `--clear-cache` after native dependency alignment changes, such as the `expo-asset` fix that resolved the first installed APK launch crash.
 
 For iOS, do not run a build until Apple account, device registration/TestFlight path, and bundle identifier are ready.
 
 ## 13. Remaining Blockers
 
-- Temporary private-alpha icon/splash/adaptive assets are present.
+- Android preview APK install smoke passed.
 - Final brand/Wolli icon and splash assets remain pending before broader tester distribution.
-- Confirm EAS account/project ownership using `docs/eas-account-project-readiness.md`.
-- Run `npx eas-cli init` manually later and review any `owner`/`projectId` diff before building.
-- First build target recommendation: Android preview APK.
 - Define tester distribution/support process.
 - Replace backend `tsx` runtime production start before broader alpha use.
-- Optionally run backend error-copy phone test.
+- Prepare iOS/TestFlight path later.
+- Optionally run backend error-copy installed-build test.
 
 ## 14. Next Prompt Title
 
-Prepare first EAS Android preview build after manual account/init confirmation.
+Define private alpha tester distribution and support process.

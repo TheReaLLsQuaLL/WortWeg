@@ -13,6 +13,8 @@ This document is a planning sheet for product features and technical architectur
 - AI chat works through the local backend and has lesson-aware starter suggestions.
 - Speaking practice works through the local backend.
 - First hosted backend smoke and phone hosted AI/speech smoke passed on Render at `https://wortweg.onrender.com`.
+- Installed Android EAS preview APK smoke passed after fixing an Expo native asset/module mismatch. The installed build opens, enters the app, and uses hosted AI/speech.
+- Temporary icon/splash assets are acceptable for internal preview, not final brand or store assets.
 - Speaking practice currently uses press-and-hold recording, OpenAI STT through backend, transcript-based Hybrid Speech Scoring v1, matched/missing/extra words, word-order hints when reliable, and safe error states. Slow but word-correct speech can score 100 because accent quality, phoneme-level pronunciation, natural speed, fluency, and prosody are not assessed yet.
 - Speaking Practice Library has 36 static practice sentences from existing lesson prompts.
 - Speaking Practice Stats store privacy-safe aggregates only: attempts, success counts, best/latest score, last practice date, practiced static sentence IDs, and level breakdown.
@@ -28,6 +30,7 @@ This document is a planning sheet for product features and technical architectur
 - `.env` is local only, ignored/untracked, and must not be committed.
 - Backend remains local-first for development.
 - First hosted Render smoke and phone hosted AI/speech smoke passed for private backend testing; this is not a public launch.
+- Android EAS preview APK build and installed smoke passed for private/internal preview. This is not App Store or Play Store readiness.
 - No auth or cloud sync yet.
 - No production/public launch deployment yet.
 - No Azure production integration yet.
@@ -47,14 +50,16 @@ This document is a planning sheet for product features and technical architectur
 | Done | Azure pronunciation prototype design doc | Planning doc exists. Azure remains future backend-only prototype work. |
 | Done | First Render hosted backend smoke | `https://wortweg.onrender.com` passed `/health` and `server:smoke`. |
 | Done | Hosted phone AI/speech smoke | AI chat, correct-sentence speaking, silence/no-voice, and wrong-speech low-score behavior passed; backend error-copy check was skipped/not tested. |
+| Done | Installed Android EAS preview APK smoke | First APK native launch crash was fixed by Expo asset/module alignment; rebuilt APK installs, opens, reaches the app, and uses hosted AI/speech. |
 
 ## 4. Near-Term Product Plan
 
 | Priority | Feature | Description | Why it matters | Risk | Suggested commit size |
 | --- | --- | --- | --- | --- | --- |
-| P0 | Private alpha packaging/install path | Decide how testers install and which env/backend URL they use. | Testers need a repeatable setup before invitation. | Medium | Docs/build planning commit. |
 | P0 | Tester distribution/support process | Define feedback channel, support owner, and issue triage flow. | Prevents scattered tester reports. | Low/Medium | Docs/process commit. |
 | P1 | Production-safe backend start | Replace `tsx` runtime production start with compiled JS or another production-safe start so Render does not require dev dependencies. | Makes hosted backend less fragile. | Medium | Backend-only commit. |
+| P1 | Final brand/icon/splash/Wolli assets | Replace temporary internal-preview assets with final approved brand assets. | Improves trust before broader tester distribution. | Medium | Asset/UI-only commit. |
+| P1 | iOS/TestFlight path | Plan iOS install path later after Apple account/distribution decisions. | Expands tester coverage when needed. | Medium | Planning/build-config commit. |
 | P2 | Azure pronunciation backend prototype | Backend-only feature-flagged spike based on `docs/azure-pronunciation-prototype.md`. | Tests whether Azure adds useful pronunciation feedback. | Medium/High | Prototype branch/commit, not user-visible. |
 | P2 | Optional AI practice improvements | Refine lesson-aware prompts after real tester feedback. | Avoids polishing the wrong AI behavior before evidence. | Medium | Small prompt/context commits. |
 | P2 | Wolli final mascot asset replacement | Replace placeholders/static mascot with a final consistent asset set. | Improves brand consistency without changing flows. | Medium | Asset/UI-only commit. |
@@ -162,7 +167,6 @@ This document is a planning sheet for product features and technical architectur
 
 ## 9. Medium-Term Product Plan
 
-- Private alpha packaging/install path.
 - Tester distribution/support process.
 - Optional backend error-copy phone check.
 - Safer production AI/STT error states and monitoring.
@@ -185,14 +189,14 @@ This document is a planning sheet for product features and technical architectur
 
 ## 11. Recommended Build Order
 
-1. Finalize private alpha packaging/install path.
-2. Define tester distribution/support process.
-3. Replace `tsx` runtime production start with compiled JS or production-safe backend start.
-4. Optionally run backend error-copy phone check.
-5. Continue production backend hardening and monitoring.
-6. Azure pronunciation backend prototype behind feature flag.
-7. Optional AI practice improvements.
-8. Wolli final mascot asset replacement.
+1. Define tester distribution/support process.
+2. Replace `tsx` runtime production start with compiled JS or production-safe backend start.
+3. Optionally run backend error-copy installed-build test.
+4. Replace temporary icon/splash/Wolli brand assets when final assets are ready.
+5. Plan iOS/TestFlight path later.
+6. Continue production backend hardening and monitoring.
+7. Azure pronunciation backend prototype behind feature flag.
+8. Optional AI practice improvements.
 9. Private tester guide when testers exist.
 10. Full B1 path planning.
 
@@ -209,7 +213,8 @@ This document is a planning sheet for product features and technical architectur
 - Keep current OpenAI STT path working before experimenting with Azure.
 - Azure pronunciation work must be backend-only first, feature-flagged, and not user-visible until validated.
 - Do not claim public launch or production readiness from the first Render hosted smoke.
+- Do not claim App Store or Play Store readiness from the installed Android preview smoke.
 
 ## 13. Next Suggested Task
 
-Next task: Finalize private alpha packaging/install path and tester support process.
+Next task: Define private alpha tester distribution and support process.

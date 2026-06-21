@@ -1,6 +1,6 @@
 # WortWeg
 
-WortWeg is a mobile-first German learning MVP for Turkish speakers. It uses Expo React Native, TypeScript, React Navigation, local AsyncStorage persistence, original playable A0/A1/A2 content plus eight optional B1 preview lessons, SRS vocabulary review, a secure backend wrapper for Gemini text feedback, and backend German speech-to-text for speaking practice. Local development remains supported, and the first private Render hosted backend smoke passed at `https://wortweg.onrender.com`.
+WortWeg is a mobile-first German learning MVP for Turkish speakers. It uses Expo React Native, TypeScript, React Navigation, local AsyncStorage persistence, original playable A0/A1/A2 content plus eight optional B1 preview lessons, SRS vocabulary review, a secure backend wrapper for Gemini text feedback, and backend German speech-to-text for speaking practice. Local development remains supported, the first private Render hosted backend smoke passed at `https://wortweg.onrender.com`, and the installed Android EAS preview APK smoke passed after Expo asset/module alignment.
 
 ## Requirements
 
@@ -124,7 +124,7 @@ Backend smoke remains optional and requires an already-running backend:
 npm run quality:backend
 ```
 
-First Render hosted backend smoke and phone hosted AI/speech smoke passed at `https://wortweg.onrender.com`, but this is not a public launch. Private build/install distribution and tester support still need to be finalized before inviting testers.
+First Render hosted backend smoke, phone hosted AI/speech smoke, and installed Android EAS preview APK smoke passed at `https://wortweg.onrender.com`, but this is not a public launch and not App Store / Play Store readiness. The first installed APK native launch crash was fixed by aligning `expo-asset` with the Expo SDK module set. Tester distribution/support, final brand assets, iOS/TestFlight later, production backend start without `tsx`, and optional backend error-copy installed-build testing remain open before inviting testers.
 
 ## Current MVP Behavior
 

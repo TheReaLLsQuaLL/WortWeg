@@ -53,6 +53,8 @@ This index keeps the `docs/` folder navigable as planning, audit, alpha, backend
 - Full B1/B2 paths are coming soon.
 - First hosted backend smoke passed on Render at `https://wortweg.onrender.com`.
 - Phone hosted AI/speech smoke passed against Render.
+- Installed Android EAS preview APK smoke passed after Expo asset/module alignment.
+- Temporary icon/splash assets are acceptable for internal preview, not final brand or store assets.
 - Current speaking score is transcript-based; slow but word-correct speech can score 100 because nuanced pronunciation scoring is not implemented yet.
 - Azure pronunciation assessment is not implemented yet.
 - Do not add official exam affiliation claims.
@@ -72,4 +74,4 @@ PATH=/Users/squall/.nvm/versions/node/v22.22.3/bin:$PATH npx expo start --clear 
 
 ## 8. Next Recommended Action
 
-Use the EAS account/project readiness checklist to confirm owner/init decisions before any preview build. Keep Azure pronunciation assessment as future backend-only prototype work.
+Define the private alpha tester distribution/support process before inviting testers. Keep Azure pronunciation assessment as future backend-only prototype work.
