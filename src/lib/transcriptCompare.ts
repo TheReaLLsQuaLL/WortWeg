@@ -140,6 +140,10 @@ const buildRetrySuggestion = (
   missingWords: string[],
   extraWords: string[],
 ) => {
+  if (feedbackLevel === 'noSpeech') {
+    return 'Mikrofona biraz daha yakın konuşup cümleyi tekrar söyle.';
+  }
+
   if (feedbackLevel === 'excellent') {
     return 'Bir kez daha doğal hızda söyleyerek akıcılığı güçlendir.';
   }
@@ -173,6 +177,30 @@ export const compareTranscripts = (expectedText: string, transcript: string): Tr
   const transcriptCompareTokens = tokenize(transcript, { looseEszett: true });
   const normalizedExpectedWords = expectedCompareTokens;
   const normalizedTranscriptWords = transcriptCompareTokens;
+
+  if (transcriptCompareTokens.length === 0) {
+    const missingWords = [...expectedDisplayTokens];
+    const feedbackLevel: SpeechFeedbackLevel = 'noSpeech';
+    const retrySuggestionTr = buildRetrySuggestion(feedbackLevel, [], missingWords, []);
+
+    return {
+      exactMatch: false,
+      normalizedMatch: false,
+      normalizedExpectedWords,
+      normalizedTranscriptWords,
+      missingWords,
+      extraWords: [],
+      matchedWords: [],
+      wordOrderHints: [],
+      similarityScore: 0,
+      scorePercent: 0,
+      similarityBucket: getSimilarityBucket(0),
+      feedbackLevel,
+      shortFeedbackTr: buildFeedback(0, missingWords, [], [], feedbackLevel),
+      retrySuggestionTr,
+    };
+  }
+
   const transcriptCounts = new Map<string, number>();
 
   for (const token of transcriptCompareTokens) {

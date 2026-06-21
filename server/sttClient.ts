@@ -34,8 +34,8 @@ const sanitizeFilename = (filename?: string) => {
   return baseName.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 120) || 'wortweg-audio.m4a';
 };
 
-const makeFallbackTranscript = (input: SttInput) =>
-  input.expectedText?.trim() || 'Ich heiße Toprak und ich wohne in Istanbul.';
+const makeFallbackTranscript = (modelUsed: string) =>
+  modelUsed.includes('empty-openai-transcript') ? '' : 'Ich heiße Toprak und ich wohne in Istanbul.';
 
 const makeFallbackResponse = (
   input: SttInput,
@@ -43,7 +43,7 @@ const makeFallbackResponse = (
   durationMs: number,
 ): SpeechTranscribeResponse =>
   speechTranscribeResponseSchema.parse({
-    transcript: makeFallbackTranscript(input),
+    transcript: makeFallbackTranscript(modelUsed),
     language: input.language || 'de',
     confidence: null,
     provider: 'mock',

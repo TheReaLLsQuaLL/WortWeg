@@ -129,10 +129,6 @@ const getTranscriptionIssue = (result: TranscriptionResult): 'none' | 'noVoice' 
   const normalizedTranscript = normalizeGermanText(result.transcript || '', { looseEszett: true });
   const fallbackMarker = [result.fallbackReason, result.modelUsed].filter(Boolean).join(' ').toLocaleLowerCase('en-US');
 
-  if (result.fallbackReason && !fallbackMarker.includes('empty-openai-transcript')) {
-    return 'error';
-  }
-
   if (!normalizedTranscript) {
     return 'noVoice';
   }
@@ -141,15 +137,15 @@ const getTranscriptionIssue = (result: TranscriptionResult): 'none' | 'noVoice' 
     return 'noVoice';
   }
 
-  if (result.fallback && isGenericFallbackTranscript(result.transcript)) {
-    return 'noVoice';
-  }
-
-  if (result.fallback && (result.provider === 'mock' || fallbackMarker.includes('mock:'))) {
+  if (result.fallback && fallbackMarker) {
     return 'error';
   }
 
-  if (result.fallback && !fallbackMarker) {
+  if (result.fallback && (result.provider === 'mock' || isGenericFallbackTranscript(result.transcript))) {
+    return 'error';
+  }
+
+  if (result.fallback) {
     return 'error';
   }
 
@@ -498,6 +494,30 @@ export function SpeakingPracticeScreen({ navigation, onUpdateState, route }: Spe
       );
 
       if (!mountedRef.current) {
+        return;
+      }
+
+      if (
+        nextPronunciationResult.feedbackLevel === 'noSpeech' ||
+        nextPronunciationResult.comparison.normalizedTranscriptWords.length === 0
+      ) {
+        setAudioUri(null);
+        setTranscriptionResult(null);
+        setPronunciationResult(null);
+        setSafeErrorMessage(null);
+        logSpeechUiDebug('analysis state resolved', { state: 'noVoice', platform: Platform.OS });
+        updateSpeechDebug({ lastStage: 'resolved:noVoice' });
+        setSafeStatus('noVoice');
+        trackLocalEvent({
+          type: 'speaking_no_voice_detected',
+          screen: 'SpeakingPractice',
+          metadata: {
+            source,
+            durationMs: recording.durationMs,
+            platform: Platform.OS,
+          },
+          severity: 'warning',
+        });
         return;
       }
 
