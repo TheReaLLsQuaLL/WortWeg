@@ -8,6 +8,7 @@ This document prepares a safe EAS preview-build path for WortWeg private alpha. 
 - Current verified install path: Expo Go with local Metro.
 - Hosted backend: Render at `https://wortweg.onrender.com`.
 - Asset requirements: `docs/app-asset-requirements.md`.
+- EAS account/project readiness: `docs/eas-account-project-readiness.md`.
 - Mac hosted backend smoke: passed.
 - Phone hosted AI/speech smoke: passed.
 - Content status:
@@ -191,7 +192,7 @@ The app should not rely on local LAN fallback for a private install build. Local
 
 ## 12. Commands To Run Later
 
-Do not run these until identifiers, assets, account/credential decisions, and tester process are ready.
+Do not run these until account/project ownership, credential expectations, and tester process are ready. See `docs/eas-account-project-readiness.md` first.
 
 Safe pre-build checks:
 
@@ -204,9 +205,10 @@ git status --short
 Later EAS setup/build commands, only after decisions are made:
 
 ```sh
-npx eas-cli@latest login
-npx eas-cli@latest whoami
-npx eas-cli@latest build --profile preview --platform android
+npx eas-cli login
+npx eas-cli whoami
+npx eas-cli init
+npx eas-cli build --platform android --profile preview
 ```
 
 For iOS, do not run a build until Apple account, device registration/TestFlight path, and bundle identifier are ready.
@@ -215,12 +217,13 @@ For iOS, do not run a build until Apple account, device registration/TestFlight 
 
 - Temporary private-alpha icon/splash/adaptive assets are present.
 - Final brand/Wolli icon and splash assets remain pending before broader tester distribution.
-- Confirm EAS account/project ownership and whether `owner`/`projectId` should be added.
-- Decide Android-only first build or both platforms.
+- Confirm EAS account/project ownership using `docs/eas-account-project-readiness.md`.
+- Run `npx eas-cli init` manually later and review any `owner`/`projectId` diff before building.
+- First build target recommendation: Android preview APK.
 - Define tester distribution/support process.
 - Replace backend `tsx` runtime production start before broader alpha use.
 - Optionally run backend error-copy phone test.
 
 ## 14. Next Prompt Title
 
-Prepare first EAS preview build smoke checklist without running build.
+Prepare first EAS Android preview build after manual account/init confirmation.
