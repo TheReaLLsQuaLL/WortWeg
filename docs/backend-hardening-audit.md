@@ -1,8 +1,8 @@
 # WortWeg Backend Hardening Audit
 
-This audit inspects the current local-only backend before any hosted deployment work. It does not deploy anything, create accounts, install packages, or change application/backend code.
+This audit tracks backend hardening after local preparation and the first Render hosted smoke. It does not contain secrets and does not claim public launch readiness.
 
-Deployment status: blocked until the final real-device phone smoke test passes. The backend should not be deployed before phone AI chat and phone speech transcription work reliably against the local backend.
+Deployment status: first hosted backend smoke passed on Render at `https://wortweg.onrender.com`. Phone hosted AI/speech status is not documented yet because the latest phone result was not provided in this update. Do not publish to testers until hosted phone AI/speech passes and the packaging/install path is ready.
 
 Azure status: no Azure implementation exists. Azure pronunciation work must remain a future backend-only, feature-flagged prototype.
 
@@ -26,13 +26,21 @@ Client secret rule: the mobile app must never contain `OPENAI_API_KEY`, `GEMINI_
 - CORS: environment-driven; production requires `ALLOWED_ORIGINS`, development allows localhost/LAN-style origins.
 - Rate limiting: dependency-free in-memory limiter is enabled by default for health, AI, and speech endpoint groups.
 - Production start script: `server:start` exists as a first production-oriented runner using the existing TypeScript runtime.
+- First hosted smoke: Render Web Service at `https://wortweg.onrender.com`.
+- Render branch: `feature/b1-preview-foundation`.
+- Render build command for first smoke: `npm install --include=dev`.
+- Render start command: `npm run server:start`.
+- Reason for `--include=dev`: `server:start` currently uses `tsx`, which is in dev dependencies. This is acceptable for the first hosted smoke only.
+- Hosted `/health`: passed with `{"ok":true,"service":"wortweg-ai"}`.
+- Hosted `server:smoke`: passed health, CORS, AI route, and speech validation; rate-limit stress remained skipped by design.
+- Phone hosted AI/speech: pending documentation until an actual phone result is provided.
 - `.env`: ignored by `.gitignore`; `.env.example` contains placeholders.
 
 ## Findings By Section
 
 ### 1. Production Start Readiness
 
-Status: partially hardened; still needs host-specific runtime confirmation before private alpha hosting.
+Status: partially hardened; first Render runtime smoke passed, but production start still depends on dev dependencies.
 
 Already good:
 
@@ -44,7 +52,8 @@ Already good:
 
 Gaps:
 
-- `package.json` now has `server:start`, but it uses the existing `tsx` runtime and must be confirmed against the selected host.
+- `package.json` has `server:start`, and Render smoke passed with `npm install --include=dev`.
+- `server:start` still uses `tsx`, so Render currently needs dev dependencies at build/install time.
 - There is no dedicated compiled server build flow yet.
 - No `engines.node` field documents the expected production Node runtime.
 - No readiness endpoint beyond `/health`; this may be enough for first deploy, but it does not validate provider env configuration.
@@ -52,8 +61,8 @@ Gaps:
 
 Recommendation:
 
-- Confirm whether the selected host can run the current `server:start` script or whether a compiled server build is needed.
-- Add Node runtime documentation or `engines` once the host is selected.
+- Replace the `tsx` runtime production start with compiled JS or another production-safe start so Render does not require dev dependencies.
+- Add Node runtime documentation or `engines` once the production start strategy is finalized.
 - Keep `/health`, and consider a non-secret readiness endpoint or startup config validation before remote testers.
 
 ### 2. Environment Variables
@@ -293,12 +302,12 @@ Recommendation:
 
 ## Deployment Blockers
 
-These should be fixed before any hosted backend is exposed to remote testers:
+These should be fixed or verified before the hosted backend is shared with remote testers:
 
-1. Final real-device phone smoke test has not fully passed.
-2. Hosted environment variables and `ALLOWED_ORIGINS` have not been configured or tested on a real host.
-3. Production start strategy still uses the existing `tsx` runtime; host-specific build/runtime choice must be confirmed.
-4. No hosted deployment runbook exists yet.
+1. Phone hosted AI/speech result has not been documented in this audit update.
+2. Private alpha packaging/install path and tester distribution plan are not finalized.
+3. Production start strategy still uses `tsx`; replace it with compiled JS or another production-safe start so Render does not require dev dependencies.
+4. No hosted deployment runbook exists beyond the predeployment checklist.
 5. Speech temp-file cleanup has not been verified on the selected host.
 6. In-memory rate limits must be tuned and rechecked against real tester behavior.
 
@@ -310,7 +319,8 @@ These should be fixed before any hosted backend is exposed to remote testers:
 - Confirm speech temp file cleanup on success, provider failure, invalid body, and upload failure.
 - Confirm upload size limit and timeout settings against real phone audio samples.
 - Add a backend deployment runbook.
-- Confirm host supports temp files, multipart uploads, and speech request duration.
+- Replace `tsx` in production start with compiled JS or another production-safe start.
+- Confirm host supports temp files, multipart uploads, and speech request duration under real phone speech use.
 
 ## Nice To Have Later
 
@@ -339,35 +349,35 @@ These should be fixed before any hosted backend is exposed to remote testers:
 
 ## Prioritized Hardening Checklist
 
-1. Keep deployment blocked until the final phone smoke test passes.
-2. Confirm production runtime/build strategy for the selected host.
+1. Document hosted phone AI/speech result and fix any hosted-phone blockers.
+2. Replace the `tsx` runtime production start with compiled JS or another production-safe start.
 3. Add centralized safe error responses.
 4. Add safe logging helper and production log policy.
 5. Bound all AI context schema string fields.
-6. Confirm and document speech temp-file cleanup behavior.
-7. Tune rate limits after phone smoke and tester behavior are known.
-8. Add deployment runbook and host-specific constraints after a host is selected.
-9. Run `server:smoke` locally and against any future hosted backend before inviting testers.
-10. Run hosted phone smoke tests for `/health`, AI chat, and speech transcription before inviting testers.
+6. Confirm and document speech temp-file cleanup behavior on Render.
+7. Tune rate limits after hosted phone smoke and tester behavior are known.
+8. Add deployment runbook and host-specific constraints for Render.
+9. Keep running `server:smoke` locally and against Render before inviting testers.
+10. Re-run hosted phone smoke tests for `/health`, AI chat, and speech transcription before inviting testers.
 
 ## Suggested Implementation Order
 
-1. Phone smoke completion and blocker triage.
-2. Centralized safe error shape commit.
-3. Safe logging helper commit.
-4. AI context schema tightening commit.
-5. Speech cleanup/manual test commit.
-6. Rate-limit tuning after real-device behavior is known.
-7. Deployment runbook commit.
-8. Host selection and deployment preparation.
+1. Hosted phone AI/speech result documentation and blocker triage.
+2. Production-safe backend start without `tsx` dev dependency.
+3. Centralized safe error shape commit.
+4. Safe logging helper commit.
+5. AI context schema tightening commit.
+6. Speech cleanup/manual test commit on Render.
+7. Rate-limit tuning after hosted phone behavior is known.
+8. Render deployment runbook commit.
 
 ## Next Safe Hardening Task
 
-Add centralized safe errors and safe logging without deployment:
+Replace `tsx` runtime production start with a production-safe backend start:
 
 - keep local development behavior usable,
+- keep Render hosted behavior stable,
 - preserve provider-neutral production responses,
 - keep rate limiting enabled and configurable,
-- do not deploy,
 - do not add Azure,
 - do not expose API keys in the mobile app.

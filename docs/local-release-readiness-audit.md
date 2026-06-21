@@ -4,7 +4,7 @@ Date: 2026-06-20
 
 ## Audit Scope
 
-This audit verifies repository readiness from local code, docs, scripts, and backend smoke checks only. It does not replace the final real-device phone smoke test.
+This audit verifies repository readiness from local code, docs, scripts, and backend smoke checks. It has been updated with the first hosted Render smoke result, but phone hosted AI/speech still needs an explicit documented pass before tester distribution.
 
 Reference docs reviewed:
 
@@ -49,10 +49,11 @@ Content QA totals:
 | Quality scripts | PASS | `npm run quality` passed with expected content totals. |
 | Backend config | PASS | `server:check` passed and did not print secrets. |
 | Backend smoke | PASS | Local smoke checks passed; optional forced rate-limit mode remains documented, not required by default. |
-| Documentation consistency | PASS | Docs consistently describe A0/A1/A2 playable, optional 8-lesson B1 preview, full B1/B2 coming soon, no hosted backend, and Azure not implemented. |
+| Documentation consistency | PASS | Docs describe A0/A1/A2 playable, optional 8-lesson B1 preview, full B1/B2 coming soon, first Render hosted smoke passed, and Azure not implemented. |
 | Privacy/safety scan | PASS | No raw transcript/audioUri console logging found; `dotenv` usage is backend/script-only; app uses `EXPO_PUBLIC_*` env reads only. |
 | Feature consistency | PASS | Home review routes, dedicated Mistakes route, Speaking Library, Speaking Stats, vocab repeat queue, and B1 preview guardrails are present in code. |
-| Deployment readiness | BLOCKED | Hosted deployment remains blocked until final real-device phone smoke passes. |
+| Hosted backend smoke | PASS | Render hosted `/health` and `server:smoke` passed at `https://wortweg.onrender.com`. |
+| Deployment readiness | PARTIAL | Hosted smoke passed, but phone hosted AI/speech result is not documented and tester packaging/distribution remains open. |
 
 ## Issues Found
 
@@ -118,28 +119,28 @@ The only file added by this task is:
 - A0/A1/A2 are described as fully playable.
 - B1 preview is described as optional and limited to 8 lessons.
 - Full B1/B2 are described as coming soon, not fully playable.
-- Backend is described as local-only; no hosted deployment is claimed.
+- Backend docs now record the first Render hosted smoke at `https://wortweg.onrender.com`; this is not public launch readiness.
 - Azure is described as not implemented and future/prototype-only.
 - No hardcoded old LAN IP is presented as a permanent backend value.
 - Official Goethe/telc/ÖSD mentions appear only as guardrail/non-affiliation style documentation, not as app claims.
 
 ## Remaining Blockers
 
-- Final real-device phone smoke test is incomplete.
-- Hosted runtime has not been tested.
-- Hosting provider choice is not finalized.
+- Phone hosted AI/speech result is not documented in this update.
+- Hosted runtime has been smoke-tested on Render, but production start still depends on `tsx` from dev dependencies.
+- Private alpha packaging/install path is not finalized.
 - No external/private testers yet.
 - Final Wolli mascot asset is not ready.
 - Azure pronunciation assessment is not implemented.
 
 ## Next Recommended Action
 
-Finish the final real-device phone smoke test when a device/test window is available. Fix any phone-only issues before starting hosted backend deployment work.
+Document the hosted phone AI/speech result for `https://wortweg.onrender.com`. If it passes, finalize the private alpha packaging/install path and tester distribution plan.
 
-After phone smoke passes, the next backend step is:
+Next backend hardening step:
 
 ```text
-Execute first hosted backend smoke test after phone smoke passes.
+Replace tsx runtime production start with compiled JS or production-safe backend start.
 ```
 
 ## Release Decision
@@ -148,4 +149,4 @@ Local repository readiness: PASS.
 
 Ready to commit local readiness/docs work: YES.
 
-Ready to deploy: NO. Backend deployment remains blocked until final real-device phone smoke passes.
+Ready to deploy to testers: NO. Hosted backend smoke passed, but hosted phone AI/speech and tester distribution still need a documented pass.

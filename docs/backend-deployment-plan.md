@@ -2,7 +2,7 @@
 
 This document is a planning artifact only. It does not deploy the backend, create hosting accounts, add packages, change app code, change backend code, or change environment files.
 
-Important gate: backend deployment should not start until the final real-device phone smoke test passes. The current smoke setup has been prepared, but the full on-phone checklist is not complete yet.
+Important status: the first hosted backend smoke passed on Render after the phone speaking smoke gate was cleared. This is still not a public launch, and tester distribution should wait until hosted phone AI/speech results are documented and packaging/install flow is ready.
 
 ## 1. Deployment Goal
 
@@ -29,11 +29,23 @@ Important gate: backend deployment should not start until the final real-device 
 - During local phone testing, the phone reaches the backend through the Mac LAN IP, for example `http://YOUR_MAC_LAN_IP:3001`.
 - `.env` is ignored/untracked and must not be committed.
 
+Current hosted smoke status:
+
+- Provider: Render Web Service.
+- Hosted URL: `https://wortweg.onrender.com`.
+- Branch: `feature/b1-preview-foundation`.
+- Build command for first smoke: `npm install --include=dev`.
+- Start command: `npm run server:start`.
+- `/health` returned `{"ok":true,"service":"wortweg-ai"}`.
+- `BACKEND_SMOKE_URL=https://wortweg.onrender.com npm run server:smoke` passed health, CORS, AI route, and speech validation; rate-limit stress skipped by design.
+- Phone hosted AI/speech status is pending because no actual phone result was provided in the latest update.
+- This hosted backend is for private smoke testing only, not public launch.
+
 ## 3. Deployment Readiness Gate
 
-Do not start deployment until all of these are true:
+The first Render hosted smoke has passed. Before sharing the backend with testers, these must still be true:
 
-- Final real-device smoke test passed on phone.
+- Hosted phone AI/speech test result is documented as passed.
 - `.env` is not tracked.
 - No hardcoded LAN IP exists in app code or docs except placeholders/examples such as `YOUR_MAC_LAN_IP`.
 - `npm run typecheck` passes.
@@ -42,8 +54,9 @@ Do not start deployment until all of these are true:
 - `npm run server:check` passes.
 - `npm run server:smoke` passes against the local backend.
 - Backend `/health` passes locally.
-- AI chat works on phone against the local backend.
-- Speech transcription works on phone against the local backend.
+- AI chat works on phone against the hosted Render backend.
+- Speech transcription works on phone against the hosted Render backend.
+- Private alpha packaging/install path is confirmed.
 - Current content scope remains clear:
   - A0/A1/A2 fully playable.
   - Optional limited B1 preview with 8 lessons.
@@ -111,7 +124,7 @@ Rules:
 
 Before deploying for remote testers, prepare the backend with small backend-only commits:
 
-- Add a production start script if missing.
+- Replace the current `tsx` runtime production start with compiled JS or another production-safe start so Render does not require dev dependencies.
 - Add request size limits appropriate for audio uploads.
 - Add timeout handling for AI and speech routes.
 - Add structured safe errors for app-facing responses.
@@ -126,11 +139,11 @@ Before deploying for remote testers, prepare the backend with small backend-only
 
 ## 8. Deployment Options To Evaluate
 
-No host is selected yet. Evaluate candidates neutrally.
+Render was selected for the first low-friction hosted smoke. Longer-term hosting choice should still be evaluated cautiously before broader testing.
 
 | Option | Evaluation criteria |
 | --- | --- |
-| Render | Ease of environment variables, HTTPS setup, Node support, request timeout limits, audio payload limits, log handling, cost predictability, EU-adjacent region options if available. |
+| Render | First hosted smoke passed at `https://wortweg.onrender.com`. Still verify phone AI/speech, logs, upload behavior, timeouts, and production start without dev dependencies before testers. |
 | Fly.io | Node/container support, region choice near Turkey/EU, HTTPS, secrets handling, request limits, operational complexity, rollback controls. |
 | Railway | Ease of setup, env var handling, Node support, HTTPS, logs/secrets handling, timeout behavior, cost predictability. |
 | Google Cloud Run | Container/runtime fit, HTTPS, secrets/env handling, request size and timeout limits, logs, region options, operational overhead. |
@@ -169,40 +182,40 @@ EXPO_PUBLIC_AI_BACKEND_URL=https://YOUR_BACKEND_HOST
 
 ### Phase 0 - Phone smoke test gate
 
-- Complete final real-device smoke test.
-- Confirm AI chat and speech transcription work on phone against local backend.
+- Phone speaking smoke gate passed per latest product status.
+- Confirm hosted AI chat and hosted speech transcription on phone, then document the result.
 - Confirm no blocking UI, privacy, or route issues.
 
 ### Phase 1 - Choose host
 
 - Compare the hosting candidates against the requirements above.
-- Pick one target for a small alpha backend.
-- Document selected host constraints before implementation.
+- Render was picked for the first hosted smoke.
+- Document Render constraints before broader tester use.
 
 ### Phase 2 - Backend production hardening
 
-- Add production start command and config validation if needed.
+- Replace the `tsx` production start with compiled JS or another production-safe start.
 - Verify rate limiting, request limits, safe errors, safe logs, and CORS config.
 - Keep OpenAI STT path working.
 
 ### Phase 3 - Deploy backend with env vars
 
-- Configure server-side env vars in the host dashboard.
+- Render env vars were configured in the host dashboard for first smoke.
 - Do not put API keys in the mobile app.
-- Deploy backend only.
+- Keep hosted deployment private and smoke-test-only.
 
 ### Phase 4 - Test backend endpoints
 
-- Test `GET /health`.
-- Test AI teacher endpoint.
-- Test speech transcription endpoint with a small German audio file.
+- `GET /health` passed on `https://wortweg.onrender.com`.
+- Hosted `server:smoke` passed AI route shape and speech validation checks.
+- Phone hosted AI/speech result is still pending in docs.
 - Confirm app-facing errors are safe and provider-neutral.
 
 ### Phase 5 - Configure Expo/private build
 
-- Point `EXPO_PUBLIC_AI_BACKEND_URL` to hosted HTTPS backend.
+- Point local/private `EXPO_PUBLIC_AI_BACKEND_URL` to `https://wortweg.onrender.com` only in ignored local env or build env.
 - Restart Expo or rebuild as needed.
-- Run phone smoke test again.
+- Run and document hosted phone AI/speech smoke.
 
 ### Phase 6 - Private alpha monitoring
 
@@ -244,4 +257,4 @@ EXPO_PUBLIC_AI_BACKEND_URL=http://YOUR_MAC_LAN_IP:3001
 
 ## 13. Next Prompt
 
-Prepare backend production hardening without deployment.
+Replace `tsx` runtime production start with compiled JS or production-safe backend start.

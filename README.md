@@ -1,6 +1,6 @@
 # WortWeg
 
-WortWeg is a mobile-first German learning MVP for Turkish speakers. It uses Expo React Native, TypeScript, React Navigation, local AsyncStorage persistence, original playable A0/A1/A2 content plus eight optional B1 preview lessons, SRS vocabulary review, a secure local AI backend wrapper for Gemini text feedback, and backend German speech-to-text for speaking practice.
+WortWeg is a mobile-first German learning MVP for Turkish speakers. It uses Expo React Native, TypeScript, React Navigation, local AsyncStorage persistence, original playable A0/A1/A2 content plus eight optional B1 preview lessons, SRS vocabulary review, a secure backend wrapper for Gemini text feedback, and backend German speech-to-text for speaking practice. Local development remains supported, and the first private Render hosted backend smoke passed at `https://wortweg.onrender.com`.
 
 ## Requirements
 
@@ -124,7 +124,7 @@ Backend smoke remains optional and requires an already-running backend:
 npm run quality:backend
 ```
 
-Deployment is still blocked until the real-device phone smoke test passes.
+First Render hosted backend smoke passed at `https://wortweg.onrender.com`, but this is not a public launch. Hosted phone AI/speech still needs a documented result before tester distribution.
 
 ## Current MVP Behavior
 
@@ -133,7 +133,7 @@ Deployment is still blocked until the real-device phone smoke test passes.
 - Exam practice content is original and lives in `src/data/exam.a1.ts`.
 - Lesson completion awards XP, updates local-date streaks, adds SRS cards, and records mistakes.
 - SRS review uses `src/lib/srs.ts`.
-- AI chat, exam answer feedback, writing feedback, and speaking feedback call the local backend when configured, and fall back to local Wolli responses when unavailable.
+- AI chat, exam answer feedback, writing feedback, and speaking feedback call the configured backend when available, and fall back to local Wolli responses when unavailable.
 - AI chat has lesson-aware starter suggestions using safe static lesson context.
 - Home includes a compact review dashboard for Kelime tekrarı, Hatalar, Konuşma pratiği, AI ile pratik, and Sınav tarzı pratik.
 - Hatalar has a dedicated review route from Home and lesson completion.
@@ -265,7 +265,18 @@ npm run server:smoke
 BACKEND_SMOKE_URL=http://localhost:3001 npm run server:smoke
 ```
 
-The smoke script checks `/health`, basic CORS reachability, the AI route response shape, safe speech validation errors, and optionally rate limiting. It does not print API keys, transcripts, audio URIs, or raw provider responses. To force the rate-limit check, start a temporary backend with low rate-limit env values and run:
+The smoke script checks `/health`, basic CORS reachability, the AI route response shape, safe speech validation errors, and optionally rate limiting. It does not print API keys, transcripts, audio URIs, or raw provider responses.
+
+First hosted smoke status:
+
+```bash
+curl https://wortweg.onrender.com/health
+BACKEND_SMOKE_URL=https://wortweg.onrender.com npm run server:smoke
+```
+
+Both passed for the first Render Web Service smoke. The Render build command currently uses `npm install --include=dev` because `server:start` depends on `tsx`, which is in dev dependencies. Replace this with compiled JS or another production-safe start before broader private alpha backend use.
+
+To force the rate-limit check, start a temporary backend with low rate-limit env values and run:
 
 ```bash
 BACKEND_SMOKE_RATE_LIMIT=1 BACKEND_SMOKE_URL=http://localhost:3991 npm run server:smoke
@@ -409,7 +420,7 @@ Limitations:
 - real phonetic pronunciation scoring is not connected yet
 - no paid speech API keys are used in the mobile app
 
-Next step for speech: keep the OpenAI STT path stable, complete real-device smoke testing, then plan any Azure Pronunciation Assessment work as a backend-only feature-flagged prototype. See `docs/azure-pronunciation-prototype.md`.
+Next step for speech: document hosted phone AI/speech results against the Render backend, keep the OpenAI STT path stable, and plan any Azure Pronunciation Assessment work only as a backend-only feature-flagged prototype. See `docs/azure-pronunciation-prototype.md`.
 
 ## Azure Pronunciation Assessment Later
 

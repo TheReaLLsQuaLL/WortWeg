@@ -1,10 +1,10 @@
 # WortWeg Backend Pre-Deployment Checklist
 
-This checklist is for the first hosted backend smoke test after the real-device phone smoke test passes.
+This checklist was used for the first hosted backend smoke test after the phone speaking smoke gate passed. The first Render hosted smoke passed; keep this checklist for repeat deploys and future host changes.
 
 Important:
 
-- Do not deploy until real-device phone smoke passes.
+- Do not publish to testers until hosted phone AI/speech passes and is documented.
 - Do not put API keys in the mobile app.
 - Do not commit `.env`.
 - Do not add Azure now.
@@ -12,9 +12,9 @@ Important:
 
 ## 1. Gate Before Starting
 
-Do not start hosted deployment work until every item below is true:
+Before any future hosted deployment change, confirm every item below is true:
 
-- Real-device phone smoke test passes.
+- Phone smoke gate has passed for the flow being deployed, and hosted phone AI/speech will be re-tested after deployment.
 - `git status --short` is clean.
 - `npm run typecheck` passes.
 - `npm run content:qa` passes with:
@@ -104,8 +104,8 @@ High-level only. Do not create a Render service until the phone smoke gate passe
 - Create a web service.
 - Connect the private GitHub repo.
 - Set root directory if the host asks for it.
-- Set build command according to actual package scripts and host behavior.
-- Set start command according to the actual package script, likely `npm run server:start` if supported.
+- Set build command according to actual package scripts and host behavior. First Render smoke used `npm install --include=dev` because `server:start` currently depends on `tsx` from dev dependencies.
+- Set start command according to the actual package script. First Render smoke used `npm run server:start`.
 - Set all required hosted env vars.
 - Confirm the service exposes a public HTTPS URL.
 - Confirm `GET /health`.
@@ -123,6 +123,17 @@ BACKEND_SMOKE_URL=https://YOUR_BACKEND_URL npm run server:smoke
   - no provider/model/endpoint details in production app responses
 - Do not publish the hosted URL to testers yet.
 - Do not point the mobile app to the hosted backend until hosted smoke passes.
+
+First Render hosted smoke record:
+
+- Provider: Render Web Service.
+- URL: `https://wortweg.onrender.com`.
+- Branch: `feature/b1-preview-foundation`.
+- Build command: `npm install --include=dev`.
+- Start command: `npm run server:start`.
+- `/health` passed with `{"ok":true,"service":"wortweg-ai"}`.
+- Hosted `server:smoke` passed health, CORS, AI route, and speech validation; rate-limit stress skipped by design.
+- Follow-up: replace `tsx` runtime production start with compiled JS or another production-safe start so Render does not need dev dependencies.
 
 ## 6. Railway Checklist
 
@@ -184,6 +195,7 @@ EXPO_PUBLIC_AI_BACKEND_URL=https://YOUR_BACKEND_URL
 - Restart Expo or rebuild as needed after changing `EXPO_PUBLIC_AI_BACKEND_URL`.
 - Run AI chat from phone again.
 - Run speech transcription from phone again.
+- Document whether phone hosted AI/speech passed before tester distribution.
 - Confirm normal app UI does not show provider/model/endpoint/network internals.
 
 ## 9. Failure / Rollback
@@ -235,4 +247,4 @@ Before any hosted backend is shared with testers, verify:
 
 ## 12. Next Prompt Title
 
-Execute first hosted backend smoke test after phone smoke passes.
+Document hosted phone AI/speech result and finalize private alpha packaging path.

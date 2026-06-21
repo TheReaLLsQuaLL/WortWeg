@@ -141,10 +141,10 @@ git push
 
 ## 9. Current Deployment Gate
 
-- Backend deployment remains blocked until the final real-device phone smoke test passes.
-- No public/private alpha launch until phone smoke passes.
+- First hosted backend smoke passed on Render at `https://wortweg.onrender.com`.
+- No tester distribution until hosted phone AI/speech is documented as passed and packaging/install path is ready.
 - Azure remains design/prototype only, not implemented.
-- Hosted backend smoke testing should wait until the phone smoke gate is clear.
+- Do not treat hosted smoke as public launch or production readiness.
 
 ## 10. Quick Command Block
 

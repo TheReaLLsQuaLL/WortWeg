@@ -2,13 +2,13 @@
 
 This document is a planning artifact only. It does not deploy anything, create hosting accounts, install packages, change app code, change backend code, or change environment files.
 
-Current deployment status: blocked. The final real-device phone smoke test is still incomplete, and no hosted backend has been attempted.
+Current deployment status: first hosted backend smoke passed on Render at `https://wortweg.onrender.com`. Hosted phone AI/speech result is not documented yet, and this is not a public launch.
 
-Last reviewed: 2026-06-20.
+Last reviewed: 2026-06-21.
 
 ## Summary
 
-WortWeg needs a small, secure hosted backend for private alpha testing after phone smoke passes. The backend should preserve the current local behavior:
+WortWeg needs a small, secure hosted backend for private alpha testing. Render has now passed the first hosted smoke, and the backend should continue to preserve the current local behavior:
 
 - Express backend.
 - `GET /health`.
@@ -22,9 +22,10 @@ WortWeg needs a small, secure hosted backend for private alpha testing after pho
 - Dependency-free rate limiting.
 - Local backend smoke-test script.
 
-No final provider is selected yet. The cautious shortlist for a first hosted experiment is:
+Render was selected for the first low-friction hosted smoke. Longer-term hosting choice should remain cautious:
 
-- Likely easiest to try first: Render or Railway.
+- First smoke used: Render.
+- Still viable to compare later: Railway.
 - Best candidate to evaluate for later scale/controls: Google Cloud Run.
 - Useful if region/runtime control is more important than setup simplicity: Fly.io.
 - Avoid for now unless already available/needed: AWS App Runner and VPS.
@@ -57,26 +58,19 @@ The mobile app must never contain provider API keys. The app should only receive
 
 ## Deployment Blockers Still Remaining
 
-- Final real-device phone smoke test is incomplete.
-- Hosted deployment has not been attempted.
-- No real production runtime validation has happened.
-- No selected host has been tested with:
-  - `GET /health`
-  - `npm run server:smoke`
-  - AI teacher endpoint
-  - speech transcription endpoint
-  - rate-limit behavior
-  - hosted CORS behavior
-  - production environment validation
-- No provider-specific request body, upload, timeout, temp filesystem, or logging behavior has been verified.
+- Hosted phone AI/speech result is not documented yet.
+- Render hosted `/health` passed.
+- Render hosted `npm run server:smoke` passed health, CORS, AI route, and speech validation; rate-limit stress skipped by design.
+- Render build currently uses `npm install --include=dev` because `server:start` depends on `tsx` from dev dependencies.
+- No provider-specific real phone upload, timeout, temp filesystem, or logging behavior has been fully verified with hosted speech on phone.
 
-Deployment should not start until the phone smoke test passes.
+Do not publish to testers until hosted phone AI/speech passes and packaging/install flow is ready.
 
 ## Candidate Comparison Table
 
 | Candidate | Node/Express fit | Env/secrets | HTTPS/public URL | Audio/STT fit | Cold start/latency | Logs/privacy | Cost predictability | Operational complexity | Current phase fit |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Render | Strong fit for a simple Express web service. Supports custom build/start commands. | Dashboard env vars and secrets; keep keys server-side. | Hosted service URL and TLS support. | Needs verification for upload size/timeouts, but likely viable for small alpha. | Possible cold start risk depending service type/plan; verify before testers. | Dashboard logs available; app must avoid logging sensitive data. | Medium; verify current plan behavior before choosing. | Low to medium. | Strong first experiment candidate. |
+| Render | First hosted smoke passed. Current start works with dev dependencies because `tsx` is required. | Dashboard env vars and secrets; keep keys server-side. | `https://wortweg.onrender.com` is live for private smoke. | Hosted speech phone behavior still needs documented pass. | Possible cold start risk depending service type/plan; verify before testers. | Dashboard logs available; app must avoid logging sensitive data. | Medium; verify current plan behavior before broader use. | Low to medium. | First smoke candidate used; keep hardening before testers. |
 | Fly.io | Strong container/runtime fit; good regional control. | Runtime secrets supported. | Public networking and TLS support. | Likely viable, but machine/filesystem behavior and request limits need validation. | Potentially good if region is selected near users; needs more operational awareness. | Logs and secrets tooling exist; operational discipline needed. | Medium; verify current resource model. | Medium. | Good if region control matters. |
 | Railway | Strong simple Express fit; docs include Express, variables, start commands. | Variables supported. | Public service URL support. | Needs upload/timeout validation. | Likely acceptable for low traffic, but verify cold start/sleep behavior. | Logs available; privacy depends on backend logging discipline. | Medium; verify current usage model. | Low. | Strong first experiment candidate. |
 | Google Cloud Run | Strong container/service fit; supports Node source/container workflows. | Env vars and secrets available through Google Cloud tooling. | HTTPS service URL. | Good candidate if request timeout/body/temp behavior is configured correctly. | Cold starts possible; can be tuned later. Regions are broad. | Cloud Logging is powerful; privacy controls must be explicit. | Medium to high predictability if configured carefully, but verify. | Medium to high. | Better for later scale/control than first low-friction alpha. |
@@ -87,7 +81,7 @@ Deployment should not start until the phone smoke test passes.
 
 ### Render
 
-Render is a practical first candidate because it can deploy a Node Express app with standard build/start commands and provides service environment variables. It is likely the fastest path to a public HTTPS URL for a small backend, but the exact audio upload and timeout behavior must be tested with the WortWeg speech route.
+Render was used for the first hosted smoke. `/health` and `server:smoke` passed at `https://wortweg.onrender.com`. The exact hosted phone speech behavior, audio upload timing, logs, and timeout behavior still need documented phone results before testers. The current Render build uses `npm install --include=dev` because `server:start` depends on `tsx`; replace that with compiled JS or another production-safe start before broader use.
 
 Potential fit:
 
@@ -281,4 +275,4 @@ These sources were checked only for high-level capability signals. Pricing and l
 
 ## Next Prompt
 
-Prepare selected backend host deployment checklist after phone smoke passes.
+Replace tsx runtime production start with compiled JS or production-safe backend start.

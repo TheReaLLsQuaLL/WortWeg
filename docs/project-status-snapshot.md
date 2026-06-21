@@ -12,9 +12,11 @@ This is the current single-source-of-truth snapshot for WortWeg planning.
   - 288 exercises
   - 288 vocabulary items
 - WortWeg is a Turkish-first German learning app.
-- Local backend supports AI chat and speech transcription.
-- No hosted backend exists yet.
-- Backend deployment remains blocked until final real-device phone smoke passes.
+- Local backend supports AI chat and speech transcription for development.
+- First hosted backend smoke passed on Render at `https://wortweg.onrender.com`.
+- Hosted `/health` and `server:smoke` passed.
+- Phone hosted AI/speech result is not documented yet in this snapshot.
+- This is not a public launch.
 
 ## 2. Completed Product Features
 
@@ -47,11 +49,13 @@ This is the current single-source-of-truth snapshot for WortWeg planning.
 - Backend hosting evaluation.
 - Predeployment checklist.
 - Developer precommit checklist.
+- First Render hosted backend smoke.
 
 ## 4. Current Blockers
 
-- Final real-device phone smoke test is not completed.
-- Backend deployment is blocked until phone smoke passes.
+- Hosted backend smoke passed on Render.
+- Phone hosted AI/speech result still needs to be documented before tester distribution.
+- Private alpha packaging/install path and tester distribution plan are not finalized.
 - No external/private testers yet.
 - Final Wolli mascot asset is not ready.
 - Azure pronunciation assessment is not implemented.
@@ -70,10 +74,10 @@ This is the current single-source-of-truth snapshot for WortWeg planning.
 
 ## 6. Next Recommended Order
 
-1. Finish phone smoke test when possible.
-2. Fix any phone smoke bugs.
-3. Execute first hosted backend smoke test after phone smoke passes.
-4. Continue production backend hardening if needed.
+1. Document hosted phone AI/speech result.
+2. Fix any hosted phone smoke bugs.
+3. Finalize packaging/install path and tester distribution plan.
+4. Continue production backend hardening if needed, including replacing the `tsx` runtime production start with compiled JS or another production-safe start.
 5. Optional Azure backend prototype behind feature flag.
 6. Wolli final mascot asset replacement.
 7. Private tester guide.
@@ -98,4 +102,6 @@ git status --short
   - 36 lessons
   - 288 exercises
   - 288 vocabulary items
-- Deployment remains blocked until final real-device phone smoke passes.
+- Hosted backend smoke passed on Render at `https://wortweg.onrender.com`.
+- Phone hosted AI/speech result is still pending in docs.
+- Public launch is not ready.

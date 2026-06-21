@@ -90,8 +90,8 @@ Docs consistently state:
 - A0/A1/A2 are playable.
 - B1 preview is limited to 8 optional lessons.
 - Full B1/B2 paths are coming soon.
-- Backend is not deployed yet.
-- Deployment remains blocked until real-device phone smoke passes.
+- First Render hosted backend smoke passed at `https://wortweg.onrender.com`.
+- Hosted phone AI/speech result and tester distribution still need a documented pass.
 - Azure pronunciation assessment is not implemented.
 - No public launch is claimed.
 - No official exam affiliation/certification is claimed.
@@ -132,9 +132,9 @@ This task only created this audit report:
 
 ## Remaining Blockers
 
-- Final real-device phone smoke test has not passed.
-- Hosted backend runtime has not been tested.
-- Hosting provider has not been selected.
+- Hosted phone AI/speech result is not documented in the latest docs update.
+- Hosted backend runtime has been smoke-tested on Render at `https://wortweg.onrender.com`.
+- Render was selected for the first hosted smoke.
 - No private testers have been invited.
 - Final Wolli mascot asset is not ready.
 - Azure pronunciation assessment is not implemented.
@@ -143,6 +143,6 @@ This task only created this audit report:
 
 Local repo readiness: PASS.
 
-Deployment readiness: NO. Deployment remains blocked until the final real-device phone smoke test passes.
+Deployment readiness for testers: NO. Hosted backend smoke passed, but hosted phone AI/speech result and tester distribution still need a documented pass.
 
-Next action: run the real-device phone smoke test when possible, then execute the first hosted backend smoke test after phone smoke passes.
+Next action: document hosted phone AI/speech result for `https://wortweg.onrender.com`, then finalize private alpha packaging/install path.

@@ -47,7 +47,8 @@ This index keeps the `docs/` folder navigable as planning, audit, alpha, backend
 - A0/A1/A2 are playable.
 - B1 preview is limited to 8 optional lessons.
 - Full B1/B2 paths are coming soon.
-- Backend deployment is blocked until the final real-device phone smoke test passes.
+- First hosted backend smoke passed on Render at `https://wortweg.onrender.com`.
+- Phone hosted AI/speech result still needs to be documented before tester distribution.
 - Azure pronunciation assessment is not implemented yet.
 - Do not add official exam affiliation claims.
 - Do not put API keys in app code, docs, screenshots, or committed environment files.
@@ -66,4 +67,4 @@ PATH=/Users/squall/.nvm/versions/node/v22.22.3/bin:$PATH npx expo start --clear 
 
 ## 8. Next Recommended Action
 
-Finish the real-device phone smoke test when possible. After it passes, run the first hosted backend smoke test.
+Document the hosted phone AI/speech result for `https://wortweg.onrender.com`, then finalize the private alpha packaging/install path.

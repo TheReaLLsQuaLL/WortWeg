@@ -12,6 +12,7 @@ This document is a planning sheet for product features and technical architectur
 - Dedicated Mistakes review route is available from Home and lesson completion.
 - AI chat works through the local backend and has lesson-aware starter suggestions.
 - Speaking practice works through the local backend.
+- First hosted backend smoke passed on Render at `https://wortweg.onrender.com`; phone hosted AI/speech result is still pending in docs.
 - Speaking practice currently uses press-and-hold recording, OpenAI STT through backend, transcript-based Hybrid Speech Scoring v1, matched/missing/extra words, word-order hints when reliable, and safe error states.
 - Speaking Practice Library has 36 static practice sentences from existing lesson prompts.
 - Speaking Practice Stats store privacy-safe aggregates only: attempts, success counts, best/latest score, last practice date, practiced static sentence IDs, and level breakdown.
@@ -25,9 +26,10 @@ This document is a planning sheet for product features and technical architectur
 - OpenAI speech transcription endpoint is available through the backend.
 - Hybrid Speech Scoring v1 is frontend/local transcript scoring only; Azure is not implemented.
 - `.env` is local only, ignored/untracked, and must not be committed.
-- Backend is currently local/LAN only, not publicly deployed.
+- Backend remains local-first for development.
+- First hosted Render smoke passed for private backend testing; this is not a public launch.
 - No auth or cloud sync yet.
-- No production backend deployment yet.
+- No production/public launch deployment yet.
 - No Azure production integration yet.
 
 ## 3. Completed Since B1 Preview Expansion
@@ -43,14 +45,15 @@ This document is a planning sheet for product features and technical architectur
 | Done | Review dashboard polish | Home exposes review/practice routes in one compact panel. |
 | Done | Dedicated Mistakes route | Hatalar can be opened directly from Home and lesson completion. |
 | Done | Azure pronunciation prototype design doc | Planning doc exists. Azure remains future backend-only prototype work. |
+| Done | First Render hosted backend smoke | `https://wortweg.onrender.com` passed `/health` and `server:smoke`; phone hosted AI/speech still needs documented status. |
 
 ## 4. Near-Term Product Plan
 
 | Priority | Feature | Description | Why it matters | Risk | Suggested commit size |
 | --- | --- | --- | --- | --- | --- |
-| P0 | Final real-device smoke test | Run Android/iOS route checks across onboarding, lessons, review, speaking, AI, exam, and profile alpha tools. | Confirms recent review/speaking changes are tester-ready. | Low | QA-only or tiny fix commit. |
-| P1 | Backend deployment planning | Choose deployment target and document env, health checks, CORS, rollback, and tester URL flow. | Remote testers need public HTTPS backend later. | Medium | Docs/planning commit first. |
-| P1 | Production backend hardening | Add rate limits, request size limits, safer errors, logging policy, and cost monitoring before remote alpha. | Protects keys, cost, and tester reliability. | Medium/High | Backend-only staged commits. |
+| P0 | Hosted phone AI/speech documentation | Run and record phone AI chat and speech practice against `https://wortweg.onrender.com`. | This is the remaining backend-use gate before tester distribution. | Low/Medium | QA/docs or tiny fix commit. |
+| P0 | Private alpha packaging/install path | Decide how testers install and which env/backend URL they use. | Testers need a repeatable setup before invitation. | Medium | Docs/build planning commit. |
+| P1 | Production-safe backend start | Replace `tsx` runtime production start with compiled JS or another production-safe start so Render does not require dev dependencies. | Makes hosted backend less fragile. | Medium | Backend-only commit. |
 | P2 | Azure pronunciation backend prototype | Backend-only feature-flagged spike based on `docs/azure-pronunciation-prototype.md`. | Tests whether Azure adds useful pronunciation feedback. | Medium/High | Prototype branch/commit, not user-visible. |
 | P2 | Optional AI practice improvements | Refine lesson-aware prompts after real tester feedback. | Avoids polishing the wrong AI behavior before evidence. | Medium | Small prompt/context commits. |
 | P2 | Wolli final mascot asset replacement | Replace placeholders/static mascot with a final consistent asset set. | Improves brand consistency without changing flows. | Medium | Asset/UI-only commit. |
@@ -105,7 +108,7 @@ This document is a planning sheet for product features and technical architectur
 
 ### Phase 5 - Production speech backend - Future
 
-- Deployed backend.
+- First hosted Render smoke passed; production/private-alpha backend hardening continues.
 - Rate limits.
 - Request size limits.
 - Safer error handling.
@@ -127,7 +130,7 @@ This document is a planning sheet for product features and technical architectur
 ## 6. Technical Roadmap - Backend / Deployment
 
 - Keep local backend for development.
-- Plan backend deployment later; do not claim deployment until it exists.
+- Render hosted smoke passed at `https://wortweg.onrender.com`; do not treat this as public launch or production readiness.
 - Keep all API keys in backend environment variables.
 - Maintain `/health` for reachability checks.
 - Account for CORS/LAN issues during phone testing.
@@ -156,8 +159,9 @@ This document is a planning sheet for product features and technical architectur
 
 ## 9. Medium-Term Product Plan
 
-- Backend deployment for remote testers.
+- Hosted phone AI/speech verification and private alpha packaging/install path.
 - Safer production AI/STT error states and monitoring.
+- Production-safe backend start without `tsx` dev dependency.
 - Wolli final mascot asset replacement.
 - App Store / TestFlight-style preparation.
 - Content analytics review based on private alpha feedback.
@@ -176,14 +180,15 @@ This document is a planning sheet for product features and technical architectur
 
 ## 11. Recommended Build Order
 
-1. Final real-device smoke test.
-2. Backend deployment planning.
-3. Production backend hardening.
-4. Azure pronunciation backend prototype behind feature flag.
-5. Optional AI practice improvements.
-6. Wolli final mascot asset replacement.
-7. Private tester guide when testers exist.
-8. Full B1 path planning.
+1. Document hosted phone AI/speech result.
+2. Finalize private alpha packaging/install path and tester distribution plan.
+3. Replace `tsx` runtime production start with compiled JS or production-safe backend start.
+4. Continue production backend hardening and monitoring.
+5. Azure pronunciation backend prototype behind feature flag.
+6. Optional AI practice improvements.
+7. Wolli final mascot asset replacement.
+8. Private tester guide when testers exist.
+9. Full B1 path planning.
 
 ## 12. Guardrails
 
@@ -197,8 +202,8 @@ This document is a planning sheet for product features and technical architectur
 - Keep Turkish-first explanations.
 - Keep current OpenAI STT path working before experimenting with Azure.
 - Azure pronunciation work must be backend-only first, feature-flagged, and not user-visible until validated.
-- Do not claim backend deployment until a public HTTPS backend is actually deployed.
+- Do not claim public launch or production readiness from the first Render hosted smoke.
 
 ## 13. Next Suggested Task
 
-Next task: Final real-device smoke test.
+Next task: Document hosted phone AI/speech result for Render backend.
