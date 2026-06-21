@@ -12,7 +12,9 @@ Client secret rule: the mobile app must never contain `OPENAI_API_KEY`, `GEMINI_
 
 - Backend entrypoint: `server/index.ts`.
 - Development command: `npm run server:dev`.
-- Runtime style: TypeScript via `tsx`.
+- Production build command: `npm run server:build` compiles backend TypeScript to `dist-server/`.
+- Production start command: `npm run server:start` runs compiled JavaScript with Node.
+- Local development still uses TypeScript via `tsx`.
 - Host/port: `HOST` defaults to `0.0.0.0`; `PORT` defaults to `3001`.
 - Health endpoint: `GET /health`.
 - AI endpoint: `POST /ai/teacher`.
@@ -25,12 +27,13 @@ Client secret rule: the mobile app must never contain `OPENAI_API_KEY`, `GEMINI_
 - Request body JSON limit: 1 MB.
 - CORS: environment-driven; production requires `ALLOWED_ORIGINS`, development allows localhost/LAN-style origins.
 - Rate limiting: dependency-free in-memory limiter is enabled by default for health, AI, and speech endpoint groups.
-- Production start script: `server:start` exists as a first production-oriented runner using the existing TypeScript runtime.
+- Production start script: `server:start` runs `node dist-server/index.js` and no longer depends on `tsx` at runtime.
 - First hosted smoke: Render Web Service at `https://wortweg.onrender.com`.
 - Render branch: `feature/b1-preview-foundation`.
 - Render build command for first smoke: `npm install --include=dev`.
-- Render start command: `npm run server:start`.
-- Reason for `--include=dev`: `server:start` currently uses `tsx`, which is in dev dependencies. This is acceptable for the first hosted smoke only.
+- Updated Render build command after hardening: `npm install && npm run server:build`.
+- Render start command remains: `npm run server:start`.
+- Render no longer needs `npm install --include=dev` for the start path because runtime uses compiled JavaScript.
 - Hosted `/health`: passed with `{"ok":true,"service":"wortweg-ai"}`.
 - Hosted `server:smoke`: passed health, CORS, AI route, and speech validation; rate-limit stress remained skipped by design.
 - Phone hosted AI/speech: passed. AI chat, correct-sentence speaking, silence/no-voice, and wrong-speech low-score behavior passed against Render; backend error-copy check was skipped/not tested.
@@ -41,7 +44,7 @@ Client secret rule: the mobile app must never contain `OPENAI_API_KEY`, `GEMINI_
 
 ### 1. Production Start Readiness
 
-Status: partially hardened; first Render runtime smoke passed, but production start still depends on dev dependencies.
+Status: hardened for first production-safe start path; first Render runtime smoke passed, and local compiled backend build succeeds. Hosted smoke must be rerun after Render redeploys with the new build command.
 
 Already good:
 
@@ -53,16 +56,15 @@ Already good:
 
 Gaps:
 
-- `package.json` has `server:start`, and Render smoke passed with `npm install --include=dev`.
-- `server:start` still uses `tsx`, so Render currently needs dev dependencies at build/install time.
-- There is no dedicated compiled server build flow yet.
+- `package.json` now has `server:build`, and `server:start` runs compiled JavaScript.
+- `dist-server/` is generated and ignored by Git.
 - No `engines.node` field documents the expected production Node runtime.
 - No readiness endpoint beyond `/health`; this may be enough for first deploy, but it does not validate provider env configuration.
 - Shutdown handling covers `SIGINT` and `SIGTERM`, but there is no documented host runbook.
 
 Recommendation:
 
-- Replace the `tsx` runtime production start with compiled JS or another production-safe start so Render does not require dev dependencies.
+- Update the Render dashboard build command to `npm install && npm run server:build`, keep start command as `npm run server:start`, then rerun hosted smoke.
 - Add Node runtime documentation or `engines` once the production start strategy is finalized.
 - Keep `/health`, and consider a non-secret readiness endpoint or startup config validation before remote testers.
 
@@ -298,6 +300,7 @@ Recommendation:
 - Added dependency-free in-memory rate limiting for `/health`, `/ai/teacher`, and `/speech/*`.
 - Added `server:smoke` for local backend readiness checks without printing secrets or raw provider payloads.
 - Added `npm run quality` for local pre-commit checks that do not require a running backend.
+- Added `server:build` and changed `server:start` to run compiled JavaScript from `dist-server/` instead of `tsx`.
 - Omitted provider/model diagnostics from production AI and speech responses while keeping development diagnostics available.
 - Relaxed app service parsers so production provider-neutral responses do not break existing flows.
 
@@ -305,9 +308,9 @@ Recommendation:
 
 These should be fixed or verified before the hosted backend is shared with remote testers:
 
-1. Private build/install distribution path is not finalized.
-2. Tester distribution/support process is not finalized.
-3. Production start strategy still uses `tsx`; replace it with compiled JS or another production-safe start so Render does not require dev dependencies.
+1. Approved APK link, feedback channel, support owner, and actual tester send are not finalized.
+2. Render has not yet been redeployed with `npm install && npm run server:build`.
+3. Hosted `/health` and `server:smoke` must be rerun after the Render command change.
 4. Backend error-copy phone check was skipped/not tested.
 5. No hosted deployment runbook exists beyond the predeployment checklist.
 6. Speech temp-file cleanup has not been verified on the selected host.
@@ -321,7 +324,7 @@ These should be fixed or verified before the hosted backend is shared with remot
 - Confirm speech temp file cleanup on success, provider failure, invalid body, and upload failure.
 - Confirm upload size limit and timeout settings against real phone audio samples.
 - Add a backend deployment runbook.
-- Replace `tsx` in production start with compiled JS or another production-safe start.
+- Rerun Render hosted smoke after switching to the compiled JS production start command.
 - Confirm host supports temp files, multipart uploads, and speech request duration under real phone speech use.
 
 ## Nice To Have Later
@@ -352,7 +355,7 @@ These should be fixed or verified before the hosted backend is shared with remot
 ## Prioritized Hardening Checklist
 
 1. Finalize private build/install distribution path and tester support process.
-2. Replace the `tsx` runtime production start with compiled JS or another production-safe start.
+2. Redeploy Render with `npm install && npm run server:build` and `npm run server:start`, then rerun hosted smoke.
 3. Add centralized safe error responses.
 4. Add safe logging helper and production log policy.
 5. Bound all AI context schema string fields.
@@ -365,7 +368,7 @@ These should be fixed or verified before the hosted backend is shared with remot
 ## Suggested Implementation Order
 
 1. Private build/install and tester support process documentation.
-2. Production-safe backend start without `tsx` dev dependency.
+2. Render command update and hosted smoke verification.
 3. Centralized safe error shape commit.
 4. Safe logging helper commit.
 5. AI context schema tightening commit.
@@ -375,8 +378,12 @@ These should be fixed or verified before the hosted backend is shared with remot
 
 ## Next Safe Hardening Task
 
-Replace `tsx` runtime production start with a production-safe backend start:
+Redeploy Render with the compiled backend start path:
 
+- set Render build command to `npm install && npm run server:build`,
+- keep Render start command as `npm run server:start`,
+- rerun `curl https://wortweg.onrender.com/health`,
+- rerun `BACKEND_SMOKE_URL=https://wortweg.onrender.com npm run server:smoke`,
 - keep local development behavior usable,
 - keep Render hosted behavior stable,
 - preserve provider-neutral production responses,

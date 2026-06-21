@@ -68,6 +68,7 @@ This index keeps the `docs/` folder navigable as planning, audit, alpha, backend
 ```sh
 npm run quality
 npm run server:dev
+npm run server:build
 npm run server:check
 npm run server:smoke
 npm run quality:backend

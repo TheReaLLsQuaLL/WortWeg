@@ -37,6 +37,7 @@ Before creating a hosted service, verify the local backend structure:
 
 - `package.json` scripts:
   - `server:dev`
+  - `server:build`
   - `server:start`
   - `server:check`
   - `server:smoke`
@@ -104,8 +105,9 @@ High-level only. Do not create a Render service until the phone smoke gate passe
 - Create a web service.
 - Connect the private GitHub repo.
 - Set root directory if the host asks for it.
-- Set build command according to actual package scripts and host behavior. First Render smoke used `npm install --include=dev` because `server:start` currently depends on `tsx` from dev dependencies.
-- Set start command according to the actual package script. First Render smoke used `npm run server:start`.
+- Set build command to `npm install && npm run server:build`.
+- Set start command to `npm run server:start`.
+- Render no longer needs `npm install --include=dev` after the compiled backend build/start change.
 - Set all required hosted env vars.
 - Confirm the service exposes a public HTTPS URL.
 - Confirm `GET /health`.
@@ -129,11 +131,12 @@ First Render hosted smoke record:
 - Provider: Render Web Service.
 - URL: `https://wortweg.onrender.com`.
 - Branch: `feature/b1-preview-foundation`.
-- Build command: `npm install --include=dev`.
+- First-smoke build command: `npm install --include=dev`.
+- Updated build command: `npm install && npm run server:build`.
 - Start command: `npm run server:start`.
 - `/health` passed with `{"ok":true,"service":"wortweg-ai"}`.
 - Hosted `server:smoke` passed health, CORS, AI route, and speech validation; rate-limit stress skipped by design.
-- Follow-up: replace `tsx` runtime production start with compiled JS or another production-safe start so Render does not need dev dependencies.
+- Follow-up: after manually updating Render to the new build command, rerun hosted `/health` and `server:smoke`.
 
 ## 6. Railway Checklist
 

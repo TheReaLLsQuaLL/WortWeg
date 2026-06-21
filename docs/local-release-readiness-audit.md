@@ -55,7 +55,7 @@ Content QA totals:
 | Hosted backend smoke | PASS | Render hosted `/health` and `server:smoke` passed at `https://wortweg.onrender.com`. |
 | Hosted phone AI/speech | PASS | AI chat, correct-sentence speaking, silence/no-voice, and wrong-speech low-score behavior passed against Render. Backend error-copy check was skipped/not tested. |
 | Installed Android EAS preview APK smoke | PASS | App installs, opens, enters the app, loads onboarding/Home, uses hosted AI/speech, preserves silence/no-voice behavior, and shows low score/missing words for wrong speech. |
-| Deployment readiness | PARTIAL | Hosted backend, phone AI/speech, Android installed preview, and tester-process docs are ready, but the approved APK link, feedback channel, support owner, final assets, iOS/TestFlight, production start without `tsx`, and optional backend error-copy installed-build test remain open. |
+| Deployment readiness | PARTIAL | Hosted backend, phone AI/speech, Android installed preview, and tester-process docs are ready, but the approved APK link, feedback channel, support owner, final assets, iOS/TestFlight, Render redeploy with compiled backend start, and optional backend error-copy installed-build test remain open. |
 
 ## Issues Found
 
@@ -80,6 +80,7 @@ This document has been updated after later smoke milestones to reflect:
 - Phone hosted AI/speech smoke passed.
 - Installed Android EAS preview APK smoke passed after Expo asset/module alignment.
 - Private alpha Android tester distribution process and tester message draft exist.
+- Backend production start now uses compiled JavaScript from `dist-server/`; Render still needs a manual build-command update and hosted smoke rerun.
 
 ## Feature Consistency Findings
 
@@ -136,7 +137,7 @@ This document has been updated after later smoke milestones to reflect:
 
 - Android private build/install path is proven for internal smoke testing.
 - Tester distribution/support process is documented, but the approved APK link, feedback channel, support owner, and actual tester send are not finalized.
-- Hosted runtime has been smoke-tested on Render, but production start still depends on `tsx` from dev dependencies.
+- Hosted runtime has been smoke-tested on Render, but Render has not yet been redeployed with `npm install && npm run server:build`.
 - Backend error-copy phone check was skipped/not tested.
 - No external/private testers yet.
 - Final Wolli mascot/final brand icon/splash assets are not ready; temporary assets passed internal preview smoke only.
@@ -150,7 +151,7 @@ Fill `APK_LINK_HERE` and `FEEDBACK_CHANNEL_HERE` in `docs/private-alpha-tester-m
 Next backend hardening step:
 
 ```text
-Replace tsx runtime production start with compiled JS or production-safe backend start.
+Update Render build command to `npm install && npm run server:build`, keep `npm run server:start`, then rerun hosted smoke.
 ```
 
 ## Release Decision
@@ -159,4 +160,4 @@ Local repository readiness: PASS.
 
 Ready to commit local readiness/docs work: YES.
 
-Ready to deploy to testers: PARTIAL. Hosted backend, phone AI/speech, Android installed preview, and tester-process docs are ready, but the approved APK link, feedback channel, support owner, final assets, iOS/TestFlight later, `tsx` production-start hardening, and optional backend error-copy installed-build test remain.
+Ready to deploy to testers: PARTIAL. Hosted backend, phone AI/speech, Android installed preview, tester-process docs, and compiled backend start are ready locally, but the approved APK link, feedback channel, support owner, final assets, iOS/TestFlight later, Render build-command update/smoke rerun, and optional backend error-copy installed-build test remain.
