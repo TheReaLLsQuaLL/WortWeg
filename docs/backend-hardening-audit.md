@@ -2,7 +2,7 @@
 
 This audit tracks backend hardening after local preparation and the first Render hosted smoke. It does not contain secrets and does not claim public launch readiness.
 
-Deployment status: first hosted backend smoke passed on Render at `https://wortweg.onrender.com`. Phone hosted AI/speech status is not documented yet because the latest phone result was not provided in this update. Do not publish to testers until hosted phone AI/speech passes and the packaging/install path is ready.
+Deployment status: first hosted backend smoke passed on Render at `https://wortweg.onrender.com`, and phone hosted AI/speech smoke passed. Do not publish to testers until the private build/install distribution path and tester support process are ready. This is not a public launch.
 
 Azure status: no Azure implementation exists. Azure pronunciation work must remain a future backend-only, feature-flagged prototype.
 
@@ -33,7 +33,8 @@ Client secret rule: the mobile app must never contain `OPENAI_API_KEY`, `GEMINI_
 - Reason for `--include=dev`: `server:start` currently uses `tsx`, which is in dev dependencies. This is acceptable for the first hosted smoke only.
 - Hosted `/health`: passed with `{"ok":true,"service":"wortweg-ai"}`.
 - Hosted `server:smoke`: passed health, CORS, AI route, and speech validation; rate-limit stress remained skipped by design.
-- Phone hosted AI/speech: pending documentation until an actual phone result is provided.
+- Phone hosted AI/speech: passed. AI chat, correct-sentence speaking, silence/no-voice, and wrong-speech low-score behavior passed against Render; backend error-copy check was skipped/not tested.
+- Current speaking scoring limitation: Hybrid Speech Scoring v1 is transcript-based. It can score slow but word-correct speech as 100 because accent quality, phoneme-level pronunciation, natural speed, fluency, and prosody are not assessed yet.
 - `.env`: ignored by `.gitignore`; `.env.example` contains placeholders.
 
 ## Findings By Section
@@ -304,12 +305,13 @@ Recommendation:
 
 These should be fixed or verified before the hosted backend is shared with remote testers:
 
-1. Phone hosted AI/speech result has not been documented in this audit update.
-2. Private alpha packaging/install path and tester distribution plan are not finalized.
+1. Private build/install distribution path is not finalized.
+2. Tester distribution/support process is not finalized.
 3. Production start strategy still uses `tsx`; replace it with compiled JS or another production-safe start so Render does not require dev dependencies.
-4. No hosted deployment runbook exists beyond the predeployment checklist.
-5. Speech temp-file cleanup has not been verified on the selected host.
-6. In-memory rate limits must be tuned and rechecked against real tester behavior.
+4. Backend error-copy phone check was skipped/not tested.
+5. No hosted deployment runbook exists beyond the predeployment checklist.
+6. Speech temp-file cleanup has not been verified on the selected host.
+7. In-memory rate limits must be tuned and rechecked against real tester behavior.
 
 ## Should Fix Before Private Alpha Hosting
 
@@ -349,7 +351,7 @@ These should be fixed or verified before the hosted backend is shared with remot
 
 ## Prioritized Hardening Checklist
 
-1. Document hosted phone AI/speech result and fix any hosted-phone blockers.
+1. Finalize private build/install distribution path and tester support process.
 2. Replace the `tsx` runtime production start with compiled JS or another production-safe start.
 3. Add centralized safe error responses.
 4. Add safe logging helper and production log policy.
@@ -362,7 +364,7 @@ These should be fixed or verified before the hosted backend is shared with remot
 
 ## Suggested Implementation Order
 
-1. Hosted phone AI/speech result documentation and blocker triage.
+1. Private build/install and tester support process documentation.
 2. Production-safe backend start without `tsx` dev dependency.
 3. Centralized safe error shape commit.
 4. Safe logging helper commit.

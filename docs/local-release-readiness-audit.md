@@ -1,10 +1,10 @@
 # WortWeg Local Release Readiness Audit
 
-Date: 2026-06-20
+Date: 2026-06-21
 
 ## Audit Scope
 
-This audit verifies repository readiness from local code, docs, scripts, and backend smoke checks. It has been updated with the first hosted Render smoke result, but phone hosted AI/speech still needs an explicit documented pass before tester distribution.
+This audit verifies repository readiness from local code, docs, scripts, backend smoke checks, and the hosted Render phone smoke result. Phone hosted AI/speech passed; this is still not a public launch.
 
 Reference docs reviewed:
 
@@ -53,7 +53,8 @@ Content QA totals:
 | Privacy/safety scan | PASS | No raw transcript/audioUri console logging found; `dotenv` usage is backend/script-only; app uses `EXPO_PUBLIC_*` env reads only. |
 | Feature consistency | PASS | Home review routes, dedicated Mistakes route, Speaking Library, Speaking Stats, vocab repeat queue, and B1 preview guardrails are present in code. |
 | Hosted backend smoke | PASS | Render hosted `/health` and `server:smoke` passed at `https://wortweg.onrender.com`. |
-| Deployment readiness | PARTIAL | Hosted smoke passed, but phone hosted AI/speech result is not documented and tester packaging/distribution remains open. |
+| Hosted phone AI/speech | PASS | AI chat, correct-sentence speaking, silence/no-voice, and wrong-speech low-score behavior passed against Render. Backend error-copy check was skipped/not tested. |
+| Deployment readiness | PARTIAL | Hosted backend and phone AI/speech passed, but tester packaging/distribution, support process, and production start without `tsx` remain open. |
 
 ## Issues Found
 
@@ -64,6 +65,7 @@ Notes:
 - `docs/feature-roadmap.md` intentionally mentions Pack 9 only as a "do not add now" guardrail.
 - Provider/model/endpoint fields still exist in DEV diagnostics and internal service types. Production backend responses strip provider/model diagnostics, and normal chat copy is sanitized.
 - The speaking result screen shows the learner's transcript as immediate feedback. The audit found no raw transcript persistence or transcript console logging.
+- Current speaking scoring is transcript-based. It detects silence/no voice, real speech, expected words, and wrong/missing/extra words. It does not score accent quality, phoneme-level pronunciation, natural speed, fluency, or prosody; slow but word-correct speech can score 100.
 - Some DEV/profile alpha diagnostics use operational labels such as `Speech endpoint`; these are DEV-gated and are not deployment blockers.
 
 ## Fixes Made
@@ -126,16 +128,17 @@ The only file added by this task is:
 
 ## Remaining Blockers
 
-- Phone hosted AI/speech result is not documented in this update.
+- Private build/install distribution path is not finalized.
+- Tester distribution/support process is not finalized.
 - Hosted runtime has been smoke-tested on Render, but production start still depends on `tsx` from dev dependencies.
-- Private alpha packaging/install path is not finalized.
+- Backend error-copy phone check was skipped/not tested.
 - No external/private testers yet.
 - Final Wolli mascot asset is not ready.
 - Azure pronunciation assessment is not implemented.
 
 ## Next Recommended Action
 
-Document the hosted phone AI/speech result for `https://wortweg.onrender.com`. If it passes, finalize the private alpha packaging/install path and tester distribution plan.
+Finalize the private build/install distribution path and tester support process before inviting testers. Keep hosted backend smoke checks in the release checklist.
 
 Next backend hardening step:
 
@@ -149,4 +152,4 @@ Local repository readiness: PASS.
 
 Ready to commit local readiness/docs work: YES.
 
-Ready to deploy to testers: NO. Hosted backend smoke passed, but hosted phone AI/speech and tester distribution still need a documented pass.
+Ready to deploy to testers: NO. Hosted backend and phone AI/speech passed, but tester distribution/support, private install path, `tsx` production-start hardening, and optional backend error-copy test remain.

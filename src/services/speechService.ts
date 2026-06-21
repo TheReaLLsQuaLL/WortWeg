@@ -12,6 +12,7 @@ import { Platform } from 'react-native';
 import { inferAudioUploadInfo } from '../lib/audioUpload';
 import { compareTranscripts, type TranscriptComparison } from '../lib/transcriptCompare';
 import { analyzeRecordingVoiceEvidence, type RecordingVoiceEvidence } from '../lib/voiceGate';
+import { buildBackendUrl, checkBackendHealth, getBackendConfig } from '../config/backend';
 import { trackLocalEvent } from './localEventLog';
 
 export { analyzeRecordingVoiceEvidence, type RecordingVoiceEvidence } from '../lib/voiceGate';
@@ -42,6 +43,9 @@ export type TranscriptionResult = {
   backendReachable?: boolean;
   endpointHost?: string;
   httpStatus?: number;
+  backendBaseUrl?: string;
+  backendUrlSource?: string;
+  backendErrorMessage?: string;
 };
 
 export type SpeechProvider = 'openai' | 'ios-native' | 'android-native' | 'mlkit' | 'gemma';
@@ -126,9 +130,6 @@ const HIGH_QUALITY_WITH_METERING = {
   isMeteringEnabled: true,
 };
 
-const getSpeechBackendUrl = () =>
-  process.env.EXPO_PUBLIC_AI_BACKEND_URL?.trim() || '';
-
 const getSpeechTimeoutMs = () => {
   const rawTimeout = process.env.EXPO_PUBLIC_SPEECH_TIMEOUT_MS?.trim();
   const parsedTimeout = rawTimeout ? Number(rawTimeout) : DEFAULT_SPEECH_TIMEOUT_MS;
@@ -194,24 +195,6 @@ const getEndpointHost = (url: string) => {
     return new URL(url).host;
   } catch {
     return '';
-  }
-};
-
-const checkBackendReachability = async (backendUrl: string, timeoutMs = 3500) => {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
-
-  try {
-    const response = await fetch(backendUrl.replace(/\/+$/, '') + '/health', {
-      method: 'GET',
-      signal: controller.signal,
-    });
-
-    return response.ok;
-  } catch {
-    return false;
-  } finally {
-    clearTimeout(timeout);
   }
 };
 
@@ -522,7 +505,8 @@ export const transcribeGerman = async (
   audioUri: string,
   expectedText?: string,
 ): Promise<TranscriptionResult> => {
-  const backendUrl = getSpeechBackendUrl();
+  const backendConfig = getBackendConfig();
+  const backendUrl = backendConfig.baseUrl;
   const timeoutMs = getSpeechTimeoutMs();
   const startedAt = Date.now();
 
@@ -533,7 +517,7 @@ export const transcribeGerman = async (
   const uploadInfo = inferAudioUploadInfo(audioUri);
 
   if (!backendUrl) {
-    logSpeechDebug('missing backend url', { platform: uploadInfo.platform });
+    logSpeechDebug('missing backend url', { platform: uploadInfo.platform, backendSource: backendConfig.source });
     trackLocalEvent({
       type: 'speech_transcription_fallback',
       screen: 'SpeakingPractice',
@@ -552,10 +536,12 @@ export const transcribeGerman = async (
       audioExtension: uploadInfo.extension,
       audioMimeType: uploadInfo.type,
       backendReachable: false,
+      backendBaseUrl: backendUrl,
+      backendUrlSource: backendConfig.source,
     };
   }
 
-  const endpoint = backendUrl.replace(/\/+$/, '') + '/speech/transcribe';
+  const endpoint = buildBackendUrl('/speech/transcribe');
   const endpointHost = getEndpointHost(endpoint);
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
@@ -578,22 +564,26 @@ export const transcribeGerman = async (
     audioExtension: uploadInfo.extension,
     audioMimeType: uploadInfo.type,
     endpointHost,
+    backendSource: backendConfig.source,
     hasAudioUri: Boolean(audioUri),
   });
 
   try {
     let backendReachable = true;
 
-    if (__DEV__ && Platform.OS === 'ios') {
-      backendReachable = await checkBackendReachability(backendUrl);
+    if (__DEV__) {
+      const health = await checkBackendHealth();
+      backendReachable = health.ok;
       logSpeechDebug('backend reachability', {
         platform: uploadInfo.platform,
         backendReachable,
+        backendSource: health.config.source,
+        httpStatus: health.httpStatus,
         endpointHost,
       });
 
       if (!backendReachable) {
-        throw new Error('backend-unreachable');
+        throw new Error(health.errorMessage || (health.httpStatus ? 'health-http-' + health.httpStatus : 'backend-unreachable'));
       }
     }
 
@@ -603,6 +593,7 @@ export const transcribeGerman = async (
       audioExtension: uploadInfo.extension,
       audioMimeType: uploadInfo.type,
       endpointHost,
+      backendSource: backendConfig.source,
     });
     const formData = new FormData();
     formData.append('audio', {
@@ -649,6 +640,8 @@ export const transcribeGerman = async (
       backendReachable: true,
       endpointHost,
       httpStatus: response.status,
+      backendBaseUrl: backendUrl,
+      backendUrlSource: backendConfig.source,
     };
 
     const comparisonForEvent = expectedText?.trim()
@@ -682,6 +675,7 @@ export const transcribeGerman = async (
       audioMimeType: uploadInfo.type,
       endpointHost,
       httpStatus: response.status,
+      backendSource: backendConfig.source,
     });
 
     return transcriptResult;
@@ -726,14 +720,20 @@ export const transcribeGerman = async (
       audioExtension: uploadInfo.extension,
       audioMimeType: uploadInfo.type,
       endpointHost,
+      backendSource: backendConfig.source,
     });
+
+    const backendReachabilityFailed = reason === 'backend-unreachable' || reason === 'missing-backend-url' || reason.startsWith('health-');
 
     return {
       ...makeMockTranscription(audioUri, reason),
       audioExtension: uploadInfo.extension,
       audioMimeType: uploadInfo.type,
-      backendReachable: reason !== 'backend-unreachable',
+      backendReachable: !backendReachabilityFailed,
       endpointHost,
+      backendBaseUrl: backendUrl,
+      backendUrlSource: backendConfig.source,
+      backendErrorMessage: reason,
     };
   } finally {
     clearTimeout(timeout);

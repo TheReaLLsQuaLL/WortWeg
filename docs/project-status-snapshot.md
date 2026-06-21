@@ -15,7 +15,12 @@ This is the current single-source-of-truth snapshot for WortWeg planning.
 - Local backend supports AI chat and speech transcription for development.
 - First hosted backend smoke passed on Render at `https://wortweg.onrender.com`.
 - Hosted `/health` and `server:smoke` passed.
-- Phone hosted AI/speech result is not documented yet in this snapshot.
+- Phone hosted AI/speech smoke passed against Render:
+  - AI chat via hosted backend passed.
+  - Speaking correct sentence via hosted backend passed.
+  - Silence/no-voice behavior passed.
+  - Wrong speech low score/missing words passed.
+  - Backend error copy was skipped/not tested.
 - This is not a public launch.
 
 ## 2. Completed Product Features
@@ -26,7 +31,7 @@ This is the current single-source-of-truth snapshot for WortWeg planning.
 - Optional limited B1 preview.
 - AI teacher with lesson-aware suggestions.
 - Speaking practice.
-- Transcript-based Hybrid Speech Scoring v1.
+- Transcript-based Hybrid Speech Scoring v1. Current scoring checks transcript words, not accent quality, phoneme-level pronunciation, natural speed, fluency, or prosody; slow but word-correct speech can score 100.
 - Speaking Practice Library.
 - Speaking Practice Stats.
 - Home review dashboard.
@@ -54,8 +59,10 @@ This is the current single-source-of-truth snapshot for WortWeg planning.
 ## 4. Current Blockers
 
 - Hosted backend smoke passed on Render.
-- Phone hosted AI/speech result still needs to be documented before tester distribution.
-- Private alpha packaging/install path and tester distribution plan are not finalized.
+- Private alpha packaging/install path is not finalized.
+- Tester distribution/support process is not finalized.
+- Production start still depends on `tsx` from dev dependencies.
+- Backend error-copy phone check was skipped/not tested.
 - No external/private testers yet.
 - Final Wolli mascot asset is not ready.
 - Azure pronunciation assessment is not implemented.
@@ -74,14 +81,15 @@ This is the current single-source-of-truth snapshot for WortWeg planning.
 
 ## 6. Next Recommended Order
 
-1. Document hosted phone AI/speech result.
-2. Fix any hosted phone smoke bugs.
-3. Finalize packaging/install path and tester distribution plan.
-4. Continue production backend hardening if needed, including replacing the `tsx` runtime production start with compiled JS or another production-safe start.
-5. Optional Azure backend prototype behind feature flag.
-6. Wolli final mascot asset replacement.
-7. Private tester guide.
-8. Full B1 path planning.
+1. Finalize private build/install distribution path.
+2. Define tester distribution/support process.
+3. Replace the `tsx` runtime production start with compiled JS or another production-safe start.
+4. Optionally run backend error-copy phone check.
+5. Continue production backend hardening and monitoring.
+6. Optional Azure backend prototype behind feature flag for nuanced pronunciation assessment.
+7. Wolli final mascot asset replacement.
+8. Private tester guide.
+9. Full B1 path planning.
 
 ## 7. Useful Commands
 
@@ -103,5 +111,6 @@ git status --short
   - 288 exercises
   - 288 vocabulary items
 - Hosted backend smoke passed on Render at `https://wortweg.onrender.com`.
-- Phone hosted AI/speech result is still pending in docs.
+- Phone hosted AI/speech smoke passed against Render.
 - Public launch is not ready.
+- Current speaking score is transcript-based; nuanced pronunciation scoring is future Azure prototype work, not implemented.

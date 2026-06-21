@@ -11,6 +11,7 @@ import type {
   WritingGradeInput,
 } from '../types/ai';
 import { estimateWritingScore } from '../lib/scoring';
+import { buildBackendUrl, getBackendConfig } from '../config/backend';
 import { trackLocalEvent } from './localEventLog';
 
 type AiBackendMode =
@@ -54,6 +55,7 @@ type AiBackendFallbackReason = {
     | 'invalid-response'
     | 'timeout';
   backendUrl?: string;
+  backendSource?: string;
   endpoint?: string;
   status?: number;
   errorMessage?: string;
@@ -93,9 +95,6 @@ const logAiDebug = (
 
   console.log('[WortWeg AI]', message, details ?? {});
 };
-
-const getAiBackendUrl = () =>
-  process.env.EXPO_PUBLIC_AI_BACKEND_URL?.trim() || '';
 
 const normalizeTeacherIntentText = (text: string) =>
   text.toLocaleLowerCase('tr-TR');
@@ -299,20 +298,22 @@ const requestAiTeacher = async (
     };
   },
 ): Promise<AiBackendRequestResult> => {
-  const baseUrl = getAiBackendUrl();
+  const backendConfig = getBackendConfig();
+  const baseUrl = backendConfig.baseUrl;
   const timeoutMs = getAiTimeoutMs();
 
   if (!baseUrl) {
     const fallbackReason: AiBackendFallbackReason = {
       mode,
       reason: 'missing-backend-url',
+      backendSource: backendConfig.source,
       timeoutMs,
     };
     logAiDebug('Local response used', fallbackReason);
     return { response: null, fallbackReason };
   }
 
-  const endpoint = `${baseUrl.replace(/\/$/, '')}/ai/teacher`;
+  const endpoint = buildBackendUrl('/ai/teacher');
   const controller = new AbortController();
   const startTime = Date.now();
   let timedOut = false;
@@ -321,7 +322,7 @@ const requestAiTeacher = async (
     controller.abort();
   }, timeoutMs);
 
-  logAiDebug('Calling backend', { backendUrl: baseUrl, endpoint, mode, timeoutMs });
+  logAiDebug('Calling backend', { backendUrl: baseUrl, backendSource: backendConfig.source, endpoint, mode, timeoutMs });
 
   try {
     const response = await fetch(endpoint, {
@@ -356,6 +357,7 @@ const requestAiTeacher = async (
         mode,
         reason: 'http-error',
         backendUrl: baseUrl,
+        backendSource: backendConfig.source,
         endpoint,
         status: response.status,
         timeoutMs,
@@ -372,6 +374,7 @@ const requestAiTeacher = async (
         mode,
         reason: 'invalid-response',
         backendUrl: baseUrl,
+        backendSource: backendConfig.source,
         endpoint,
         status: response.status,
         timeoutMs,
@@ -399,6 +402,7 @@ const requestAiTeacher = async (
       mode,
       reason: isTimeout ? 'timeout' : 'fetch-failed',
       backendUrl: baseUrl,
+      backendSource: backendConfig.source,
       endpoint,
       errorMessage,
       timeoutMs,

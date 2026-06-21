@@ -8,6 +8,7 @@ import { AppScrollView, Screen } from '../components/layout';
 import { HalftoneAccent } from '../components/HalftoneAccent';
 import { SpeakerButton } from '../components/SpeakerButton';
 import { colors, radius, shadows, spacing, typography } from '../data/theme';
+import { getBackendDebugInfo } from '../config/backend';
 import { getSpeakingPromptById, speakingPromptsA1, type SpeakingPrompt } from '../data/speaking.a1';
 import type { CommitUserState, RootNavigation, RootStackParamList } from '../navigation/AppNavigator';
 import {
@@ -74,6 +75,8 @@ type SpeechDebugState = {
   backendReachable?: boolean;
   endpointHost: string;
   httpStatus?: number;
+  backendBaseUrl: string;
+  backendUrlSource: string;
 };
 
 const MIN_RECORDING_MS = 500;
@@ -115,6 +118,16 @@ const formatDebugNumber = (value: number | undefined, digits = 1) => {
   }
 
   return value.toFixed(digits);
+};
+
+const getBackendDebugPatch = (): Pick<SpeechDebugState, 'backendBaseUrl' | 'backendUrlSource' | 'endpointHost'> => {
+  const info = getBackendDebugInfo();
+
+  return {
+    backendBaseUrl: info.backendBaseUrl,
+    backendUrlSource: info.backendSource,
+    endpointHost: info.backendHost,
+  };
 };
 
 const getVoiceEvidenceDebugPatch = (
@@ -228,8 +241,10 @@ export function SpeakingPracticeScreen({ navigation, onUpdateState, route }: Spe
     transcriptLength: 0,
     lastError: '',
     backendReachable: undefined as boolean | undefined,
-    endpointHost: '',
+    endpointHost: getBackendDebugInfo().backendHost,
     httpStatus: undefined as number | undefined,
+    backendBaseUrl: getBackendDebugInfo().backendBaseUrl,
+    backendUrlSource: getBackendDebugInfo().backendSource,
   });
   const durationTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const replayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -538,8 +553,8 @@ export function SpeakingPracticeScreen({ navigation, onUpdateState, route }: Spe
       transcriptLength: 0,
       lastError: '',
       backendReachable: undefined,
-      endpointHost: '',
       httpStatus: undefined,
+      ...getBackendDebugPatch(),
     });
     clearReplayTimer();
     clearAnalysisTimer();
@@ -558,6 +573,7 @@ export function SpeakingPracticeScreen({ navigation, onUpdateState, route }: Spe
       hasTranscript: false,
       transcriptLength: 0,
       lastError: '',
+      ...getBackendDebugPatch(),
     });
 
     if (!recording.voiceEvidence?.shouldUpload) {
@@ -586,6 +602,7 @@ export function SpeakingPracticeScreen({ navigation, onUpdateState, route }: Spe
         audioMimeType: nextTranscriptionResult.audioMimeType,
         backendReachable: nextTranscriptionResult.backendReachable,
         httpStatus: nextTranscriptionResult.httpStatus,
+        backendSource: nextTranscriptionResult.backendUrlSource,
       });
       updateSpeechDebug({
         lastStage: 'transcription returned',
@@ -596,8 +613,10 @@ export function SpeakingPracticeScreen({ navigation, onUpdateState, route }: Spe
         hasTranscript: Boolean(nextTranscriptionResult.transcript),
         transcriptLength: nextTranscriptionResult.transcript.length,
         backendReachable: nextTranscriptionResult.backendReachable,
-        endpointHost: nextTranscriptionResult.endpointHost ?? '',
+        endpointHost: nextTranscriptionResult.endpointHost ?? getBackendDebugInfo().backendHost,
         httpStatus: nextTranscriptionResult.httpStatus,
+        backendBaseUrl: nextTranscriptionResult.backendBaseUrl ?? getBackendDebugInfo().backendBaseUrl,
+        backendUrlSource: nextTranscriptionResult.backendUrlSource ?? getBackendDebugInfo().backendSource,
       });
 
       const transcriptionIssue = getTranscriptionIssue(nextTranscriptionResult);
@@ -1240,6 +1259,8 @@ function SpeechDebugPanel({
           <DebugRow label="rangeDb" value={debug.voiceMeteringRange || '-'} />
           <DebugRow label="extension" value={debug.audioExtension || '-'} />
           <DebugRow label="mime" value={debug.audioMimeType || '-'} />
+          <DebugRow label="backendUrl" value={debug.backendBaseUrl || '-'} />
+          <DebugRow label="backendSource" value={debug.backendUrlSource || '-'} />
           <DebugRow label="backend" value={debug.backendReachable === undefined ? '-' : String(debug.backendReachable)} />
           <DebugRow label="http" value={debug.httpStatus === undefined ? '-' : String(debug.httpStatus)} />
           <DebugRow label="fallback" value={String(debug.fallback)} />

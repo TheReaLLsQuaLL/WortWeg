@@ -15,6 +15,7 @@ This document plans a future backend-only Azure Pronunciation Assessment prototy
   - kelime sırası when simple and reliable
   - tekrar önerisi
 - There is no phoneme-level or provider pronunciation scoring yet.
+- Current transcript-based scoring can give 100 for slow but word-correct speech. It does not score accent quality, natural speed, fluency, prosody, or rhythm.
 - Provider, model, endpoint, and network details must never be visible to normal users.
 - Raw transcripts and `audioUri` must not be written to analytics or local event logs.
 - `.env` is local, ignored/untracked, and must not be committed.
@@ -25,6 +26,7 @@ Azure Pronunciation Assessment may be useful later if it adds feedback that tran
 
 - pronunciation assessment beyond text matching
 - accuracy, fluency, and completeness signals
+- a future way to distinguish word-correct but very slow speech from more natural pronunciation, if provider feedback proves reliable
 - word-level feedback if it is reliable for short German learner sentences
 - future Turkish-speaker German pronunciation tips for sounds such as `ch`, `r`, `ü/ö/ä`, and word stress
 

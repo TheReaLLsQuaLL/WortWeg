@@ -11,6 +11,7 @@ import { TopBar } from '../components/TopBar';
 import { ALPHA_BUILD_DATE, APP_NAME, APP_VERSION } from '../data/constants';
 import { getLessonById, getPlayableLessonsForPlan } from '../data/lessons';
 import { colors, radius, shadows, spacing, typography } from '../data/theme';
+import { checkBackendHealth, getBackendConfig, getBackendHost } from '../config/backend';
 import { getKnownReviewCardCount, getReviewCoverage } from '../lib/srs';
 import { shouldShowOnboarding } from '../lib/storage';
 import type { CommitUserState, RootNavigation } from '../navigation/AppNavigator';
@@ -25,20 +26,6 @@ type ProfileScreenProps = {
 };
 
 type BackendStatus = 'checking' | 'reachable' | 'unreachable' | 'not_configured';
-
-const getBackendUrl = () => process.env.EXPO_PUBLIC_AI_BACKEND_URL?.trim() ?? '';
-
-const getBackendHost = (backendUrl: string) => {
-  if (!backendUrl) {
-    return 'Ayarlı değil';
-  }
-
-  const withoutProtocol = backendUrl.replace(/^https?:\/\//, '');
-  const host = withoutProtocol.split('/')[0]?.split('?')[0] ?? '';
-  const safeHost = host.includes('@') ? host.split('@').pop() : host;
-
-  return safeHost || 'Ayarlı değil';
-};
 
 const backendStatusLabel: Record<BackendStatus, string> = {
   checking: 'kontrol ediliyor',
@@ -96,7 +83,8 @@ export function ProfileScreen({ navigation, userState, onUpdateState, onResetApp
 
     return [...groups, { lessonId: mistake.lessonId, title: lessonTitle, items: [mistake] }];
   }, []);
-  const backendUrl = getBackendUrl();
+  const backendConfig = getBackendConfig();
+  const backendUrl = backendConfig.baseUrl;
   const backendHost = getBackendHost(backendUrl);
   const currentLevel = userState.learningPlan?.currentLevel ?? userState.profile?.startLevel ?? 'A0';
   const badges = [
@@ -138,21 +126,16 @@ export function ProfileScreen({ navigation, userState, onUpdateState, onResetApp
         setBackendStatus('checking');
       }
 
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 2500);
-
       try {
-        const response = await fetch(backendUrl.replace(/\/+$/, '') + '/health', { signal: controller.signal });
+        const health = await checkBackendHealth(2500);
 
         if (mounted) {
-          setBackendStatus(response.ok ? 'reachable' : 'unreachable');
+          setBackendStatus(health.ok ? 'reachable' : 'unreachable');
         }
       } catch {
         if (mounted) {
           setBackendStatus('unreachable');
         }
-      } finally {
-        clearTimeout(timeout);
       }
     };
 

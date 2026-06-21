@@ -124,7 +124,7 @@ Backend smoke remains optional and requires an already-running backend:
 npm run quality:backend
 ```
 
-First Render hosted backend smoke passed at `https://wortweg.onrender.com`, but this is not a public launch. Hosted phone AI/speech still needs a documented result before tester distribution.
+First Render hosted backend smoke and phone hosted AI/speech smoke passed at `https://wortweg.onrender.com`, but this is not a public launch. Private build/install distribution and tester support still need to be finalized before inviting testers.
 
 ## Current MVP Behavior
 
@@ -226,7 +226,7 @@ WortWeg speaking practice now sends recorded audio through the secure backend fo
 mobile recording -> WortWeg backend -> OpenAI transcription -> backend response -> mobile transcript
 ```
 
-The mobile app never calls OpenAI directly and never contains `OPENAI_API_KEY`. After transcription, the app compares the transcript with the target sentence; real phonetic pronunciation scoring is not connected yet. Uploaded audio is handled as a temporary backend file and is deleted after transcription/fallback.
+The mobile app never calls OpenAI directly and never contains `OPENAI_API_KEY`. After transcription, the app compares the transcript with the target sentence; real phonetic pronunciation scoring is not connected yet. Current scoring can detect silence/no voice, real speech, expected words, and wrong/missing/extra words, but it does not score accent quality, phoneme-level pronunciation, natural speed, fluency, prosody, or rhythm. Slow but word-correct speech can score 100 in this transcript-based version. Uploaded audio is handled as a temporary backend file and is deleted after transcription/fallback.
 
 Backend `.env` values:
 
@@ -274,7 +274,7 @@ curl https://wortweg.onrender.com/health
 BACKEND_SMOKE_URL=https://wortweg.onrender.com npm run server:smoke
 ```
 
-Both passed for the first Render Web Service smoke. The Render build command currently uses `npm install --include=dev` because `server:start` depends on `tsx`, which is in dev dependencies. Replace this with compiled JS or another production-safe start before broader private alpha backend use.
+Both passed for the first Render Web Service smoke. Phone hosted AI/speech also passed for AI chat, correct-sentence speaking, silence/no-voice, and wrong-speech low-score behavior; backend error-copy testing was skipped. The Render build command currently uses `npm install --include=dev` because `server:start` depends on `tsx`, which is in dev dependencies. Replace this with compiled JS or another production-safe start before broader private alpha backend use.
 
 To force the rate-limit check, start a temporary backend with low rate-limit env values and run:
 
@@ -418,9 +418,10 @@ Limitations:
 
 - transcription requires the local backend and server-side `OPENAI_API_KEY`; otherwise it falls back to a local transcript estimate
 - real phonetic pronunciation scoring is not connected yet
+- slow but word-correct speech can score 100 because current feedback is transcript-based
 - no paid speech API keys are used in the mobile app
 
-Next step for speech: document hosted phone AI/speech results against the Render backend, keep the OpenAI STT path stable, and plan any Azure Pronunciation Assessment work only as a backend-only feature-flagged prototype. See `docs/azure-pronunciation-prototype.md`.
+Next step for speech: keep the OpenAI STT path stable, treat transcript-based scoring limits as expected behavior, and plan any nuanced pronunciation assessment only as a backend-only Azure feature-flagged prototype. See `docs/azure-pronunciation-prototype.md`.
 
 ## Azure Pronunciation Assessment Later
 
