@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, PanResponder, Platform, Pressable, StyleSheet, Text, View, type GestureResponderEvent } from 'react-native';
-import type { RouteProp } from '@react-navigation/native';
+import { useFocusEffect, type RouteProp } from '@react-navigation/native';
 import { ArrowLeft, CheckCircle2, Mic, MicOff, Play, RotateCcw, Trash2, WifiOff } from 'lucide-react-native';
 
 import { AppButton } from '../components/AppButton';
@@ -13,6 +13,7 @@ import type { CommitUserState, RootNavigation, RootStackParamList } from '../nav
 import {
   cleanupRecording,
   getActiveRecordingStatus,
+  getMicrophonePermission,
   replayRecording,
   requestMicrophonePermission,
   scorePronunciation,
@@ -38,6 +39,7 @@ type SpeakingPracticeScreenProps = {
 type PracticeStatus =
   | 'idle'
   | 'requestingPermission'
+  | 'permissionDenied'
   | 'recording'
   | 'cancelArmed'
   | 'cancelling'
@@ -54,6 +56,10 @@ type ActivePrompt = SpeakingPrompt & { id: string };
 type SpeechDebugState = {
   lastStage: string;
   durationMs: number;
+  voiceEvidenceLevel: string;
+  voiceEvidenceReason: string;
+  voiceSampleCount: number;
+  voiceAboveThresholdCount: number;
   audioExtension: string;
   audioMimeType: string;
   provider: string;
@@ -91,6 +97,12 @@ const getPermissionText = (permission: MicrophonePermissionResult | null) => {
   return permission.canAskAgain
     ? 'Mikrofon izni gerekli.'
     : 'Mikrofon izni kapalı. Telefon ayarlarından izin ver.';
+};
+
+const isUndeterminedPermission = (permission: MicrophonePermissionResult) => {
+  const status = permission.status.toLocaleLowerCase('en-US');
+
+  return status === 'undetermined' || status === 'not_determined' || status === 'not-determined';
 };
 
 const getResultTitle = (result: PronunciationScore) => {
@@ -173,6 +185,10 @@ export function SpeakingPracticeScreen({ navigation, onUpdateState, route }: Spe
   const [speechDebug, setSpeechDebug] = useState<SpeechDebugState>({
     lastStage: 'idle',
     durationMs: 0,
+    voiceEvidenceLevel: '',
+    voiceEvidenceReason: '',
+    voiceSampleCount: 0,
+    voiceAboveThresholdCount: 0,
     audioExtension: '',
     audioMimeType: '',
     provider: '',
@@ -187,6 +203,8 @@ export function SpeakingPracticeScreen({ navigation, onUpdateState, route }: Spe
   const durationTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const replayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const analysisTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const permissionRequestRef = useRef<Promise<MicrophonePermissionResult | null> | null>(null);
+  const autoPermissionRequestedRef = useRef(false);
   const actionLockedRef = useRef(false);
   const releasePendingRef = useRef(false);
   const pressStartedAtRef = useRef(0);
@@ -228,7 +246,8 @@ export function SpeakingPracticeScreen({ navigation, onUpdateState, route }: Spe
     ? 'Konuşma pratiği · ' + progressText
     : 'A1 konuşma pratiği · ' + progressText;
   const busyStatuses: PracticeStatus[] = ['requestingPermission', 'recording', 'cancelArmed', 'cancelling', 'stopping', 'analyzing'];
-  const canPressRecord = !busyStatuses.includes(status);
+  const hasMicrophonePermission = permission?.granted === true;
+  const canPressRecord = !busyStatuses.includes(status) && hasMicrophonePermission;
   const canReplay = Boolean(audioUri) && !busyStatuses.includes(status);
   const canMovePrompt = !route.params?.expectedText && !busyStatuses.includes(status);
 
@@ -273,7 +292,7 @@ export function SpeakingPracticeScreen({ navigation, onUpdateState, route }: Spe
     statusRef.current = nextStatus;
     updateSpeechDebug({ lastStage: 'state:' + nextStatus });
 
-    if (__DEV__ && ['error', 'idle', 'requestingPermission', 'recording', 'analyzing', 'tooShort', 'noVoice'].includes(nextStatus)) {
+    if (__DEV__ && ['error', 'idle', 'requestingPermission', 'permissionDenied', 'recording', 'analyzing', 'tooShort', 'noVoice'].includes(nextStatus)) {
       setSpeechDebugExpanded(false);
     }
 
@@ -288,6 +307,92 @@ export function SpeakingPracticeScreen({ navigation, onUpdateState, route }: Spe
     }
   };
 
+  const ensureMicrophonePermission = useCallback(async (mode: 'auto' | 'manual' = 'auto') => {
+    if (permissionRequestRef.current) {
+      return permissionRequestRef.current;
+    }
+
+    setSafeErrorMessage(null);
+    setSafeStatus('requestingPermission');
+    updateSpeechDebug({ lastStage: 'permission:checking', lastError: '' });
+
+    const permissionRequest = (async () => {
+      try {
+        const currentPermission = await getMicrophonePermission();
+        const shouldRequest = !currentPermission.granted && (
+          mode === 'manual'
+            ? currentPermission.canAskAgain || isUndeterminedPermission(currentPermission)
+            : !autoPermissionRequestedRef.current && (
+              currentPermission.canAskAgain || isUndeterminedPermission(currentPermission)
+            )
+        );
+
+        if (mode === 'auto' && shouldRequest) {
+          autoPermissionRequestedRef.current = true;
+        }
+
+        const nextPermission = shouldRequest
+          ? await requestMicrophonePermission()
+          : currentPermission;
+
+        if (!mountedRef.current) {
+          return nextPermission;
+        }
+
+        setPermission(nextPermission);
+
+        if (nextPermission.granted) {
+          updateSpeechDebug({ lastStage: 'permission:granted' });
+          setSafeStatus('idle');
+          return nextPermission;
+        }
+
+        updateSpeechDebug({ lastStage: 'permission:denied' });
+        setSafeStatus('permissionDenied');
+        return nextPermission;
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'permission failed';
+
+        if (mountedRef.current) {
+          updateSpeechDebug({ lastStage: 'permission:error', lastError: message });
+          setPermission({ granted: false, status: 'error', canAskAgain: true });
+          setSafeStatus('permissionDenied');
+        }
+
+        return null;
+      } finally {
+        permissionRequestRef.current = null;
+      }
+    })();
+
+    permissionRequestRef.current = permissionRequest;
+    return permissionRequest;
+  }, [source]);
+
+  const showNoVoiceResult = (recordingDurationMs: number) => {
+    if (!mountedRef.current) {
+      return;
+    }
+
+    setAudioUri(null);
+    setTranscriptionResult(null);
+    setPronunciationResult(null);
+    setSafeErrorMessage(null);
+    logSpeechUiDebug('analysis state resolved', { state: 'noVoice', platform: Platform.OS, durationMs: recordingDurationMs });
+    updateSpeechDebug({ lastStage: 'resolved:noVoice' });
+    setSafeStatus('noVoice');
+    trackLocalEvent({
+      type: 'speaking_no_voice_detected',
+      screen: 'SpeakingPractice',
+      metadata: {
+        source,
+        durationMs: recordingDurationMs,
+        platform: Platform.OS,
+      },
+      severity: 'warning',
+    });
+  };
+
   useEffect(() => {
     trackLocalEvent({
       type: 'speaking_opened',
@@ -295,6 +400,13 @@ export function SpeakingPracticeScreen({ navigation, onUpdateState, route }: Spe
       metadata: { source },
     });
   }, [source]);
+
+  useFocusEffect(
+    useCallback(() => {
+      void ensureMicrophonePermission('auto');
+      return undefined;
+    }, [ensureMicrophonePermission]),
+  );
 
   useEffect(() => {
     if (status !== 'recording' && status !== 'cancelArmed') {
@@ -379,6 +491,10 @@ export function SpeakingPracticeScreen({ navigation, onUpdateState, route }: Spe
     updateSpeechDebug({
       lastStage: 'idle',
       durationMs: 0,
+      voiceEvidenceLevel: '',
+      voiceEvidenceReason: '',
+      voiceSampleCount: 0,
+      voiceAboveThresholdCount: 0,
       audioExtension: '',
       audioMimeType: '',
       provider: '',
@@ -404,10 +520,21 @@ export function SpeakingPracticeScreen({ navigation, onUpdateState, route }: Spe
     updateSpeechDebug({
       lastStage: 'analysis started',
       durationMs: recording.durationMs,
+      voiceEvidenceLevel: recording.voiceEvidence?.evidenceLevel ?? '',
+      voiceEvidenceReason: recording.voiceEvidence?.reason ?? '',
+      voiceSampleCount: recording.voiceEvidence?.sampleCount ?? 0,
+      voiceAboveThresholdCount: recording.voiceEvidence?.aboveThresholdCount ?? 0,
       hasTranscript: false,
       transcriptLength: 0,
       lastError: '',
     });
+
+    if (!recording.voiceEvidence?.shouldUpload) {
+      updateSpeechDebug({ lastStage: 'resolved:noVoice:local' });
+      showNoVoiceResult(recording.durationMs);
+      return;
+    }
+
     setSafeStatus('analyzing');
     trackLocalEvent({
       type: 'speech_analysis_started',
@@ -454,20 +581,7 @@ export function SpeakingPracticeScreen({ navigation, onUpdateState, route }: Spe
         setPronunciationResult(null);
 
         if (transcriptionIssue === 'noVoice') {
-          setSafeErrorMessage(null);
-          logSpeechUiDebug('analysis state resolved', { state: 'noVoice', platform: Platform.OS });
-          updateSpeechDebug({ lastStage: 'resolved:noVoice' });
-          setSafeStatus('noVoice');
-          trackLocalEvent({
-            type: 'speaking_no_voice_detected',
-            screen: 'SpeakingPractice',
-            metadata: {
-              source,
-              durationMs: recording.durationMs,
-              platform: Platform.OS,
-            },
-            severity: 'warning',
-          });
+          showNoVoiceResult(recording.durationMs);
           return;
         }
 
@@ -501,23 +615,7 @@ export function SpeakingPracticeScreen({ navigation, onUpdateState, route }: Spe
         nextPronunciationResult.feedbackLevel === 'noSpeech' ||
         nextPronunciationResult.comparison.normalizedTranscriptWords.length === 0
       ) {
-        setAudioUri(null);
-        setTranscriptionResult(null);
-        setPronunciationResult(null);
-        setSafeErrorMessage(null);
-        logSpeechUiDebug('analysis state resolved', { state: 'noVoice', platform: Platform.OS });
-        updateSpeechDebug({ lastStage: 'resolved:noVoice' });
-        setSafeStatus('noVoice');
-        trackLocalEvent({
-          type: 'speaking_no_voice_detected',
-          screen: 'SpeakingPractice',
-          metadata: {
-            source,
-            durationMs: recording.durationMs,
-            platform: Platform.OS,
-          },
-          severity: 'warning',
-        });
+        showNoVoiceResult(recording.durationMs);
         return;
       }
 
@@ -582,7 +680,6 @@ export function SpeakingPracticeScreen({ navigation, onUpdateState, route }: Spe
     pressStartPageXRef.current = event.nativeEvent.pageX;
     clearDurationTimer();
     clearFeedback();
-    setSafeStatus('requestingPermission');
     trackLocalEvent({
       type: 'speaking_press_started',
       screen: 'SpeakingPractice',
@@ -590,21 +687,15 @@ export function SpeakingPracticeScreen({ navigation, onUpdateState, route }: Spe
     });
 
     try {
-      const nextPermission = await requestMicrophonePermission();
+      if (!permission?.granted) {
+        const nextPermission = await ensureMicrophonePermission('manual');
 
-      if (!mountedRef.current) {
-        return;
+        if (!nextPermission?.granted) {
+          return;
+        }
       }
 
-      setPermission(nextPermission);
-
-      if (!nextPermission.granted) {
-        setSafeErrorMessage(
-          nextPermission.canAskAgain
-            ? 'Mikrofon izni olmadan kayıt alamıyoruz. Lütfen izin ver.'
-            : 'Mikrofon izni kapalı. Telefon ayarlarından WortWeg için mikrofon iznini aç.',
-        );
-        setSafeStatus('error');
+      if (!mountedRef.current) {
         return;
       }
 
@@ -767,6 +858,12 @@ export function SpeakingPracticeScreen({ navigation, onUpdateState, route }: Spe
         return;
       }
 
+      if (!recording.voiceEvidence?.shouldUpload) {
+        setDurationMs(0);
+        showNoVoiceResult(finalDurationMs);
+        return;
+      }
+
       setAudioUri(recording.uri);
       setDurationMs(finalDurationMs);
       setSafeStatus('recorded');
@@ -904,6 +1001,10 @@ export function SpeakingPracticeScreen({ navigation, onUpdateState, route }: Spe
       return 'Sesini duyamadık';
     }
 
+    if (status === 'permissionDenied') {
+      return 'Mikrofon izni gerekli';
+    }
+
     return 'Basılı tut ve söyle';
   })();
 
@@ -936,9 +1037,13 @@ export function SpeakingPracticeScreen({ navigation, onUpdateState, route }: Spe
       return 'Mikrofona biraz daha yakın konuşup tekrar dene.';
     }
 
+    if (status === 'permissionDenied') {
+      return 'Konuşma pratiği için mikrofon izni vermelisin.';
+    }
+
     return 'Cümleyi sakin ve net oku.';
   })();
-  const showRecorderIntro = status !== 'noVoice' && status !== 'error' && status !== 'tooShort';
+  const showRecorderIntro = status !== 'noVoice' && status !== 'error' && status !== 'tooShort' && status !== 'permissionDenied';
 
   return (
     <Screen backgroundColor={colors.lavenderBackground}>
@@ -983,7 +1088,9 @@ export function SpeakingPracticeScreen({ navigation, onUpdateState, route }: Spe
             </>
           ) : null}
 
-          {status === 'noVoice' ? (
+          {status === 'permissionDenied' ? (
+            <PermissionState onRetry={() => void ensureMicrophonePermission('manual')} permission={permission} />
+          ) : status === 'noVoice' ? (
             <NoVoiceState onRetry={retryCurrentPrompt} />
           ) : status === 'error' ? (
             <RetryState
@@ -1091,6 +1198,10 @@ function SpeechDebugPanel({
           <DebugRow label="state" value={status} />
           <DebugRow label="stage" value={debug.lastStage} />
           <DebugRow label="durationMs" value={String(Math.round(debug.durationMs || durationMs))} />
+          <DebugRow label="voiceLevel" value={debug.voiceEvidenceLevel || '-'} />
+          <DebugRow label="voiceReason" value={debug.voiceEvidenceReason || '-'} />
+          <DebugRow label="voiceSamples" value={String(debug.voiceSampleCount)} />
+          <DebugRow label="voiceAbove" value={String(debug.voiceAboveThresholdCount)} />
           <DebugRow label="extension" value={debug.audioExtension || '-'} />
           <DebugRow label="mime" value={debug.audioMimeType || '-'} />
           <DebugRow label="backend" value={debug.backendReachable === undefined ? '-' : String(debug.backendReachable)} />
@@ -1126,6 +1237,32 @@ function RetryState({ helper, onRetry, title }: { helper: string; onRetry: () =>
       <Text style={styles.retryTitle}>{title}</Text>
       <Text style={styles.retryBody}>{helper}</Text>
       <AppButton icon={RotateCcw} onPress={onRetry} title="Tekrar dene" />
+    </View>
+  );
+}
+
+function PermissionState({
+  onRetry,
+  permission,
+}: {
+  onRetry: () => void;
+  permission: MicrophonePermissionResult | null;
+}) {
+  const canAskAgain = permission?.canAskAgain !== false;
+
+  return (
+    <View style={styles.noVoiceBox}>
+      <HalftoneAccent color={colors.primaryPurple} opacity={0.08} size="small" style={styles.stateTexture} />
+      <View style={styles.noVoiceIcon}>
+        <MicOff color={colors.royalPurple} size={32} strokeWidth={2.8} />
+      </View>
+      <Text style={styles.noVoiceTitle}>Mikrofon izni gerekli</Text>
+      <Text style={styles.noVoiceBody}>
+        {canAskAgain
+          ? 'Konuşma pratiği için mikrofon izni vermelisin.'
+          : 'Telefon ayarlarından WortWeg için mikrofon iznini aç.'}
+      </Text>
+      <AppButton icon={RotateCcw} onPress={onRetry} title={canAskAgain ? 'Tekrar izin iste' : 'Tekrar kontrol et'} />
     </View>
   );
 }

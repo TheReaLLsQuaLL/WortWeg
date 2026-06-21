@@ -2,6 +2,7 @@ import {
   AudioModule,
   RecordingPresets,
   createAudioPlayer,
+  getRecordingPermissionsAsync,
   requestRecordingPermissionsAsync,
   setAudioModeAsync,
   type AudioRecorder,
@@ -10,7 +11,10 @@ import { Platform } from 'react-native';
 
 import { inferAudioUploadInfo } from '../lib/audioUpload';
 import { compareTranscripts, type TranscriptComparison } from '../lib/transcriptCompare';
+import { analyzeRecordingVoiceEvidence, type RecordingVoiceEvidence } from '../lib/voiceGate';
 import { trackLocalEvent } from './localEventLog';
+
+export { analyzeRecordingVoiceEvidence, type RecordingVoiceEvidence } from '../lib/voiceGate';
 
 export type MicrophonePermissionResult = {
   granted: boolean;
@@ -21,6 +25,7 @@ export type MicrophonePermissionResult = {
 export type RecordingResult = {
   uri: string;
   durationMs: number;
+  voiceEvidence?: RecordingVoiceEvidence;
 };
 
 export type TranscriptionResult = {
@@ -94,11 +99,20 @@ export type PronunciationScore = {
 type RecorderStatusSnapshot = {
   isRecording: boolean;
   durationMs: number;
+  metering?: number;
 };
 
 let activeRecorder: AudioRecorder | null = null;
 let activeStopPromise: Promise<RecordingResult> | null = null;
 let isStarting = false;
+
+type VoiceEvidenceAccumulator = {
+  meteringSamples: number[];
+};
+
+let activeVoiceEvidence: VoiceEvidenceAccumulator = {
+  meteringSamples: [],
+};
 
 const wait = (ms: number) =>
   new Promise<void>((resolve) => {
@@ -107,6 +121,10 @@ const wait = (ms: number) =>
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
 const DEFAULT_SPEECH_TIMEOUT_MS = 45_000;
+const HIGH_QUALITY_WITH_METERING = {
+  ...RecordingPresets.HIGH_QUALITY,
+  isMeteringEnabled: true,
+};
 
 const getSpeechBackendUrl = () =>
   process.env.EXPO_PUBLIC_AI_BACKEND_URL?.trim() || '';
@@ -255,10 +273,47 @@ const releaseRecorder = (recorder: AudioRecorder | null) => {
   }
 };
 
+const resetVoiceEvidence = () => {
+  activeVoiceEvidence = {
+    meteringSamples: [],
+  };
+};
+
+const updateVoiceEvidence = (metering: unknown) => {
+  if (typeof metering !== 'number' || !Number.isFinite(metering)) {
+    return;
+  }
+
+  activeVoiceEvidence.meteringSamples.push(metering);
+};
+
+const getVoiceEvidence = (durationMs: number): RecordingVoiceEvidence => {
+  return analyzeRecordingVoiceEvidence({
+    durationMs,
+    meteringSamples: activeVoiceEvidence.meteringSamples,
+  });
+};
+
 const createRecorder = () => {
-  const recorder = new AudioModule.AudioRecorder(RecordingPresets.HIGH_QUALITY);
+  const recorder = new AudioModule.AudioRecorder(HIGH_QUALITY_WITH_METERING);
   logAndroidAudio('recorder created', { id: getRecorderLogId(recorder) });
   return recorder;
+};
+
+export const getMicrophonePermission = async (): Promise<MicrophonePermissionResult> => {
+  const permission = await getRecordingPermissionsAsync();
+
+  logAndroidAudio('permission state', {
+    status: permission.status,
+    granted: permission.granted,
+    canAskAgain: permission.canAskAgain,
+  });
+
+  return {
+    granted: permission.granted,
+    status: permission.status,
+    canAskAgain: permission.canAskAgain,
+  };
 };
 
 export const requestMicrophonePermission = async (): Promise<MicrophonePermissionResult> => {
@@ -291,6 +346,7 @@ export const startRecording = async (): Promise<void> => {
 
   try {
     await setRecordingMode();
+    resetVoiceEvidence();
     recorder = createRecorder();
     await recorder.prepareToRecordAsync();
     recorder.record();
@@ -317,9 +373,11 @@ export const getActiveRecordingStatus = (): RecorderStatusSnapshot => {
 
   try {
     const status = recorder.getStatus();
+    updateVoiceEvidence(status.metering);
     return {
       isRecording: status.isRecording,
       durationMs: status.durationMillis,
+      metering: status.metering,
     };
   } catch (error) {
     logAndroidAudio('status read error', {
@@ -349,6 +407,7 @@ export const stopRecording = async (): Promise<RecordingResult> => {
 
     try {
       const statusBeforeStop = recorder.getStatus();
+      updateVoiceEvidence(statusBeforeStop.metering);
       const stopResult = (await recorder.stop()) as unknown as {
         durationMillis?: number;
         url?: string | null;
@@ -356,6 +415,7 @@ export const stopRecording = async (): Promise<RecordingResult> => {
       const uri = stopResult?.url ?? statusBeforeStop.url ?? '';
       const durationMs =
         stopResult?.durationMillis ?? statusBeforeStop.durationMillis ?? 0;
+      const voiceEvidence = getVoiceEvidence(durationMs);
 
       if (!uri) {
         throw new Error('Recording finished but no audio file URI was returned.');
@@ -365,9 +425,14 @@ export const stopRecording = async (): Promise<RecordingResult> => {
         id: recorderId,
         durationMs,
         hasAudioUri: Boolean(uri),
+        evidenceLevel: voiceEvidence.evidenceLevel,
+        reason: voiceEvidence.reason,
+        shouldUpload: voiceEvidence.shouldUpload,
+        sampleCount: voiceEvidence.sampleCount,
+        aboveThresholdCount: voiceEvidence.aboveThresholdCount,
       });
 
-      return { uri, durationMs };
+      return { uri, durationMs, voiceEvidence };
     } catch (error) {
       logAndroidAudio('stop error', {
         id: recorderId,
@@ -546,11 +611,6 @@ export const transcribeGerman = async (
       type: uploadInfo.type,
     } as unknown as Blob);
     formData.append('language', 'de');
-
-    if (expectedText?.trim()) {
-      formData.append('expectedText', expectedText.trim());
-      formData.append('prompt', expectedText.trim());
-    }
 
     const response = await fetch(endpoint, {
       method: 'POST',
