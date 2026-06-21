@@ -38,10 +38,10 @@ Findings:
 - UI style: light.
 - No committed native `ios/` or `android/` folders.
 - No `app.config.ts` or `app.config.js` is currently used.
-- `assets/` is currently empty.
-- No app icon path is configured.
-- No splash image is configured.
-- Android adaptive icon only has a background color and no foreground image.
+- Temporary private-alpha assets are present in `assets/`.
+- `expo.icon` is configured as `./assets/icon.png` using a temporary private-alpha asset.
+- `expo.splash.image` is configured as `./assets/splash.png` using a temporary private-alpha asset.
+- Android adaptive icon has `foregroundImage` set to `./assets/adaptive-icon.png` and background color `#1E1B3A`.
 - iOS microphone copy exists at `ios.infoPlist.NSMicrophoneUsageDescription`.
 - Expo Audio plugin microphone copy exists at `plugins.expo-audio.microphonePermission`.
 - iOS `bundleIdentifier` is configured as `com.toprakyildiz.wortweg`.
@@ -124,17 +124,21 @@ Treat these as stable unless there is a deliberate product/account reason to cha
 
 ## 7. Icon / Splash Asset Readiness
 
-Current status: not ready.
+Current status: temporary private-alpha assets are present and referenced by `app.json`.
 
-Needed before a credible private build:
+Ready for first internal preview smoke:
 
-- App icon file.
-- Splash image or intentionally simple splash config.
-- Android adaptive icon foreground image.
-- Confirm assets are original and licensed for use.
-- Keep Wolli final mascot assets separate from app icon decisions unless explicitly approved.
+- `assets/icon.png` at 1024x1024.
+- `assets/adaptive-icon.png` at 1024x1024.
+- `assets/splash.png` at 1242x2436.
 
-A build could technically run with missing/placeholder assets, but it should not be sent to testers that way unless the limitation is intentional and documented.
+Still needed before broader tester distribution or final brand review:
+
+- Final app icon.
+- Final splash image or final splash configuration.
+- Final Android adaptive icon foreground/background review.
+- Final Wolli mascot asset pack if Wolli is used in brand surfaces.
+- Visual phone smoke on a built install package.
 
 ## 8. Tester Install Path
 
@@ -209,8 +213,8 @@ For iOS, do not run a build until Apple account, device registration/TestFlight 
 
 ## 13. Remaining Blockers
 
-- Add production-like icon/splash/adaptive icon assets.
-- Review `docs/app-asset-requirements.md` before adding asset paths to `app.json`.
+- Temporary private-alpha icon/splash/adaptive assets are present.
+- Final brand/Wolli icon and splash assets remain pending before broader tester distribution.
 - Confirm EAS account/project ownership and whether `owner`/`projectId` should be added.
 - Decide Android-only first build or both platforms.
 - Define tester distribution/support process.

@@ -1,6 +1,6 @@
 # WortWeg App Asset Requirements
 
-This document defines the app asset requirements for the first EAS preview build. It does not add final art, generate images, create credentials, or claim App Store / Play Store readiness.
+This document defines the app asset requirements for the first EAS preview build. It records the temporary private-alpha assets now in the repo and keeps final brand/Wolli assets as pending. It does not create credentials, native folders, or App Store / Play Store readiness claims.
 
 ## 1. Current Config Status
 
@@ -19,24 +19,46 @@ Current app identifiers:
 
 Current asset folder status:
 
-- `assets/` exists but has no committed asset files.
-- No final app icon is present.
-- No splash image is present.
-- No Android adaptive icon foreground image is present.
-- No Wolli final mascot asset is present.
+- `assets/icon.png` exists as a temporary private-alpha icon.
+- `assets/splash.png` exists as a temporary private-alpha splash image.
+- `assets/adaptive-icon.png` exists as a temporary private-alpha Android adaptive foreground.
+- No final Wolli mascot asset is present.
+- Final brand/store-quality assets are still pending.
 
 Current app config asset references:
 
 | Config field | Current value | Status |
 | --- | --- | --- |
-| `expo.icon` | Not set | Missing |
-| `expo.splash.image` | Not set | Missing |
-| `expo.android.adaptiveIcon.foregroundImage` | Not set | Missing |
-| `expo.android.adaptiveIcon.backgroundColor` | `#1E1B3A` | Present, but should be reviewed with final art |
+| `expo.icon` | `./assets/icon.png` | Temporary private-alpha asset present |
+| `expo.splash.image` | `./assets/splash.png` | Temporary private-alpha asset present |
+| `expo.android.adaptiveIcon.foregroundImage` | `./assets/adaptive-icon.png` | Temporary private-alpha asset present |
+| `expo.android.adaptiveIcon.backgroundColor` | `#1E1B3A` | Present, review with final art later |
 
-## 2. App Icon Requirement
+## 2. Temporary Asset Set
 
-Needed before tester distribution:
+The current assets are original code-generated placeholders for internal preview testing only:
+
+- `assets/icon.png`: 1024x1024 PNG.
+- `assets/adaptive-icon.png`: 1024x1024 PNG with transparent background/safe centered foreground.
+- `assets/splash.png`: 1242x2436 portrait PNG.
+
+Design direction:
+
+- Dark lavender/purple base.
+- Warm yellow comic-style `WW` wordmark.
+- Simple wordmark-only composition.
+- No mascot.
+- No external images or remote URLs.
+- No Stitch asset reuse.
+- No green owl, Duolingo-like owl, sheep, cat, wolf, or person mascot.
+
+These assets are acceptable for an internal preview build smoke test, but they are not final store or public-launch brand assets.
+
+## 3. App Icon Requirement
+
+Temporary status: present at `assets/icon.png`.
+
+Final asset still needed before broader tester distribution or any public launch claim:
 
 - Square app icon for Expo/EAS config.
 - Original WortWeg-branded artwork.
@@ -46,17 +68,11 @@ Needed before tester distribution:
 - No official exam/school logo implication.
 - Should work against iOS and Android launcher contexts.
 
-Recommended future path, not currently referenced:
+## 4. Splash Screen Requirement
 
-```text
-assets/icon.png
-```
+Temporary status: present at `assets/splash.png`.
 
-Do not add this path to `app.json` until an approved asset exists.
-
-## 3. Splash Screen Requirement
-
-Needed before tester distribution:
+Final asset/config still needed before broader tester distribution or any public launch claim:
 
 - Simple splash image or intentionally minimal splash configuration.
 - Consistent with WortWeg comic UI without a heavy redesign.
@@ -64,40 +80,18 @@ Needed before tester distribution:
 - Should not imply full B1/B2 availability.
 - Should not include official exam-provider names or certification claims.
 
-Recommended future path, not currently referenced:
+## 5. Android Adaptive Icon Requirement
 
-```text
-assets/splash.png
-```
+Temporary status: foreground present at `assets/adaptive-icon.png`; background color remains `#1E1B3A`.
 
-Do not add this path to `app.json` until an approved asset exists.
-
-## 4. Android Adaptive Icon Requirement
-
-Current config has only:
-
-```json
-"adaptiveIcon": {
-  "backgroundColor": "#1E1B3A"
-}
-```
-
-Needed before tester distribution:
+Final asset/config still needed before broader tester distribution or any public launch claim:
 
 - Adaptive icon foreground image with transparent background.
 - Background color reviewed against final foreground art.
 - Simple silhouette that remains readable when masked by Android launchers.
 - No remote images or generated placeholder references.
 
-Recommended future path, not currently referenced:
-
-```text
-assets/adaptive-icon.png
-```
-
-Do not add this path to `app.json` until an approved asset exists.
-
-## 5. Wolli Mascot Guidance
+## 6. Wolli Mascot Guidance
 
 Use the existing Wolli docs for final mascot direction:
 
@@ -121,9 +115,11 @@ Prohibited directions:
 - German eagle symbolism.
 - Official school/exam logos.
 
-## 6. Comic UI Style Fit
+The temporary assets intentionally do not use Wolli. Final Wolli assets remain a separate brand task.
 
-Future assets should fit the current WortWeg visual system:
+## 7. Comic UI Style Fit
+
+Future final assets should fit the current WortWeg visual system:
 
 - Bold ink outlines around 2px.
 - Sticker-like shadows.
@@ -133,26 +129,26 @@ Future assets should fit the current WortWeg visual system:
 - Readable on small Android screens.
 - Transparent-background variants where useful.
 
-## 7. Ready vs Missing
+## 8. Ready vs Missing
 
-Ready now:
+Ready now for a first internal preview smoke, not public release:
 
 - App identifiers are set in `app.json`.
 - Microphone permission copy is present.
 - Hosted backend URL is available through the EAS preview public env.
 - `eas.json` has a preview-only internal distribution profile.
+- Temporary `icon.png`, `splash.png`, and `adaptive-icon.png` are present and referenced by `app.json`.
 
-Missing before tester distribution:
+Still missing before broader tester distribution or final brand review:
 
 - Final app icon.
-- Splash image or final splash configuration.
-- Android adaptive icon foreground image.
-- Review of adaptive icon background color with final art.
-- Final Wolli mascot asset pack, if Wolli is used in icon/splash or app screens.
-- App icon/splash config update after assets are approved.
+- Final splash image or final splash configuration.
+- Final Android adaptive icon foreground/background review.
+- Final Wolli mascot asset pack.
 - Visual phone smoke on a built install package.
+- Asset origin/license note for final assets.
 
-## 8. Acceptance Checklist
+## 9. Acceptance Checklist
 
 Before committing final app assets:
 
@@ -166,6 +162,6 @@ Before committing final app assets:
 - Content totals remain 36 lessons, 288 exercises, 288 vocabulary items.
 - Installed preview build launches and displays icon/splash correctly.
 
-## 9. Next Prompt Title
+## 10. Next Prompt Title
 
 Prepare first EAS preview build smoke checklist without running build.

@@ -38,8 +38,8 @@ Findings:
 - There are no committed native `ios/` or `android/` project folders.
 - iOS `bundleIdentifier` is configured as `com.toprakyildiz.wortweg`.
 - Android `package` is configured as `com.toprakyildiz.wortweg`.
-- App icon, splash image, and Android adaptive icon foreground image are not configured. `assets/` currently has no committed production image files.
-- Android adaptive icon only has a background color.
+- Temporary private-alpha app icon, splash image, and Android adaptive icon foreground are configured. Final brand/Wolli assets are still pending.
+- Android adaptive icon uses `./assets/adaptive-icon.png` with background color `#1E1B3A`.
 - Microphone permission copy exists in:
   - `ios.infoPlist.NSMicrophoneUsageDescription`
   - `plugins.expo-audio.microphonePermission`
@@ -55,11 +55,11 @@ Findings:
 | Is EAS configured? | Partially. A minimal preview-only `eas.json` exists, but credentials, final assets, account/project ownership, and real builds are not configured. |
 | Is an iOS bundle identifier configured? | Yes: `com.toprakyildiz.wortweg`. |
 | Is an Android package name configured? | Yes: `com.toprakyildiz.wortweg`. |
-| Are icon/splash assets production-like? | No. They are missing or placeholder-level. |
+| Are icon/splash assets production-like? | Temporary internal-preview assets are present; final brand/store-quality assets are still pending. |
 | Are microphone permissions declared? | Partially yes. iOS text and Expo Audio plugin text are present; Android native permission should be verified through Expo/EAS config output before a native build. |
 | Is hosted backend available for release builds? | Yes, via `EXPO_PUBLIC_AI_BACKEND_URL=https://wortweg.onrender.com` in the build environment. Do not hardcode secrets or provider keys. |
 | Are secrets backend-only? | Yes by design. Keep provider keys only in backend/Render environment variables. |
-| What blocks a private alpha install? | Asset readiness, account/credential decisions, install/distribution process, tester support flow, and a real build smoke. |
+| What blocks a private alpha install? | Account/credential decisions, install/distribution process, tester support flow, real build smoke, and final brand asset review before broader tester distribution. |
 
 ## 4. Recommended Private-Alpha Path
 
@@ -89,7 +89,7 @@ Current platform requirements:
 - iOS bundle identifier is configured as `com.toprakyildiz.wortweg`.
 - Apple Developer account status is not documented.
 - App Store Connect/TestFlight setup is not documented.
-- Final app icon/splash assets are not ready.
+- Temporary app icon/splash assets are present; final brand assets are still pending.
 - No public launch metadata should be used yet.
 
 Do not claim App Store readiness until a real build, signing, upload, review, and tester install flow are proven.
@@ -106,7 +106,7 @@ Current platform requirements:
 
 - Android package name is configured as `com.toprakyildiz.wortweg`.
 - Minimal preview `eas.json` exists, but no build has been run yet.
-- Android icon/adaptive icon foreground and splash assets are not ready.
+- Temporary Android icon/adaptive foreground/splash assets are present; final brand assets are still pending.
 - Play Console status is not documented.
 
 Do not claim Play Store readiness until a real internal track or install path is proven.
@@ -126,7 +126,7 @@ Before running any native/private build:
   - `EXPO_PUBLIC_SPEECH_TIMEOUT_MS`
 - Confirm no provider API keys are in app config, source, docs, or build profiles.
 - Keep `OPENAI_API_KEY` and `GEMINI_API_KEY` only on Render/backend environment variables.
-- Add or confirm app icon and splash assets.
+- Confirm temporary app icon/splash/adaptive assets, then replace with final brand assets later.
 - Confirm microphone permission text in generated native config.
 - Run `npm run quality` before build.
 - Run hosted backend smoke:
@@ -173,7 +173,7 @@ Before inviting testers, prepare a short guide with:
 
 - EAS/native build may reveal missing native config not visible in Expo Go.
 - App identifiers are configured, but should be treated as stable before any build credentials are created.
-- Icon/splash assets are not ready.
+- Temporary icon/splash/adaptive assets are present; final brand assets are still pending.
 - Microphone permission must be verified in a real native build.
 - Hosted backend cold start or Render sleep behavior may affect first AI/speech request.
 - Current `server:start` uses `tsx`, so Render currently needs dev dependencies. Replace with compiled JS or another production-safe start before broader alpha use.
@@ -191,7 +191,7 @@ BACKEND_SMOKE_URL=https://wortweg.onrender.com npm run server:smoke
 git status --short
 ```
 
-Do not run native builds until assets, account/project ownership, and tester process are chosen.
+Do not run native builds until account/project ownership and tester process are chosen; final brand assets can replace the temporary preview assets later.
 
 ## 12. Recommended Next Step
 

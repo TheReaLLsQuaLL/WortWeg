@@ -58,6 +58,7 @@ This is the current single-source-of-truth snapshot for WortWeg planning.
 - Private alpha distribution plan.
 - EAS preview build plan and minimal preview config.
 - App identifiers configured for EAS preview build.
+- Temporary private-alpha app assets configured.
 
 ## 4. Current Blockers
 
@@ -67,7 +68,7 @@ This is the current single-source-of-truth snapshot for WortWeg planning.
 - Production start still depends on `tsx` from dev dependencies.
 - Backend error-copy phone check was skipped/not tested.
 - No external/private testers yet.
-- Final Wolli mascot asset is not ready.
+- Final Wolli mascot/brand asset set is not ready; temporary private-alpha icon/splash assets are present.
 - Azure pronunciation assessment is not implemented.
 
 ## 5. Guardrails

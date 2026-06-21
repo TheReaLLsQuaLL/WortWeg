@@ -17,7 +17,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#1E1B3A"
+        "backgroundColor": "#1E1B3A",
+        "foregroundImage": "./assets/adaptive-icon.png"
       },
       "package": "com.toprakyildiz.wortweg"
     },
@@ -31,6 +32,12 @@
           "microphonePermission": "WortWeg konuşma pratiği için mikrofonuna erişmek istiyor."
         }
       ]
-    ]
+    ],
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1E1B3A"
+    }
   }
 }
