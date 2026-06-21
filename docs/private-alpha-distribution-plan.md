@@ -8,6 +8,7 @@ This document prepares the install/distribution path for WortWeg private alpha. 
 - Current test path: Expo Go from local Metro bundler.
 - Hosted backend: Render Web Service at `https://wortweg.onrender.com`.
 - EAS preview plan: `docs/eas-preview-build-plan.md`.
+- Asset requirements: `docs/app-asset-requirements.md`.
 - Mac hosted backend smoke: passed.
 - Phone hosted smoke: passed for AI chat, correct-sentence speaking, silence/no-voice, and wrong-speech low-score behavior.
 - Backend error-copy phone check: skipped/not tested.
@@ -35,8 +36,8 @@ Findings:
 - `app.json` defines `name`, `slug`, `version`, portrait orientation, light UI, and Expo Audio plugin microphone permission copy.
 - A minimal preview-only `eas.json` now exists for future internal distribution testing.
 - There are no committed native `ios/` or `android/` project folders.
-- iOS `bundleIdentifier` is not configured.
-- Android `package` is not configured.
+- iOS `bundleIdentifier` is configured as `com.toprakyildiz.wortweg`.
+- Android `package` is configured as `com.toprakyildiz.wortweg`.
 - App icon, splash image, and Android adaptive icon foreground image are not configured. `assets/` currently has no committed production image files.
 - Android adaptive icon only has a background color.
 - Microphone permission copy exists in:
@@ -51,14 +52,14 @@ Findings:
 | Question | Current answer |
 | --- | --- |
 | Is this currently Expo Go only? | Yes. The verified install path is Expo Go with a local Metro server. |
-| Is EAS configured? | Partially. A minimal preview-only `eas.json` exists, but identifiers, credentials, assets, account/project ownership, and real builds are not configured. |
-| Is an iOS bundle identifier configured? | No. |
-| Is an Android package name configured? | No. |
+| Is EAS configured? | Partially. A minimal preview-only `eas.json` exists, but credentials, final assets, account/project ownership, and real builds are not configured. |
+| Is an iOS bundle identifier configured? | Yes: `com.toprakyildiz.wortweg`. |
+| Is an Android package name configured? | Yes: `com.toprakyildiz.wortweg`. |
 | Are icon/splash assets production-like? | No. They are missing or placeholder-level. |
 | Are microphone permissions declared? | Partially yes. iOS text and Expo Audio plugin text are present; Android native permission should be verified through Expo/EAS config output before a native build. |
 | Is hosted backend available for release builds? | Yes, via `EXPO_PUBLIC_AI_BACKEND_URL=https://wortweg.onrender.com` in the build environment. Do not hardcode secrets or provider keys. |
 | Are secrets backend-only? | Yes by design. Keep provider keys only in backend/Render environment variables. |
-| What blocks a private alpha install? | Missing app identifiers, asset readiness, account/credential decisions, install/distribution process, tester support flow, and a real build smoke. |
+| What blocks a private alpha install? | Asset readiness, account/credential decisions, install/distribution process, tester support flow, and a real build smoke. |
 
 ## 4. Recommended Private-Alpha Path
 
@@ -69,7 +70,7 @@ Do not publish to public app stores. Do not call this production-ready. Keep the
 Suggested staged path:
 
 1. Keep Expo Go for developer smoke while the install path is prepared.
-2. Use the minimal preview `eas.json` as a starting point, then choose app identifiers before any real build attempt.
+2. Use the minimal preview `eas.json` and configured app identifiers as a starting point before any real build attempt.
 3. Configure build-time `EXPO_PUBLIC_AI_BACKEND_URL=https://wortweg.onrender.com` through EAS/build environment, not through committed secrets.
 4. Create an Android internal/test APK or internal distribution build first, because Android is usually lower-friction for a first install test.
 5. Prepare iOS TestFlight later if Apple Developer access and bundle identifier are ready.
@@ -83,9 +84,9 @@ Possible later paths:
 - EAS internal distribution for iOS if device registration and Apple credentials are ready.
 - TestFlight later for broader private testing.
 
-Current blockers:
+Current platform requirements:
 
-- No iOS bundle identifier configured.
+- iOS bundle identifier is configured as `com.toprakyildiz.wortweg`.
 - Apple Developer account status is not documented.
 - App Store Connect/TestFlight setup is not documented.
 - Final app icon/splash assets are not ready.
@@ -101,10 +102,10 @@ Possible later paths:
 - Direct APK install for a tiny trusted tester group, if acceptable for the test context.
 - Google Play internal testing later if Play Console setup exists.
 
-Current blockers:
+Current platform requirements:
 
-- No Android package name configured.
-- Minimal preview `eas.json` exists, but no build has been run and identifiers are still missing.
+- Android package name is configured as `com.toprakyildiz.wortweg`.
+- Minimal preview `eas.json` exists, but no build has been run yet.
 - Android icon/adaptive icon foreground and splash assets are not ready.
 - Play Console status is not documented.
 
@@ -114,9 +115,9 @@ Do not claim Play Store readiness until a real internal track or install path is
 
 Before running any native/private build:
 
-- Choose stable app identifiers:
-  - iOS `bundleIdentifier` placeholder, for example `com.YOUR_ORG.wortweg`.
-  - Android `package` placeholder, for example `com.YOUR_ORG.wortweg`.
+- Confirm stable app identifiers:
+  - iOS `bundleIdentifier`: `com.toprakyildiz.wortweg`.
+  - Android `package`: `com.toprakyildiz.wortweg`.
 - Decide whether first private alpha build is Android-only or both platforms.
 - Review `docs/eas-preview-build-plan.md` and the minimal `eas.json` preview profile.
 - Decide how build env will receive:
@@ -171,7 +172,7 @@ Before inviting testers, prepare a short guide with:
 ## 10. Risks
 
 - EAS/native build may reveal missing native config not visible in Expo Go.
-- App identifiers are not chosen.
+- App identifiers are configured, but should be treated as stable before any build credentials are created.
 - Icon/splash assets are not ready.
 - Microphone permission must be verified in a real native build.
 - Hosted backend cold start or Render sleep behavior may affect first AI/speech request.
@@ -190,8 +191,8 @@ BACKEND_SMOKE_URL=https://wortweg.onrender.com npm run server:smoke
 git status --short
 ```
 
-Do not run native builds until identifiers, assets, account/project ownership, and tester process are chosen.
+Do not run native builds until assets, account/project ownership, and tester process are chosen.
 
 ## 12. Recommended Next Step
 
-Next task: Finalize app identifiers and asset requirements for EAS preview build.
+Next task: Prepare first EAS preview build smoke checklist without running build.

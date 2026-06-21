@@ -12,12 +12,14 @@
       "supportsTablet": true,
       "infoPlist": {
         "NSMicrophoneUsageDescription": "WortWeg konuşma pratiği için mikrofonuna erişmek istiyor."
-      }
+      },
+      "bundleIdentifier": "com.toprakyildiz.wortweg"
     },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#1E1B3A"
-      }
+      },
+      "package": "com.toprakyildiz.wortweg"
     },
     "web": {
       "bundler": "metro"

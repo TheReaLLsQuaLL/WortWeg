@@ -7,6 +7,7 @@ This document prepares a safe EAS preview-build path for WortWeg private alpha. 
 - Project type: Expo React Native managed app.
 - Current verified install path: Expo Go with local Metro.
 - Hosted backend: Render at `https://wortweg.onrender.com`.
+- Asset requirements: `docs/app-asset-requirements.md`.
 - Mac hosted backend smoke: passed.
 - Phone hosted AI/speech smoke: passed.
 - Content status:
@@ -43,8 +44,8 @@ Findings:
 - Android adaptive icon only has a background color and no foreground image.
 - iOS microphone copy exists at `ios.infoPlist.NSMicrophoneUsageDescription`.
 - Expo Audio plugin microphone copy exists at `plugins.expo-audio.microphonePermission`.
-- iOS `bundleIdentifier` is not configured.
-- Android `package` is not configured.
+- iOS `bundleIdentifier` is configured as `com.toprakyildiz.wortweg`.
+- Android `package` is configured as `com.toprakyildiz.wortweg`.
 - No Expo `owner` or EAS `projectId` is configured.
 - Mobile backend URL resolution uses `EXPO_PUBLIC_AI_BACKEND_URL` through `src/config/backend.ts`.
 - No provider API keys should be placed in app config, Expo public env, source code, or docs.
@@ -112,16 +113,14 @@ Forbidden in mobile/EAS public env:
 
 Backend provider keys must remain only in Render/backend environment variables. `.env` must remain local and untracked.
 
-## 6. Identifier Decisions Needed
+## 6. Identifier Status
 
-Choose stable identifiers before any real build attempt.
+Identifiers are now set in `app.json`:
 
-Needed later:
+- iOS `bundleIdentifier`: `com.toprakyildiz.wortweg`.
+- Android `package`: `com.toprakyildiz.wortweg`.
 
-- iOS `bundleIdentifier`, for example `com.YOUR_ORG.wortweg`.
-- Android `package`, for example `com.YOUR_ORG.wortweg`.
-
-Do not commit placeholder identifiers into `app.json`; choose real final identifiers first. Changing identifiers later can create signing, install, and tester confusion.
+Treat these as stable unless there is a deliberate product/account reason to change them. Changing identifiers later can create signing, install, and tester confusion. Before creating credentials, still confirm that these identifiers match the intended Apple/Google account ownership path.
 
 ## 7. Icon / Splash Asset Readiness
 
@@ -210,9 +209,8 @@ For iOS, do not run a build until Apple account, device registration/TestFlight 
 
 ## 13. Remaining Blockers
 
-- Choose final iOS bundle identifier.
-- Choose final Android package name.
 - Add production-like icon/splash/adaptive icon assets.
+- Review `docs/app-asset-requirements.md` before adding asset paths to `app.json`.
 - Confirm EAS account/project ownership and whether `owner`/`projectId` should be added.
 - Decide Android-only first build or both platforms.
 - Define tester distribution/support process.
@@ -221,4 +219,4 @@ For iOS, do not run a build until Apple account, device registration/TestFlight 
 
 ## 14. Next Prompt Title
 
-Finalize app identifiers and asset requirements for EAS preview build.
+Prepare first EAS preview build smoke checklist without running build.

@@ -57,11 +57,12 @@ This is the current single-source-of-truth snapshot for WortWeg planning.
 - First Render hosted backend smoke.
 - Private alpha distribution plan.
 - EAS preview build plan and minimal preview config.
+- App identifiers configured for EAS preview build.
 
 ## 4. Current Blockers
 
 - Hosted backend smoke passed on Render.
-- Private alpha packaging/install path is not finalized; initial distribution and EAS preview plans now exist in `docs/private-alpha-distribution-plan.md` and `docs/eas-preview-build-plan.md`.
+- Private alpha packaging/install path is not finalized; distribution, EAS preview, and asset requirement plans now exist in docs.
 - Tester distribution/support process is not finalized.
 - Production start still depends on `tsx` from dev dependencies.
 - Backend error-copy phone check was skipped/not tested.
@@ -83,7 +84,7 @@ This is the current single-source-of-truth snapshot for WortWeg planning.
 
 ## 6. Next Recommended Order
 
-1. Finalize app identifiers and asset requirements for EAS preview build.
+1. Prepare first EAS preview build smoke checklist without running build.
 2. Finalize private build/install distribution path.
 3. Define tester distribution/support process.
 4. Replace the `tsx` runtime production start with compiled JS or another production-safe start.
