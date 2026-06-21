@@ -128,7 +128,7 @@ The only file added by this task is:
 
 ## Remaining Blockers
 
-- Private build/install distribution path is not finalized; initial distribution plan now exists in `docs/private-alpha-distribution-plan.md`.
+- Private build/install distribution path is not finalized; initial distribution and EAS preview plans now exist in `docs/private-alpha-distribution-plan.md` and `docs/eas-preview-build-plan.md`.
 - Tester distribution/support process is not finalized.
 - Hosted runtime has been smoke-tested on Render, but production start still depends on `tsx` from dev dependencies.
 - Backend error-copy phone check was skipped/not tested.
@@ -138,7 +138,7 @@ The only file added by this task is:
 
 ## Next Recommended Action
 
-Use `docs/private-alpha-distribution-plan.md` to prepare EAS/install decisions, then finalize tester support before inviting testers. Keep hosted backend smoke checks in the release checklist.
+Use `docs/eas-preview-build-plan.md` to finalize app identifiers/assets, then prepare the first private install path and tester support before inviting testers. Keep hosted backend smoke checks in the release checklist.
 
 Next backend hardening step:
 

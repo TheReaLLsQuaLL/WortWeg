@@ -1,0 +1,19 @@
+{
+  "build": {
+    "preview": {
+      "distribution": "internal",
+      "developmentClient": false,
+      "env": {
+        "EXPO_PUBLIC_AI_BACKEND_URL": "https://wortweg.onrender.com",
+        "EXPO_PUBLIC_AI_TIMEOUT_MS": "30000",
+        "EXPO_PUBLIC_SPEECH_TIMEOUT_MS": "45000"
+      },
+      "android": {
+        "buildType": "apk"
+      },
+      "ios": {
+        "simulator": false
+      }
+    }
+  }
+}

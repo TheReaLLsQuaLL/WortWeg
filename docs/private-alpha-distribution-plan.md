@@ -7,6 +7,7 @@ This document prepares the install/distribution path for WortWeg private alpha. 
 - App type: Expo React Native managed project.
 - Current test path: Expo Go from local Metro bundler.
 - Hosted backend: Render Web Service at `https://wortweg.onrender.com`.
+- EAS preview plan: `docs/eas-preview-build-plan.md`.
 - Mac hosted backend smoke: passed.
 - Phone hosted smoke: passed for AI chat, correct-sentence speaking, silence/no-voice, and wrong-speech low-score behavior.
 - Backend error-copy phone check: skipped/not tested.
@@ -32,7 +33,7 @@ Files inspected:
 Findings:
 
 - `app.json` defines `name`, `slug`, `version`, portrait orientation, light UI, and Expo Audio plugin microphone permission copy.
-- There is no `eas.json`.
+- A minimal preview-only `eas.json` now exists for future internal distribution testing.
 - There are no committed native `ios/` or `android/` project folders.
 - iOS `bundleIdentifier` is not configured.
 - Android `package` is not configured.
@@ -50,14 +51,14 @@ Findings:
 | Question | Current answer |
 | --- | --- |
 | Is this currently Expo Go only? | Yes. The verified install path is Expo Go with a local Metro server. |
-| Is EAS configured? | No. `eas.json` is missing. |
+| Is EAS configured? | Partially. A minimal preview-only `eas.json` exists, but identifiers, credentials, assets, account/project ownership, and real builds are not configured. |
 | Is an iOS bundle identifier configured? | No. |
 | Is an Android package name configured? | No. |
 | Are icon/splash assets production-like? | No. They are missing or placeholder-level. |
 | Are microphone permissions declared? | Partially yes. iOS text and Expo Audio plugin text are present; Android native permission should be verified through Expo/EAS config output before a native build. |
 | Is hosted backend available for release builds? | Yes, via `EXPO_PUBLIC_AI_BACKEND_URL=https://wortweg.onrender.com` in the build environment. Do not hardcode secrets or provider keys. |
 | Are secrets backend-only? | Yes by design. Keep provider keys only in backend/Render environment variables. |
-| What blocks a private alpha install? | Missing EAS config, app identifiers, build profile, install/distribution process, asset readiness, account/credential decisions, and tester support flow. |
+| What blocks a private alpha install? | Missing app identifiers, asset readiness, account/credential decisions, install/distribution process, tester support flow, and a real build smoke. |
 
 ## 4. Recommended Private-Alpha Path
 
@@ -68,7 +69,7 @@ Do not publish to public app stores. Do not call this production-ready. Keep the
 Suggested staged path:
 
 1. Keep Expo Go for developer smoke while the install path is prepared.
-2. Add EAS configuration in a dedicated commit after choosing app identifiers.
+2. Use the minimal preview `eas.json` as a starting point, then choose app identifiers before any real build attempt.
 3. Configure build-time `EXPO_PUBLIC_AI_BACKEND_URL=https://wortweg.onrender.com` through EAS/build environment, not through committed secrets.
 4. Create an Android internal/test APK or internal distribution build first, because Android is usually lower-friction for a first install test.
 5. Prepare iOS TestFlight later if Apple Developer access and bundle identifier are ready.
@@ -103,7 +104,7 @@ Possible later paths:
 Current blockers:
 
 - No Android package name configured.
-- No `eas.json` build profile.
+- Minimal preview `eas.json` exists, but no build has been run and identifiers are still missing.
 - Android icon/adaptive icon foreground and splash assets are not ready.
 - Play Console status is not documented.
 
@@ -117,7 +118,7 @@ Before running any native/private build:
   - iOS `bundleIdentifier` placeholder, for example `com.YOUR_ORG.wortweg`.
   - Android `package` placeholder, for example `com.YOUR_ORG.wortweg`.
 - Decide whether first private alpha build is Android-only or both platforms.
-- Add `eas.json` with explicit development/preview profiles.
+- Review `docs/eas-preview-build-plan.md` and the minimal `eas.json` preview profile.
 - Decide how build env will receive:
   - `EXPO_PUBLIC_AI_BACKEND_URL=https://wortweg.onrender.com`
   - `EXPO_PUBLIC_AI_TIMEOUT_MS`
@@ -189,8 +190,8 @@ BACKEND_SMOKE_URL=https://wortweg.onrender.com npm run server:smoke
 git status --short
 ```
 
-Do not run native builds until identifiers, EAS profiles, assets, and build env strategy are chosen.
+Do not run native builds until identifiers, assets, account/project ownership, and tester process are chosen.
 
 ## 12. Recommended Next Step
 
-Next task: Prepare EAS preview build configuration plan without creating builds.
+Next task: Finalize app identifiers and asset requirements for EAS preview build.
