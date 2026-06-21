@@ -56,10 +56,14 @@ type ActivePrompt = SpeakingPrompt & { id: string };
 type SpeechDebugState = {
   lastStage: string;
   durationMs: number;
+  voiceShouldUpload: string;
   voiceEvidenceLevel: string;
   voiceEvidenceReason: string;
   voiceSampleCount: number;
   voiceAboveThresholdCount: number;
+  voiceAboveThresholdRatio: string;
+  voicePeakMetering: string;
+  voiceMeteringRange: string;
   audioExtension: string;
   audioMimeType: string;
   provider: string;
@@ -104,6 +108,29 @@ const isUndeterminedPermission = (permission: MicrophonePermissionResult) => {
 
   return status === 'undetermined' || status === 'not_determined' || status === 'not-determined';
 };
+
+const formatDebugNumber = (value: number | undefined, digits = 1) => {
+  if (value === undefined || !Number.isFinite(value)) {
+    return '';
+  }
+
+  return value.toFixed(digits);
+};
+
+const getVoiceEvidenceDebugPatch = (
+  voiceEvidence: RecordingResult['voiceEvidence'],
+  fallbackDurationMs: number,
+): Partial<SpeechDebugState> => ({
+  durationMs: voiceEvidence?.durationMs ?? fallbackDurationMs,
+  voiceShouldUpload: voiceEvidence ? String(voiceEvidence.shouldUpload) : '',
+  voiceEvidenceLevel: voiceEvidence?.evidenceLevel ?? '',
+  voiceEvidenceReason: voiceEvidence?.reason ?? '',
+  voiceSampleCount: voiceEvidence?.sampleCount ?? 0,
+  voiceAboveThresholdCount: voiceEvidence?.aboveThresholdCount ?? 0,
+  voiceAboveThresholdRatio: voiceEvidence ? formatDebugNumber(voiceEvidence.aboveThresholdRatio, 2) : '',
+  voicePeakMetering: formatDebugNumber(voiceEvidence?.peakMetering),
+  voiceMeteringRange: formatDebugNumber(voiceEvidence?.meteringRange),
+});
 
 const getResultTitle = (result: PronunciationScore) => {
   if (result.comparison.similarityScore >= 80) {
@@ -185,10 +212,14 @@ export function SpeakingPracticeScreen({ navigation, onUpdateState, route }: Spe
   const [speechDebug, setSpeechDebug] = useState<SpeechDebugState>({
     lastStage: 'idle',
     durationMs: 0,
+    voiceShouldUpload: '',
     voiceEvidenceLevel: '',
     voiceEvidenceReason: '',
     voiceSampleCount: 0,
     voiceAboveThresholdCount: 0,
+    voiceAboveThresholdRatio: '',
+    voicePeakMetering: '',
+    voiceMeteringRange: '',
     audioExtension: '',
     audioMimeType: '',
     provider: '',
@@ -491,10 +522,14 @@ export function SpeakingPracticeScreen({ navigation, onUpdateState, route }: Spe
     updateSpeechDebug({
       lastStage: 'idle',
       durationMs: 0,
+      voiceShouldUpload: '',
       voiceEvidenceLevel: '',
       voiceEvidenceReason: '',
       voiceSampleCount: 0,
       voiceAboveThresholdCount: 0,
+      voiceAboveThresholdRatio: '',
+      voicePeakMetering: '',
+      voiceMeteringRange: '',
       audioExtension: '',
       audioMimeType: '',
       provider: '',
@@ -519,11 +554,7 @@ export function SpeakingPracticeScreen({ navigation, onUpdateState, route }: Spe
     });
     updateSpeechDebug({
       lastStage: 'analysis started',
-      durationMs: recording.durationMs,
-      voiceEvidenceLevel: recording.voiceEvidence?.evidenceLevel ?? '',
-      voiceEvidenceReason: recording.voiceEvidence?.reason ?? '',
-      voiceSampleCount: recording.voiceEvidence?.sampleCount ?? 0,
-      voiceAboveThresholdCount: recording.voiceEvidence?.aboveThresholdCount ?? 0,
+      ...getVoiceEvidenceDebugPatch(recording.voiceEvidence, recording.durationMs),
       hasTranscript: false,
       transcriptLength: 0,
       lastError: '',
@@ -815,6 +846,7 @@ export function SpeakingPracticeScreen({ navigation, onUpdateState, route }: Spe
       updateSpeechDebug({
         lastStage: 'stop completed',
         durationMs: finalDurationMs,
+        ...getVoiceEvidenceDebugPatch(recording.voiceEvidence, finalDurationMs),
       });
       trackLocalEvent({
         type: 'recording_stopped',
@@ -1198,20 +1230,28 @@ function SpeechDebugPanel({
           <DebugRow label="state" value={status} />
           <DebugRow label="stage" value={debug.lastStage} />
           <DebugRow label="durationMs" value={String(Math.round(debug.durationMs || durationMs))} />
+          <DebugRow label="shouldUpload" value={debug.voiceShouldUpload || '-'} />
           <DebugRow label="voiceLevel" value={debug.voiceEvidenceLevel || '-'} />
           <DebugRow label="voiceReason" value={debug.voiceEvidenceReason || '-'} />
           <DebugRow label="voiceSamples" value={String(debug.voiceSampleCount)} />
           <DebugRow label="voiceAbove" value={String(debug.voiceAboveThresholdCount)} />
+          <DebugRow label="voiceRatio" value={debug.voiceAboveThresholdRatio || '-'} />
+          <DebugRow label="peakDb" value={debug.voicePeakMetering || '-'} />
+          <DebugRow label="rangeDb" value={debug.voiceMeteringRange || '-'} />
           <DebugRow label="extension" value={debug.audioExtension || '-'} />
           <DebugRow label="mime" value={debug.audioMimeType || '-'} />
           <DebugRow label="backend" value={debug.backendReachable === undefined ? '-' : String(debug.backendReachable)} />
-          <DebugRow label="host" value={debug.endpointHost || '-'} />
           <DebugRow label="http" value={debug.httpStatus === undefined ? '-' : String(debug.httpStatus)} />
-          <DebugRow label="provider" value={debug.provider || '-'} />
           <DebugRow label="fallback" value={String(debug.fallback)} />
           <DebugRow label="hasTranscript" value={String(debug.hasTranscript)} />
           <DebugRow label="transcriptLength" value={String(debug.transcriptLength)} />
           <DebugRow label="lastError" value={debug.lastError || '-'} />
+          <View style={styles.debugHintBox}>
+            <Text style={styles.debugHintText}>Silence should be none</Text>
+            <Text style={styles.debugHintText}>Background hum should be none/weak</Text>
+            <Text style={styles.debugHintText}>Clear speech should be strong</Text>
+            <Text style={styles.debugHintText}>Only strong should upload</Text>
+          </View>
         </View>
       ) : null}
     </View>
@@ -1643,6 +1683,18 @@ const styles = StyleSheet.create({
     borderTopColor: colors.border,
     borderTopWidth: 1,
     padding: spacing.md,
+  },
+  debugHintBox: {
+    borderTopColor: colors.border,
+    borderTopWidth: 1,
+    gap: 2,
+    marginTop: spacing.sm,
+    paddingTop: spacing.sm,
+  },
+  debugHintText: {
+    ...typography.micro,
+    color: colors.muted,
+    fontWeight: '800',
   },
   debugRow: {
     alignItems: 'center',
