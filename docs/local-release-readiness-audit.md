@@ -55,7 +55,7 @@ Content QA totals:
 | Hosted backend smoke | PASS | Render hosted `/health` and `server:smoke` passed at `https://wortweg.onrender.com`. |
 | Hosted phone AI/speech | PASS | AI chat, correct-sentence speaking, silence/no-voice, and wrong-speech low-score behavior passed against Render. Backend error-copy check was skipped/not tested. |
 | Installed Android EAS preview APK smoke | PASS | App installs, opens, enters the app, loads onboarding/Home, uses hosted AI/speech, preserves silence/no-voice behavior, and shows low score/missing words for wrong speech. |
-| Deployment readiness | PARTIAL | Hosted backend, phone AI/speech, and Android installed preview passed, but tester distribution/support, final assets, iOS/TestFlight, production start without `tsx`, and optional backend error-copy installed-build test remain open. |
+| Deployment readiness | PARTIAL | Hosted backend, phone AI/speech, Android installed preview, and tester-process docs are ready, but the approved APK link, feedback channel, support owner, final assets, iOS/TestFlight, production start without `tsx`, and optional backend error-copy installed-build test remain open. |
 
 ## Issues Found
 
@@ -79,6 +79,7 @@ This document has been updated after later smoke milestones to reflect:
 - Render hosted backend smoke passed.
 - Phone hosted AI/speech smoke passed.
 - Installed Android EAS preview APK smoke passed after Expo asset/module alignment.
+- Private alpha Android tester distribution process and tester message draft exist.
 
 ## Feature Consistency Findings
 
@@ -134,7 +135,7 @@ This document has been updated after later smoke milestones to reflect:
 ## Remaining Blockers
 
 - Android private build/install path is proven for internal smoke testing.
-- Tester distribution/support process is not finalized.
+- Tester distribution/support process is documented, but the approved APK link, feedback channel, support owner, and actual tester send are not finalized.
 - Hosted runtime has been smoke-tested on Render, but production start still depends on `tsx` from dev dependencies.
 - Backend error-copy phone check was skipped/not tested.
 - No external/private testers yet.
@@ -144,7 +145,7 @@ This document has been updated after later smoke milestones to reflect:
 
 ## Next Recommended Action
 
-Use `docs/private-alpha-distribution-plan.md` to define tester distribution/support before inviting testers. Keep hosted backend smoke and installed-build phone smoke checks in the release checklist.
+Fill `APK_LINK_HERE` and `FEEDBACK_CHANNEL_HERE` in `docs/private-alpha-tester-message.md`, confirm the support owner, then send only to the selected private Android tester group. Keep hosted backend smoke and installed-build phone smoke checks in the release checklist.
 
 Next backend hardening step:
 
@@ -158,4 +159,4 @@ Local repository readiness: PASS.
 
 Ready to commit local readiness/docs work: YES.
 
-Ready to deploy to testers: NO. Hosted backend, phone AI/speech, and Android installed preview passed, but tester distribution/support, final assets, iOS/TestFlight later, `tsx` production-start hardening, and optional backend error-copy installed-build test remain.
+Ready to deploy to testers: PARTIAL. Hosted backend, phone AI/speech, Android installed preview, and tester-process docs are ready, but the approved APK link, feedback channel, support owner, final assets, iOS/TestFlight later, `tsx` production-start hardening, and optional backend error-copy installed-build test remain.

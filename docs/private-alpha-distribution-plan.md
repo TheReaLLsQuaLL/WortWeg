@@ -9,6 +9,8 @@ This document prepares the install/distribution path for WortWeg private alpha. 
 - Hosted backend: Render Web Service at `https://wortweg.onrender.com`.
 - EAS preview plan: `docs/eas-preview-build-plan.md`.
 - Asset requirements: `docs/app-asset-requirements.md`.
+- Tester distribution process: `docs/private-alpha-tester-distribution.md`.
+- Tester message draft: `docs/private-alpha-tester-message.md`.
 - Mac hosted backend smoke: passed.
 - Phone hosted smoke: passed for AI chat, correct-sentence speaking, silence/no-voice, and wrong-speech low-score behavior.
 - Installed Android EAS preview APK smoke: passed.
@@ -63,7 +65,7 @@ Findings:
 | Are microphone permissions declared? | Yes for the current Android preview smoke and iOS config text; keep verifying permissions on every native build. |
 | Is hosted backend available for release builds? | Yes, via `EXPO_PUBLIC_AI_BACKEND_URL=https://wortweg.onrender.com` in the build environment. Do not hardcode secrets or provider keys. |
 | Are secrets backend-only? | Yes by design. Keep provider keys only in backend/Render environment variables. |
-| What blocks private alpha tester distribution? | Tester distribution/support process, final brand asset expectations, iOS/TestFlight later, production backend start without `tsx`, and optional backend error-copy installed-build test. |
+| What blocks private alpha tester distribution? | Approved APK link, selected feedback channel, support owner/response expectations, final brand asset expectations, iOS/TestFlight later, production backend start without `tsx`, and optional backend error-copy installed-build test. |
 
 ## 4. Recommended Private-Alpha Path
 
@@ -76,7 +78,7 @@ Suggested staged path:
 1. Keep Expo Go for developer smoke and rapid iteration.
 2. Keep the Android EAS preview APK path as the proven internal install smoke path.
 3. Continue using `EXPO_PUBLIC_AI_BACKEND_URL=https://wortweg.onrender.com` through EAS/build environment, not through committed secrets.
-4. Define tester distribution, support/contact, and issue triage before inviting testers.
+4. Use `docs/private-alpha-tester-distribution.md` and `docs/private-alpha-tester-message.md` to fill the APK link, feedback channel, and support/contact owner before inviting testers.
 5. Prepare iOS TestFlight later if Apple Developer access and bundle identifier are ready.
 6. Re-run the full phone smoke checklist on every new installed build before inviting testers.
 7. Invite only private alpha testers after install, backend, privacy, support, and limitation wording are verified.
@@ -156,9 +158,14 @@ Do not publish these as store copy without review.
 - Privacy note: no API keys in the mobile app; avoid sharing sensitive personal information in AI chat.
 - Non-claim: no official Goethe/telc/OeSD affiliation or certification claim.
 
-## 9. Tester Instructions Needed
+## 9. Tester Instructions
 
-Before inviting testers, prepare a short guide with:
+Tester instructions now live in:
+
+- `docs/private-alpha-tester-distribution.md`
+- `docs/private-alpha-tester-message.md`
+
+Before inviting testers, verify the message includes:
 
 - Install method and supported platform.
 - Expected alpha limitations.
@@ -202,4 +209,4 @@ Do not run another native build unless a specific fix or smoke target requires i
 
 ## 12. Recommended Next Step
 
-Next task: Define private alpha tester distribution and support process.
+Next task: Fill approved APK link and feedback channel, then send to the first private Android tester group.

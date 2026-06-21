@@ -227,11 +227,11 @@ For iOS, do not run a build until Apple account, device registration/TestFlight 
 
 - Android preview APK install smoke passed.
 - Final brand/Wolli icon and splash assets remain pending before broader tester distribution.
-- Define tester distribution/support process.
+- Tester distribution/support docs exist; approved APK link, feedback channel, and support owner still need to be filled before sending.
 - Replace backend `tsx` runtime production start before broader alpha use.
 - Prepare iOS/TestFlight path later.
 - Optionally run backend error-copy installed-build test.
 
 ## 14. Next Prompt Title
 
-Define private alpha tester distribution and support process.
+Fill approved APK link and feedback channel, then send to the first private Android tester group.

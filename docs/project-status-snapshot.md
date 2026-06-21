@@ -68,12 +68,13 @@ This is the current single-source-of-truth snapshot for WortWeg planning.
 - Temporary private-alpha app assets configured.
 - EAS project linked under `@therealsquall/wortweg`.
 - Android preview APK build and installed-build smoke passed after Expo asset/module alignment.
+- Private alpha Android tester distribution process and tester message draft documented.
 
 ## 4. Current Blockers
 
 - Hosted backend smoke passed on Render.
 - Android private preview install path is proven for internal smoke testing.
-- Tester distribution/support process is not finalized.
+- Tester distribution/support process is documented, but the approved APK link, feedback channel, support owner, and actual tester send are not finalized.
 - Production start still depends on `tsx` from dev dependencies.
 - Backend error-copy phone check was skipped/not tested.
 - No external/private testers yet.
@@ -95,14 +96,14 @@ This is the current single-source-of-truth snapshot for WortWeg planning.
 
 ## 6. Next Recommended Order
 
-1. Define tester distribution/support process.
-2. Replace the `tsx` runtime production start with compiled JS or another production-safe start.
-3. Optionally run backend error-copy installed-build test.
-4. Replace temporary icon/splash/Wolli brand assets when final assets are ready.
-5. Plan iOS/TestFlight path later.
-6. Continue production backend hardening and monitoring.
-7. Optional Azure backend prototype behind feature flag for nuanced pronunciation assessment.
-8. Private tester guide.
+1. Fill approved APK link and feedback channel in the tester message.
+2. Send only to the selected private Android tester group.
+3. Replace the `tsx` runtime production start with compiled JS or another production-safe start.
+4. Optionally run backend error-copy installed-build test.
+5. Replace temporary icon/splash/Wolli brand assets when final assets are ready.
+6. Plan iOS/TestFlight path later.
+7. Continue production backend hardening and monitoring.
+8. Optional Azure backend prototype behind feature flag for nuanced pronunciation assessment.
 9. Full B1 path planning.
 
 ## 7. Useful Commands

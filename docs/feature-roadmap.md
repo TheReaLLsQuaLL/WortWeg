@@ -15,6 +15,7 @@ This document is a planning sheet for product features and technical architectur
 - First hosted backend smoke and phone hosted AI/speech smoke passed on Render at `https://wortweg.onrender.com`.
 - Installed Android EAS preview APK smoke passed after fixing an Expo native asset/module mismatch. The installed build opens, enters the app, and uses hosted AI/speech.
 - Temporary icon/splash assets are acceptable for internal preview, not final brand or store assets.
+- Private alpha Android tester distribution process and tester message draft are documented; approved APK link and feedback channel still need to be filled before sending.
 - Speaking practice currently uses press-and-hold recording, OpenAI STT through backend, transcript-based Hybrid Speech Scoring v1, matched/missing/extra words, word-order hints when reliable, and safe error states. Slow but word-correct speech can score 100 because accent quality, phoneme-level pronunciation, natural speed, fluency, and prosody are not assessed yet.
 - Speaking Practice Library has 36 static practice sentences from existing lesson prompts.
 - Speaking Practice Stats store privacy-safe aggregates only: attempts, success counts, best/latest score, last practice date, practiced static sentence IDs, and level breakdown.
@@ -51,12 +52,13 @@ This document is a planning sheet for product features and technical architectur
 | Done | First Render hosted backend smoke | `https://wortweg.onrender.com` passed `/health` and `server:smoke`. |
 | Done | Hosted phone AI/speech smoke | AI chat, correct-sentence speaking, silence/no-voice, and wrong-speech low-score behavior passed; backend error-copy check was skipped/not tested. |
 | Done | Installed Android EAS preview APK smoke | First APK native launch crash was fixed by Expo asset/module alignment; rebuilt APK installs, opens, reaches the app, and uses hosted AI/speech. |
+| Done | Android tester distribution process | Tester process and Turkish copy-paste message draft exist with APK/feedback placeholders. |
 
 ## 4. Near-Term Product Plan
 
 | Priority | Feature | Description | Why it matters | Risk | Suggested commit size |
 | --- | --- | --- | --- | --- | --- |
-| P0 | Tester distribution/support process | Define feedback channel, support owner, and issue triage flow. | Prevents scattered tester reports. | Low/Medium | Docs/process commit. |
+| P0 | First private Android tester send | Fill approved APK link, feedback channel, and support owner, then send to the selected small tester group. | Turns the prepared process into real feedback. | Low/Medium | Docs/process plus manual send. |
 | P1 | Production-safe backend start | Replace `tsx` runtime production start with compiled JS or another production-safe start so Render does not require dev dependencies. | Makes hosted backend less fragile. | Medium | Backend-only commit. |
 | P1 | Final brand/icon/splash/Wolli assets | Replace temporary internal-preview assets with final approved brand assets. | Improves trust before broader tester distribution. | Medium | Asset/UI-only commit. |
 | P1 | iOS/TestFlight path | Plan iOS install path later after Apple account/distribution decisions. | Expands tester coverage when needed. | Medium | Planning/build-config commit. |
@@ -167,7 +169,7 @@ This document is a planning sheet for product features and technical architectur
 
 ## 9. Medium-Term Product Plan
 
-- Tester distribution/support process.
+- First private Android tester send after APK link, feedback channel, and support owner are confirmed.
 - Optional backend error-copy phone check.
 - Safer production AI/STT error states and monitoring.
 - Production-safe backend start without `tsx` dev dependency.
@@ -189,15 +191,15 @@ This document is a planning sheet for product features and technical architectur
 
 ## 11. Recommended Build Order
 
-1. Define tester distribution/support process.
-2. Replace `tsx` runtime production start with compiled JS or production-safe backend start.
-3. Optionally run backend error-copy installed-build test.
-4. Replace temporary icon/splash/Wolli brand assets when final assets are ready.
-5. Plan iOS/TestFlight path later.
-6. Continue production backend hardening and monitoring.
-7. Azure pronunciation backend prototype behind feature flag.
-8. Optional AI practice improvements.
-9. Private tester guide when testers exist.
+1. Fill approved APK link, feedback channel, and support owner in the tester message.
+2. Send to the selected small Android tester group.
+3. Replace `tsx` runtime production start with compiled JS or production-safe backend start.
+4. Optionally run backend error-copy installed-build test.
+5. Replace temporary icon/splash/Wolli brand assets when final assets are ready.
+6. Plan iOS/TestFlight path later.
+7. Continue production backend hardening and monitoring.
+8. Azure pronunciation backend prototype behind feature flag.
+9. Optional AI practice improvements.
 10. Full B1 path planning.
 
 ## 12. Guardrails
@@ -217,4 +219,4 @@ This document is a planning sheet for product features and technical architectur
 
 ## 13. Next Suggested Task
 
-Next task: Define private alpha tester distribution and support process.
+Next task: Fill approved APK link and feedback channel, then send to the first private Android tester group.

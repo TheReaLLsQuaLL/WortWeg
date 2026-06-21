@@ -31,6 +31,8 @@ This index keeps the `docs/` folder navigable as planning, audit, alpha, backend
 - [Private Alpha Metadata Draft](private-alpha-metadata-draft.md)
 - [Private Alpha Tester Guide Draft](private-alpha-tester-guide-draft.md)
 - [Private Alpha Distribution Plan](private-alpha-distribution-plan.md)
+- [Private Alpha Tester Distribution](private-alpha-tester-distribution.md)
+- [Private Alpha Tester Message](private-alpha-tester-message.md)
 - [EAS Preview Build Plan](eas-preview-build-plan.md)
 - [EAS Account / Project Readiness](eas-account-project-readiness.md)
 - [App Asset Requirements](app-asset-requirements.md)
@@ -74,4 +76,4 @@ PATH=/Users/squall/.nvm/versions/node/v22.22.3/bin:$PATH npx expo start --clear 
 
 ## 8. Next Recommended Action
 
-Define the private alpha tester distribution/support process before inviting testers. Keep Azure pronunciation assessment as future backend-only prototype work.
+Fill the approved APK link and feedback channel in the private alpha tester message, then send only to the selected Android tester group. Keep Azure pronunciation assessment as future backend-only prototype work.

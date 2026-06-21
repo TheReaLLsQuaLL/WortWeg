@@ -165,4 +165,4 @@ Before committing final app assets:
 
 ## 10. Next Prompt Title
 
-Define private alpha tester distribution and support process.
+Fill approved APK link and feedback channel, then send to the first private Android tester group.

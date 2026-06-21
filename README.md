@@ -124,7 +124,7 @@ Backend smoke remains optional and requires an already-running backend:
 npm run quality:backend
 ```
 
-First Render hosted backend smoke, phone hosted AI/speech smoke, and installed Android EAS preview APK smoke passed at `https://wortweg.onrender.com`, but this is not a public launch and not App Store / Play Store readiness. The first installed APK native launch crash was fixed by aligning `expo-asset` with the Expo SDK module set. Tester distribution/support, final brand assets, iOS/TestFlight later, production backend start without `tsx`, and optional backend error-copy installed-build testing remain open before inviting testers.
+First Render hosted backend smoke, phone hosted AI/speech smoke, and installed Android EAS preview APK smoke passed at `https://wortweg.onrender.com`, but this is not a public launch and not App Store / Play Store readiness. The first installed APK native launch crash was fixed by aligning `expo-asset` with the Expo SDK module set. Tester distribution docs now exist; the approved APK link, feedback channel, support owner, final brand assets, iOS/TestFlight later, production backend start without `tsx`, and optional backend error-copy installed-build testing remain open before inviting testers.
 
 ## Current MVP Behavior
 
@@ -445,15 +445,20 @@ Local state is centralized in `src/lib/storage.ts`. When Supabase is added, keep
 
 ## Private Alpha Test
 
-This private alpha is for 3-5 trusted testers using Expo Go on a real phone. Use Node `22.22.3` and keep backend/API keys local to the developer machine.
+This private alpha is for a very small group of trusted Android APK testers. Expo Go remains useful for developer smoke testing, but the current tester path is the installed Android EAS preview APK. Use Node `22.22.3` for local development and keep backend/API keys out of the mobile app.
+
+Current tester docs:
+
+- `docs/private-alpha-tester-distribution.md`
+- `docs/private-alpha-tester-message.md`
 
 Who should test:
 
 - Turkish speakers who are new to German or around A1.
-- One tester on Android Expo Go, if possible.
+- Android testers who can install a private APK.
 - People willing to report confusing copy, broken flows, and screenshots without sharing secrets.
 
-Setup commands:
+Developer setup commands:
 
 ```bash
 nvm use
@@ -464,10 +469,10 @@ cp .env.example .env
 Configure `.env` locally:
 
 - Put backend-only keys in `.env`: `GEMINI_API_KEY` and `OPENAI_API_KEY`.
-- Set `EXPO_PUBLIC_AI_BACKEND_URL=http://YOUR_MAC_LAN_IP:3001` for Expo Go on a phone.
+- Set `EXPO_PUBLIC_AI_BACKEND_URL=http://YOUR_MAC_LAN_IP:3001` for Expo Go development, or use the EAS preview env for installed Android preview builds.
 - Do not put API keys in app source, screenshots, chat messages, or feedback reports.
 
-Start backend and Expo in separate terminals:
+Start backend and Expo in separate terminals for local developer smoke:
 
 ```bash
 npm run server:dev
@@ -505,7 +510,7 @@ Alpha test checklist:
    - Speaking stats update after a scored result without storing transcript text or audio URI.
 9. Open Profile, export the alpha event log, and send feedback.
 
-Before testing speech on iPhone:
+Before testing speech in Expo Go on iPhone:
 
 - Run `ipconfig getifaddr en0` on the Mac, then open http://YOUR_MAC_LAN_IP:3001/health in iPhone Safari.
 - If it does not open, fix same Wi-Fi, firewall, or the Mac LAN IP before testing speech.

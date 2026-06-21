@@ -1,13 +1,13 @@
 # WortWeg Private Alpha Tester Guide Draft
 
-This is a future tester guide draft. It is not ready to send.
+This is an older tester guide draft. For the current Android APK distribution process, use `docs/private-alpha-tester-distribution.md` and `docs/private-alpha-tester-message.md`.
 
 ## 1. Status Notice
 
 - This guide is a draft.
-- Do not send this guide to testers yet.
-- Phone smoke test is still required.
-- Backend deployment/private build readiness must be confirmed first.
+- Do not send this guide directly to testers; use the current tester message draft instead.
+- Hosted backend smoke, phone hosted AI/speech smoke, and installed Android APK smoke have passed.
+- The APK link, feedback channel, support owner, and selected tester group must still be confirmed before sending.
 - No public launch is implied.
 - No app store account, tester invite, or external distribution has been created from this document.
 
@@ -55,7 +55,7 @@ Not ready yet:
 - full B1 path
 - full B2 path
 - final Wolli mascot art
-- hosted backend/public alpha if not deployed
+- iOS/TestFlight build
 - phoneme-level pronunciation scoring
 - Azure pronunciation assessment
 - official exam affiliation
@@ -141,11 +141,13 @@ Yaklaşık saat:
 
 ## 10. Internal Release Checklist Before Sending
 
-Bu rehber testerlarla paylaşılmadan önce içeride şunlar tamamlanmalı:
+Testerlarla paylaşmadan önce içeride şunlar tamamlanmalı:
 
-- phone smoke passed
-- hosted backend smoke passed if using hosted backend
-- private build/install path confirmed
+- Android installed APK smoke passed
+- hosted backend smoke passed
+- approved APK link selected
+- feedback channel selected
+- support owner selected
 - privacy wording reviewed
 - feedback collection method decided
 - support/contact channel decided
