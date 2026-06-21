@@ -30,6 +30,7 @@ This index keeps the `docs/` folder navigable as planning, audit, alpha, backend
 - [Alpha Test Checklist](alpha-test-checklist.md)
 - [Private Alpha Metadata Draft](private-alpha-metadata-draft.md)
 - [Private Alpha Tester Guide Draft](private-alpha-tester-guide-draft.md)
+- [Private Alpha Distribution Plan](private-alpha-distribution-plan.md)
 - [Local Release Readiness Audit](local-release-readiness-audit.md)
 
 ## 5. Design / Brand
@@ -68,4 +69,4 @@ PATH=/Users/squall/.nvm/versions/node/v22.22.3/bin:$PATH npx expo start --clear 
 
 ## 8. Next Recommended Action
 
-Finalize the private alpha packaging/install path and tester support process. Keep Azure pronunciation assessment as future backend-only prototype work.
+Use the private alpha distribution plan to prepare EAS/install decisions, then finalize tester support. Keep Azure pronunciation assessment as future backend-only prototype work.
