@@ -11,3 +11,13 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .DS_Store
+
+# Local QA artifacts — never commit these
+*.log
+hierarchy.txt
+lesson-hierarchy.txt
+window_dump.xml
+.maestro/
+run_suite.sh
+run_flows_independently.sh
+run_all_maestro.sh
