@@ -46,6 +46,21 @@ const b1PreviewStarterChips = [
 const INTERNAL_AI_COPY_PATTERN = /(dev debug|mock|fallback|provider|modelused|model:|endpoint|backend url|timeout|network request failed|fetch-failed|http status|localhost|127\.0\.0\.1|192\.168|https?:\/\/)/i;
 const OFFLINE_WOLLI_TEXT = 'Wolli şu anda çevrimdışı. A0/A1/A2 ve kısa B1 Ön İzleme konularında basit pratik yapabiliriz.';
 
+/**
+ * Maps the learner's current plan level to the cefrLevel accepted by TeacherInput.
+ * - A0 maps to 'A1' (lowest level the AI type supports; A0 content is simple enough for A1-style prompting).
+ * - A1, A2, B1 pass through directly.
+ * - B2, C1, C2 are clamped to 'B1' (the alpha max; full B2+ is not yet playable).
+ * - Falls back to 'A1' if no plan exists.
+ */
+const getTeacherCefrLevel = (userState: UserState): 'A1' | 'A2' | 'B1' => {
+  const planLevel = userState.learningPlan?.currentLevel;
+  if (planLevel === 'A2') return 'A2';
+  if (planLevel === 'B1') return 'B1';
+  // A0 and missing → A1 (safe floor). B2/C1/C2 → B1 (alpha ceiling).
+  return 'A1';
+};
+
 const buildLessonContext = (userState: UserState): LessonContext | undefined => {
   const recentProgressLessonId = Object.values(userState.lessonProgress)
     .filter((progress) => Boolean(getLessonById(progress.lessonId)))
@@ -142,7 +157,7 @@ export function ChatScreen({ userState, onUpdateState }: ChatScreenProps) {
     };
     const reply = await generateTeacherReply({
       message: text,
-      cefrLevel: 'A1',
+      cefrLevel: getTeacherCefrLevel(userState),
       recentMessages: [...userState.chatMessages, userMessage].slice(-8),
       lessonContext,
     });
@@ -175,7 +190,7 @@ export function ChatScreen({ userState, onUpdateState }: ChatScreenProps) {
       >
         <TopBar
           streak={userState.streak}
-          subtitle="Wolli ile A1 pratik"
+          subtitle={`Wolli ile ${getTeacherCefrLevel(userState)} pratik`}
           title="AI pratik"
           xp={userState.xp}
         />
