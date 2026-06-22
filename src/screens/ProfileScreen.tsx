@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Alert, Clipboard, Linking, Modal, Platform, StyleSheet, Text, TextInput, View } from 'react-native';
-import { Map, NotebookTabs, RotateCcw, Settings2 } from 'lucide-react-native';
+import { Alert, Clipboard, Linking, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Map, MessageSquarePlus, NotebookTabs, RotateCcw, Settings2 } from 'lucide-react-native';
 
 import { AppButton } from '../components/AppButton';
 import { DevEventLogPanel } from '../components/DevEventLogPanel';
@@ -237,6 +237,45 @@ export function ProfileScreen({ navigation, userState, onUpdateState, onResetApp
     Alert.alert('Geri Bildirim', template);
   };
 
+  const sendFeedback = async () => {
+    // Prefer a configured feedback URL (e.g. a Notion form or WhatsApp link).
+    const feedbackUrl = process.env.EXPO_PUBLIC_FEEDBACK_URL?.trim();
+
+    if (feedbackUrl) {
+      try {
+        const supported = await Linking.canOpenURL(feedbackUrl);
+
+        if (supported) {
+          await Linking.openURL(feedbackUrl);
+          return;
+        }
+      } catch {
+        // Fall through to mailto below.
+      }
+    }
+
+    // Fall back to a pre-filled email draft (no data sent automatically).
+    const mailtoUrl = 'mailto:?subject=' + encodeURIComponent('WortWeg alfa geri bildirimi');
+
+    try {
+      const supported = await Linking.canOpenURL(mailtoUrl);
+
+      if (supported) {
+        await Linking.openURL(mailtoUrl);
+        return;
+      }
+    } catch {
+      // Fall through to calm Alert below.
+    }
+
+    // Last resort: calm Turkish message with no technical details.
+    Alert.alert(
+      'Geri bildirim',
+      'Geri bildirim için bana mesaj atabilirsin.',
+      [{ text: 'Tamam' }],
+    );
+  };
+
   const developerReset = () => {
     Alert.alert(
       'Geliştirici sıfırlama',
@@ -339,6 +378,14 @@ export function ProfileScreen({ navigation, userState, onUpdateState, onResetApp
             </View>
           ) : null}
           <AppButton onPress={openTesterInfo} title="Test bilgilerini kopyala" variant="secondary" />
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => void sendFeedback()}
+            style={({ pressed }) => [styles.feedbackLink, pressed && styles.feedbackLinkPressed]}
+          >
+            <MessageSquarePlus color={colors.royalPurple} size={15} strokeWidth={2.5} />
+            <Text style={styles.feedbackLinkText}>Geri bildirim gönder</Text>
+          </Pressable>
         </View>
 
         <View style={styles.section}>
@@ -656,6 +703,23 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     gap: spacing.xs,
     padding: spacing.md,
+  },
+  feedbackLink: {
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    gap: spacing.xs,
+    marginTop: spacing.xs,
+    paddingVertical: 4,
+  },
+  feedbackLinkPressed: {
+    opacity: 0.55,
+  },
+  feedbackLinkText: {
+    ...typography.small,
+    color: colors.royalPurple,
+    fontWeight: '700',
+    textDecorationLine: 'underline',
   },
   planTitle: {
     ...typography.body,
