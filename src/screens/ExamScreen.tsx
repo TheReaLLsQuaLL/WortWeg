@@ -14,7 +14,6 @@ import { Check, Mic, Square } from 'lucide-react-native';
 
 import { AppButton } from '../components/AppButton';
 import { HalftoneAccent } from '../components/HalftoneAccent';
-import { useDetailFooterSpacing } from '../components/layout';
 import { SpeakerButton } from '../components/SpeakerButton';
 import { TopBar } from '../components/TopBar';
 import { colors, radius, shadows, spacing, typography } from '../data/theme';
@@ -60,7 +59,6 @@ export function ExamScreen({
   const [permissionError, setPermissionError] = useState<string | null>(null);
   const recordingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const recordingActionRef = useRef(false);
-  const { contentPaddingBottom, footerPaddingBottom } = useDetailFooterSpacing();
   const question = questions[currentIndex];
 
   const clearRecordingTimer = () => {
@@ -242,7 +240,7 @@ export function ExamScreen({
           xp={userState.xp}
         />
         <ScrollView
-          contentContainerStyle={[styles.content, { paddingBottom: contentPaddingBottom }]}
+          contentContainerStyle={styles.content}
           contentInsetAdjustmentBehavior="automatic"
           keyboardShouldPersistTaps="handled"
         >
@@ -340,9 +338,7 @@ export function ExamScreen({
               <Text style={styles.feedbackText}>{result.feedback}</Text>
             </View>
           ) : null}
-        </ScrollView>
 
-        <View style={[styles.footer, { paddingBottom: footerPaddingBottom }]}>
           {result ? (
             <AppButton
               icon={Check}
@@ -357,7 +353,7 @@ export function ExamScreen({
               title="Cevabı kontrol et"
             />
           )}
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -376,6 +372,7 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
+    paddingBottom: spacing.xl,
   },
   card: {
     backgroundColor: colors.white,
@@ -517,22 +514,6 @@ const styles = StyleSheet.create({
   feedbackText: {
     ...typography.small,
     color: colors.deepViolet,
-  },
-  footer: {
-    backgroundColor: colors.white,
-    borderTopColor: colors.comicBorderColor,
-    borderTopWidth: colors.comicBorderWidth,
-    bottom: 0,
-    elevation: 10,
-    left: 0,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
-    position: 'absolute',
-    right: 0,
-    shadowColor: colors.deepViolet,
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 0,
   },
   pressed: {
     opacity: 0.78,
