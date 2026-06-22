@@ -7,10 +7,15 @@ This is the current single-source-of-truth snapshot for WortWeg planning.
 Changes since 0.1.0:
 - VocabScreen: formatted raw ISO `dueDate` string to Turkish locale (`tr-TR`, short month). Users no longer see `2026-06-22T00:00:00.000Z`.
 - ProfileScreen: removed the Premium/RevenueCat placeholder section; monetization UI is deferred.
+- ProfileScreen: added private-alpha feedback button reading optional `EXPO_PUBLIC_FEEDBACK_URL`, falling back to mailto: draft, with double-tap guard.
 - AI chat: added inline Wolli "typing" bubble while waiting for teacher reply. After 4 s a warm slow-backend hint appears (*"Wolli düşünüyor, biraz sabır…"*). Failed requests now display a calm Turkish fallback message instead of exposing technical details.
+- AI chat: passing actual learner CEFR level (A0/A1/A2) instead of hardcoded default.
 - Speaking practice: improved analysis status copy during cold-start (`"Seni dinliyorum…"` → `"Ses dosyası yükleniyor…"` after 4 s). Slow-backend helper text is now warmer and non-technical. `analysisIsSlow` timer reduced 5 000 → 4 000 ms.
 - Repo hygiene: local QA artifacts (logs, Maestro files, helper scripts) added to `.gitignore`.
+- EAS: wired preview profile to EAS `preview` environment for remote secret injection.
 - Version bumped to `0.1.1` in `package.json` and `app.json`.
+
+Note: The Alpha 0.1.1 Android EAS build is intentionally delayed until a meaningful batch of features/fixes is ready, as builds take ~2 hours.
 
 No app behaviour, backend, AI prompts, or curriculum content was changed.
 
