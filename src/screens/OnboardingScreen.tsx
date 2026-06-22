@@ -397,7 +397,7 @@ export function OnboardingScreen({ navigation, onComplete }: OnboardingScreenPro
       return { title: wantsPlacement ? 'Seviye kontrolüne geç' : 'Planı hazırla', disabled: !targetLevel, icon: wantsPlacement ? Check : Sparkles };
     }
 
-    return { title: 'İlk derse başla', disabled: false, icon: Sparkles };
+    return { title: 'Haritamı gör', disabled: false, icon: Map };
   })();
 
   const renderStep = () => {
@@ -684,16 +684,6 @@ export function OnboardingScreen({ navigation, onComplete }: OnboardingScreenPro
             onPress={goNext}
             title={primaryButton.title}
           />
-          {stepId === 'ready' ? (
-            <Pressable
-              accessibilityRole="button"
-              disabled={saving}
-              onPress={() => void completeWithoutPlacement()}
-              style={({ pressed }) => [styles.footerLink, pressed && styles.pressed]}
-            >
-              <Text style={styles.footerLinkText}>Ana sayfa</Text>
-            </Pressable>
-          ) : null}
         </View>
       </KeyboardAvoidingView>
     </LinearGradient>
