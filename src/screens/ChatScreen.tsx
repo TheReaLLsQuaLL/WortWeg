@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator } from 'react-native';
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -106,6 +107,8 @@ const sanitizeTeacherMessage = (text: string) => {
 export function ChatScreen({ userState, onUpdateState }: ChatScreenProps) {
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
+  const [sendingSlow, setSendingSlow] = useState(false);
+  const slowTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scrollRef = useRef<ScrollView>(null);
   const lessonContext = buildLessonContext(userState);
   const activeStarterChips = lessonContext
@@ -147,7 +150,13 @@ export function ChatScreen({ userState, onUpdateState }: ChatScreenProps) {
     }
 
     setSending(true);
+    setSendingSlow(false);
     setMessage('');
+
+    // Show a warm slow-backend hint after 4 s so cold-starts feel intentional.
+    slowTimerRef.current = setTimeout(() => {
+      setSendingSlow(true);
+    }, 4000);
 
     const userMessage: ChatMessage = {
       id: `chat-user-${Date.now()}`,
@@ -155,30 +164,55 @@ export function ChatScreen({ userState, onUpdateState }: ChatScreenProps) {
       text,
       createdAt: new Date().toISOString(),
     };
-    const reply = await generateTeacherReply({
-      message: text,
-      cefrLevel: getTeacherCefrLevel(userState),
-      recentMessages: [...userState.chatMessages, userMessage].slice(-8),
-      lessonContext,
-    });
-    const teacherMessage: ChatMessage = {
-      id: `chat-teacher-${Date.now()}`,
-      role: 'teacher',
-      text: [
-        reply.text,
-        reply.corrections.length ? `Düzeltme: ${reply.corrections.join(' ')}` : '',
-        reply.suggestions.length ? `Öneri: ${reply.suggestions.join(' ')}` : '',
-      ]
-        .filter(Boolean)
-        .join('\n\n'),
-      createdAt: new Date().toISOString(),
-    };
 
-    await onUpdateState((state) => ({
-      ...state,
-      chatMessages: [...state.chatMessages, userMessage, teacherMessage],
-    }));
-    setSending(false);
+    try {
+      const reply = await generateTeacherReply({
+        message: text,
+        cefrLevel: getTeacherCefrLevel(userState),
+        recentMessages: [...userState.chatMessages, userMessage].slice(-8),
+        lessonContext,
+      });
+      const teacherMessage: ChatMessage = {
+        id: `chat-teacher-${Date.now()}`,
+        role: 'teacher',
+        text: [
+          reply.text,
+          reply.corrections.length ? `Düzeltme: ${reply.corrections.join(' ')}` : '',
+          reply.suggestions.length ? `Öneri: ${reply.suggestions.join(' ')}` : '',
+        ]
+          .filter(Boolean)
+          .join('\n\n'),
+        createdAt: new Date().toISOString(),
+      };
+
+      await onUpdateState((state) => ({
+        ...state,
+        chatMessages: [...state.chatMessages, userMessage, teacherMessage],
+      }));
+    } catch {
+      // generateTeacherReply has its own fallback; swallow here to avoid
+      // exposing technical error details to the user.
+      await onUpdateState((state) => ({
+        ...state,
+        chatMessages: [
+          ...state.chatMessages,
+          userMessage,
+          {
+            id: `chat-teacher-${Date.now()}`,
+            role: 'teacher' as const,
+            text: 'Wolli şu anda cevap veremedi. Biraz bekleyip tekrar dene.',
+            createdAt: new Date().toISOString(),
+          },
+        ],
+      }));
+    } finally {
+      if (slowTimerRef.current) {
+        clearTimeout(slowTimerRef.current);
+        slowTimerRef.current = null;
+      }
+      setSending(false);
+      setSendingSlow(false);
+    }
   };
 
   return (
@@ -258,6 +292,18 @@ export function ChatScreen({ userState, onUpdateState }: ChatScreenProps) {
               );
             })
           )}
+
+          {sending ? (
+            <View style={[styles.bubble, styles.teacherBubble, styles.typingBubble]}>
+              {sendingSlow ? (
+                <Text style={styles.typingSlowText}>
+                  Wolli düşünüyor, biraz sabır…
+                </Text>
+              ) : (
+                <ActivityIndicator color={colors.primaryPurple} size="small" />
+              )}
+            </View>
+          ) : null}
         </ScrollView>
         <View style={styles.composer}>
           <TextInput
@@ -380,6 +426,17 @@ const styles = StyleSheet.create({
   },
   userBubbleText: {
     color: colors.white,
+  },
+  typingBubble: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 44,
+    minWidth: 64,
+  },
+  typingSlowText: {
+    ...typography.small,
+    color: colors.muted,
+    fontStyle: 'italic',
   },
   composer: {
     backgroundColor: colors.white,

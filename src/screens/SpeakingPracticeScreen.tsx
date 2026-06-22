@@ -489,7 +489,7 @@ export function SpeakingPracticeScreen({ navigation, onUpdateState, route }: Spe
       if (mountedRef.current) {
         setAnalysisIsSlow(true);
       }
-    }, 5_000);
+    }, 4_000);
 
     const animation = Animated.loop(
       Animated.stagger(
@@ -1037,7 +1037,7 @@ export function SpeakingPracticeScreen({ navigation, onUpdateState, route }: Spe
     }
 
     if (status === 'analyzing') {
-      return 'Dinliyorum…';
+      return analysisIsSlow ? 'Ses dosyası yükleniyor…' : 'Seni dinliyorum…';
     }
 
     if (status === 'error') {
@@ -1073,7 +1073,9 @@ export function SpeakingPracticeScreen({ navigation, onUpdateState, route }: Spe
     }
 
     if (status === 'analyzing') {
-      return analysisIsSlow ? 'Biraz uzun sürdü, devam ediyoruz.' : 'Cümleni karşılaştırıyoruz.';
+      return analysisIsSlow
+        ? 'Sunucu meşgul olabilir, devam ediyoruz — biraz sabır.'
+        : 'Cümleni karşılaştırıyoruz.';
     }
 
     if (status === 'error') {
