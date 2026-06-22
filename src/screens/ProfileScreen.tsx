@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Alert, Clipboard, Linking, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Map, MessageSquarePlus, NotebookTabs, RotateCcw, Settings2 } from 'lucide-react-native';
 
@@ -58,6 +58,7 @@ export function ProfileScreen({ navigation, userState, onUpdateState, onResetApp
   const [testerInfoText, setTesterInfoText] = useState('');
   const [backendStatus, setBackendStatus] = useState<BackendStatus>('not_configured');
   const [hasSpeechDebug, setHasSpeechDebug] = useState(false);
+  const feedbackInFlightRef = useRef(false);
   const level = Math.floor(userState.xp / 50) + 1;
   const xpInCurrentLevel = userState.xp % 50;
   const xpToNextLevel = xpInCurrentLevel === 0 ? 50 : 50 - xpInCurrentLevel;
@@ -238,42 +239,53 @@ export function ProfileScreen({ navigation, userState, onUpdateState, onResetApp
   };
 
   const sendFeedback = async () => {
-    // Prefer a configured feedback URL (e.g. a Notion form or WhatsApp link).
-    const feedbackUrl = process.env.EXPO_PUBLIC_FEEDBACK_URL?.trim();
+    // Guard against rapid double-taps opening multiple links.
+    if (feedbackInFlightRef.current) {
+      return;
+    }
 
-    if (feedbackUrl) {
+    feedbackInFlightRef.current = true;
+
+    try {
+      // Prefer a configured feedback URL (e.g. a Notion form or WhatsApp link).
+      const feedbackUrl = process.env.EXPO_PUBLIC_FEEDBACK_URL?.trim();
+
+      if (feedbackUrl) {
+        try {
+          const supported = await Linking.canOpenURL(feedbackUrl);
+
+          if (supported) {
+            await Linking.openURL(feedbackUrl);
+            return;
+          }
+        } catch {
+          // Fall through to mailto below.
+        }
+      }
+
+      // Fall back to a pre-filled email draft (no data sent automatically).
+      const mailtoUrl = 'mailto:?subject=' + encodeURIComponent('WortWeg alfa geri bildirimi');
+
       try {
-        const supported = await Linking.canOpenURL(feedbackUrl);
+        const supported = await Linking.canOpenURL(mailtoUrl);
 
         if (supported) {
-          await Linking.openURL(feedbackUrl);
+          await Linking.openURL(mailtoUrl);
           return;
         }
       } catch {
-        // Fall through to mailto below.
+        // Fall through to calm Alert below.
       }
+
+      // Last resort: calm Turkish message with no technical details.
+      Alert.alert(
+        'Geri bildirim',
+        'Geri bildirim için bana mesaj atabilirsin.',
+        [{ text: 'Tamam' }],
+      );
+    } finally {
+      feedbackInFlightRef.current = false;
     }
-
-    // Fall back to a pre-filled email draft (no data sent automatically).
-    const mailtoUrl = 'mailto:?subject=' + encodeURIComponent('WortWeg alfa geri bildirimi');
-
-    try {
-      const supported = await Linking.canOpenURL(mailtoUrl);
-
-      if (supported) {
-        await Linking.openURL(mailtoUrl);
-        return;
-      }
-    } catch {
-      // Fall through to calm Alert below.
-    }
-
-    // Last resort: calm Turkish message with no technical details.
-    Alert.alert(
-      'Geri bildirim',
-      'Geri bildirim için bana mesaj atabilirsin.',
-      [{ text: 'Tamam' }],
-    );
   };
 
   const developerReset = () => {
