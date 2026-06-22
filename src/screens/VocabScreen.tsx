@@ -240,7 +240,7 @@ export function VocabScreen({ navigation, userState, onUpdateState }: VocabScree
                 example={item.exampleDe}
                 german={item.german}
                 key={item.id}
-                turkish={item.turkish + ' · tekrar: ' + item.dueDate}
+                turkish={item.turkish + ' · tekrar: ' + new Date(item.dueDate).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}
               />
             ))
           )}

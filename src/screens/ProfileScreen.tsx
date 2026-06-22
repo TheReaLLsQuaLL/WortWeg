@@ -469,14 +469,6 @@ export function ProfileScreen({ navigation, userState, onUpdateState, onResetApp
 
         <DevEventLogPanel onFeedbackPress={(eventLogText) => void openFeedbackDraft(eventLogText)} />
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Premium</Text>
-          <Text style={styles.body}>
-            Gelişmiş konuşma analizi, sınırsız AI pratik ve bulut senkronizasyonu
-            ileride burada yönetilecek.
-          </Text>
-          {/* TODO: premium subscription with RevenueCat should be wired here. */}
-        </View>
 
         <Modal
           animationType="slide"
