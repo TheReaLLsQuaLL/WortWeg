@@ -62,7 +62,7 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
   if (!nextLesson && lessonPath.length > 0) {
     roadmapItems.push({
       id: 'coming-soon-a2',
-      title: 'A2 modülleri',
+      title: 'Sıradaki modüller',
       meta: 'Oynanabilir içerik yakında',
       comingSoon: true,
     });
