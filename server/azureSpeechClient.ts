@@ -71,18 +71,17 @@ export const assessPronunciation = async (
       throw new Error('Azure response missing NBest[0] result');
     }
 
-    const pronunciationAssessment = bestResult.PronunciationAssessment;
-    if (!pronunciationAssessment) {
-      throw new Error('Azure response missing PronunciationAssessment');
+    if (typeof bestResult.PronScore !== 'number') {
+      throw new Error('Azure response missing PronScore');
     }
 
     return {
-      transcript: bestResult.Display || bestResult.Lexical || '',
+      transcript: bestResult.Display || bestResult.Lexical || data.DisplayText || '',
       confidence: typeof bestResult.Confidence === 'number' ? bestResult.Confidence : 1,
-      pronunciationScore: pronunciationAssessment.PronScore || 0,
-      accuracyScore: pronunciationAssessment.AccuracyScore || 0,
-      fluencyScore: pronunciationAssessment.FluencyScore || 0,
-      completenessScore: pronunciationAssessment.CompletenessScore || 0,
+      pronunciationScore: bestResult.PronScore,
+      accuracyScore: bestResult.AccuracyScore || 0,
+      fluencyScore: bestResult.FluencyScore || 0,
+      completenessScore: bestResult.CompletenessScore || 0,
     };
   } catch (error) {
     const reason = error instanceof Error && error.name === 'AbortError' ? 'timeout' : error instanceof Error ? error.message : 'azure-unknown-error';
