@@ -18,20 +18,11 @@ export const submitExamAnswer = async (
 
   if (question.section === 'reading' || question.section === 'listening') {
     const answer = 'answer' in submission ? submission.answer : '';
-    const displayAnswer = getChoiceText(question.choices, answer) ?? answer;
     const baseResult = scoreChoiceQuestion(question, answer);
-    const aiFeedback = await generateExamFeedback({
-      prompt: `${question.promptTr}\n${question.text ?? ''}\n${question.questionTr}`,
-      userAnswer: displayAnswer,
-      correctAnswer: baseResult.expected,
-      examSection: question.section,
-      cefrLevel: question.cefrLevel,
-      wasCorrect: baseResult.correct,
-    });
 
     return {
       ...baseResult,
-      feedback: `${baseResult.feedback} ${aiFeedback.text} ${aiFeedback.suggestions.join(' ')}`.trim(),
+      feedback: `${baseResult.feedback} ${question.explanationTr}`.trim(),
     };
   }
 

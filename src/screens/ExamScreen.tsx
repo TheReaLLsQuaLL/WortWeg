@@ -14,6 +14,7 @@ import { Mic, Square } from 'lucide-react-native';
 
 import { AppButton } from '../components/AppButton';
 import { HalftoneAccent } from '../components/HalftoneAccent';
+import { AppScrollView } from '../components/layout';
 import { SpeakerButton } from '../components/SpeakerButton';
 import { TopBar } from '../components/TopBar';
 import { colors, radius, shadows, spacing, typography } from '../data/theme';
@@ -239,7 +240,7 @@ export function ExamScreen({
           title="A1 sınav tarzı pratik"
           xp={userState.xp}
         />
-        <ScrollView
+        <AppScrollView
           contentContainerStyle={styles.content}
           contentInsetAdjustmentBehavior="automatic"
           keyboardShouldPersistTaps="handled"
@@ -351,7 +352,7 @@ export function ExamScreen({
               title={submitting ? 'Kontrol ediliyor…' : 'Cevabı kontrol et'}
             />
           )}
-        </ScrollView>
+        </AppScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

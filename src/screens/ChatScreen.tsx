@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator } from 'react-native';
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -15,7 +14,8 @@ import { Send } from 'lucide-react-native';
 import { AppButton } from '../components/AppButton';
 import { Chip } from '../components/Chip';
 import { HalftoneAccent } from '../components/HalftoneAccent';
-import { Screen } from '../components/layout';
+import { InlineLoadingDots } from '../components/InlineLoadingDots';
+import { AppScrollView, Screen } from '../components/layout';
 import { Mascot } from '../components/Mascot';
 import { TopBar } from '../components/TopBar';
 import { getLessonById, getNextPlayableLesson, isB1PreviewLessonId } from '../data/lessons';
@@ -228,7 +228,7 @@ export function ChatScreen({ userState, onUpdateState }: ChatScreenProps) {
           title="AI pratik"
           xp={userState.xp}
         />
-        <ScrollView
+        <AppScrollView
           contentContainerStyle={styles.messages}
           contentInsetAdjustmentBehavior="automatic"
           keyboardShouldPersistTaps="handled"
@@ -300,11 +300,11 @@ export function ChatScreen({ userState, onUpdateState }: ChatScreenProps) {
                   Wolli düşünüyor, biraz sabır…
                 </Text>
               ) : (
-                <ActivityIndicator color={colors.primaryPurple} size="small" />
+                <InlineLoadingDots color={colors.primaryPurple} size={6} />
               )}
             </View>
           ) : null}
-        </ScrollView>
+        </AppScrollView>
         <View style={styles.composer}>
           <TextInput
             multiline

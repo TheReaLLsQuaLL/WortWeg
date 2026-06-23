@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { forwardRef, type ReactNode } from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -54,29 +54,35 @@ type AppScrollViewProps = ScrollViewProps & {
   includeSafeAreaBottom?: boolean;
 };
 
-export function AppScrollView({
-  bottomInset = 0,
-  children,
-  contentContainerStyle,
-  includeSafeAreaBottom = true,
-  keyboardShouldPersistTaps = 'handled',
-  ...props
-}: AppScrollViewProps) {
-  const insets = useSafeAreaInsets();
-  const paddingBottom =
-    spacing.xxxl + bottomInset + (includeSafeAreaBottom ? insets.bottom : 0);
+export const AppScrollView = forwardRef<ScrollView, AppScrollViewProps>(
+  (
+    {
+      bottomInset = 0,
+      children,
+      contentContainerStyle,
+      includeSafeAreaBottom = true,
+      keyboardShouldPersistTaps = 'handled',
+      ...props
+    },
+    ref,
+  ) => {
+    const insets = useSafeAreaInsets();
+    const paddingBottom =
+      spacing.xxxl + bottomInset + (includeSafeAreaBottom ? insets.bottom : 0);
 
-  return (
-    <ScrollView
-      contentInsetAdjustmentBehavior="automatic"
-      keyboardShouldPersistTaps={keyboardShouldPersistTaps}
-      {...props}
-      contentContainerStyle={[contentContainerStyle, { paddingBottom }]}
-    >
-      {children}
-    </ScrollView>
-  );
-}
+    return (
+      <ScrollView
+        contentInsetAdjustmentBehavior="automatic"
+        keyboardShouldPersistTaps={keyboardShouldPersistTaps}
+        ref={ref}
+        {...props}
+        contentContainerStyle={[contentContainerStyle, { paddingBottom }]}
+      >
+        {children}
+      </ScrollView>
+    );
+  },
+);
 
 type BottomSpacerProps = {
   height?: number;

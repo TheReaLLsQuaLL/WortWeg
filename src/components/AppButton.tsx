@@ -1,6 +1,5 @@
 import type { ComponentType } from 'react';
 import {
-  ActivityIndicator,
   Pressable,
   StyleSheet,
   Text,
@@ -12,6 +11,7 @@ import {
 
 import { colors, motion, radius, shadows, spacing, typography } from '../data/theme';
 import { HalftoneAccent } from './HalftoneAccent';
+import { InlineLoadingDots } from './InlineLoadingDots';
 
 type IconProps = {
   color?: string;
@@ -66,7 +66,7 @@ export function AppButton({
       {variant === 'primary' && !isDisabled ? <HalftoneAccent opacity={0.08} size="small" style={styles.texture} /> : null}
       <View style={styles.content}>
         {loading ? (
-          <ActivityIndicator color={contentColor} />
+          <InlineLoadingDots color={contentColor} size={6} />
         ) : (
           <>
             {Icon ? <Icon color={contentColor} size={19} strokeWidth={3} /> : null}

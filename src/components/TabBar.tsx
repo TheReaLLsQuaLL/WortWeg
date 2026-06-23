@@ -36,7 +36,7 @@ type TabBarProps = {
 
 export function TabBar({ activeTab, onTabPress }: TabBarProps) {
   const insets = useSafeAreaInsets();
-  const bottomPadding = Math.max(insets.bottom, spacing.sm);
+  const bottomPadding = Math.max(insets.bottom, spacing.md);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
 
   useEffect(() => {
