@@ -1417,18 +1417,15 @@ function ResultCard({
         </View>
       </View>
 
-      <View style={styles.feedbackCategoryGrid}>
-        {pronunciationResult.feedbackCategories.map((category) => (
-          <FeedbackCategoryCard category={category} key={category.id} />
-        ))}
-      </View>
-
       {pronunciationResult.hasDetailedScores ? (
         <View style={styles.detailsCard}>
-          <Text style={styles.sectionTitle}>Telaffuz detayları</Text>
+          <Text style={styles.sectionTitle}>Gelişmiş telaffuz analizi</Text>
+          <Text style={styles.detailsHelperText}>
+            Bu analiz, telaffuzunun doğruluk, akıcılık ve tamamlama yönlerini ayrı ayrı değerlendirir.
+          </Text>
           <View style={styles.detailsGrid}>
             <View style={styles.detailItem}>
-              <Text style={styles.detailLabel}>Genel</Text>
+              <Text style={styles.detailLabel}>Genel puan</Text>
               <Text style={styles.detailValue}>{Math.round(pronunciationResult.pronunciationScore)}</Text>
             </View>
             <View style={styles.detailItem}>
@@ -1446,6 +1443,12 @@ function ResultCard({
           </View>
         </View>
       ) : null}
+
+      <View style={styles.feedbackCategoryGrid}>
+        {pronunciationResult.feedbackCategories.map((category) => (
+          <FeedbackCategoryCard category={category} key={category.id} />
+        ))}
+      </View>
 
       <View style={styles.feedbackNote}>
         <Text style={styles.sectionTitle}>Pratik geri bildirimi</Text>
@@ -1868,6 +1871,11 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     borderWidth: colors.comicBorderWidth,
     padding: spacing.md,
+  },
+  detailsHelperText: {
+    ...typography.small,
+    color: colors.muted,
+    marginBottom: spacing.xs,
   },
   detailsGrid: {
     flexDirection: 'row',
