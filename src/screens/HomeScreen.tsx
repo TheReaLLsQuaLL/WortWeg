@@ -1,5 +1,5 @@
 import { BookOpen, ChevronRight, ClipboardCheck, MessageCircle, Mic, NotebookTabs, RotateCcw, Sparkles } from 'lucide-react-native';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { AnimatedCard } from '../components/AnimatedCard';
@@ -10,7 +10,7 @@ import { ProgressPill } from '../components/ProgressPill';
 import { AppScrollView, Screen } from '../components/layout';
 import { RoadmapPath, type RoadmapPathItem } from '../components/RoadmapPath';
 import { TopBar } from '../components/TopBar';
-import { getNextPlayableLesson, getPlayableLessonsForPlan, isLessonUnlocked } from '../data/lessons';
+import { getLessonById, getNextPlayableLesson, getPlayableLessonsForPlan, isLessonUnlocked } from '../data/lessons';
 import { speakingLibrarySentences } from '../data/speakingLibrary';
 import { colors, radius, shadows, spacing, typography } from '../data/theme';
 import { formatSpeakingScorePercent, normalizeSpeakingStats } from '../lib/speakingStats';
@@ -94,6 +94,60 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
   const speakingPracticeDetail = speakingStats.totalAttempts > 0
     ? speakingStats.totalAttempts + ' deneme · en iyi ' + formatSpeakingScorePercent(speakingStats.bestScorePercent)
     : speakingLibrarySentences.length + ' hazır cümle';
+
+  const recentActivities = useMemo(() => {
+    const activities: Array<{ id: string; type: string; title: string; timestamp: string; meta?: string }> = [];
+
+    Object.entries(userState.lessonProgress).forEach(([lessonId, progress]) => {
+      if (progress.completed && progress.lastStudiedAt) {
+        const lesson = getLessonById(lessonId);
+        activities.push({
+          id: `lesson-${lessonId}`,
+          type: 'lesson',
+          title: 'Ders Tamamlandı',
+          meta: lesson ? lesson.title : undefined,
+          timestamp: progress.lastStudiedAt,
+        });
+      }
+    });
+
+    if (userState.speakingStats.lastPracticedAt) {
+      activities.push({
+        id: 'speaking',
+        type: 'speaking',
+        title: 'Sesli Pratik',
+        timestamp: userState.speakingStats.lastPracticedAt,
+      });
+    }
+
+    userState.examHistory.forEach((exam, idx) => {
+      activities.push({
+        id: `exam-${idx}`,
+        type: 'exam',
+        title: 'Sınav Denemesi',
+        meta: `%${Math.round((exam.score / Math.max(1, exam.total)) * 100)} Başarı`,
+        timestamp: exam.date,
+      });
+    });
+
+    const userMessages = userState.chatMessages.filter(m => m.role === 'user');
+    if (userMessages.length > 0) {
+      const lastMessage = userMessages[userMessages.length - 1];
+      if (lastMessage) {
+        activities.push({
+          id: 'chat',
+          type: 'chat',
+          title: 'Wolli ile Sohbet',
+          timestamp: lastMessage.createdAt,
+        });
+      }
+    }
+
+    return activities
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .slice(0, 3);
+  }, [userState]);
+
   const reviewItems = [];
 
   if (nextLesson) {
@@ -205,6 +259,52 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
                 />
               ))}
             </View>
+          </AppCard>
+        </AnimatedCard>
+
+        <AnimatedCard delayMs={60}>
+          <AppCard style={styles.reviewPanel}>
+            <View style={styles.sectionHeader}>
+              <View>
+                <Text style={styles.sectionTitle}>Son Çalışmalar</Text>
+                <Text style={styles.muted}>Yakın zamanda tamamladığın aktiviteler.</Text>
+              </View>
+            </View>
+
+            {recentActivities.length === 0 ? (
+              <View style={{ paddingVertical: spacing.md, alignItems: 'center' }}>
+                <Text style={styles.muted}>Henüz tamamlanmış bir çalışma yok.</Text>
+                <Text style={[styles.muted, { fontSize: 12, marginTop: spacing.xs, textAlign: 'center' }]}>Bir ders veya pratik seçerek hemen öğrenmeye başla.</Text>
+              </View>
+            ) : (
+              <View style={styles.reviewGrid}>
+                {recentActivities.map((activity) => {
+                  let Icon = BookOpen;
+                  if (activity.type === 'speaking') Icon = Mic;
+                  if (activity.type === 'exam') Icon = ClipboardCheck;
+                  if (activity.type === 'chat') Icon = MessageCircle;
+
+                  const activityDate = new Date(activity.timestamp);
+                  const isToday = new Date().toDateString() === activityDate.toDateString();
+                  const isYesterday = new Date(Date.now() - 86400000).toDateString() === activityDate.toDateString();
+                  const timeLabel = isToday ? 'Bugün' : isYesterday ? 'Dün' : activityDate.toLocaleDateString('tr-TR');
+
+                  const detail = activity.meta ? `${activity.meta} · ${timeLabel}` : timeLabel;
+
+                  return (
+                    <View key={activity.id} style={[styles.reviewItem, { paddingVertical: spacing.sm, paddingHorizontal: spacing.sm }]}>
+                      <View style={[styles.reviewIconWrap, { backgroundColor: colors.paper }]}>
+                        <Icon color={colors.royalPurple} size={19} strokeWidth={2.8} />
+                      </View>
+                      <View style={styles.reviewItemCopy}>
+                        <Text style={styles.reviewItemTitle}>{activity.title}</Text>
+                        <Text style={styles.reviewItemDetail}>{detail}</Text>
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            )}
           </AppCard>
         </AnimatedCard>
 
