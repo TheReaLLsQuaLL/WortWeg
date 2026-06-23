@@ -654,7 +654,7 @@ export function SpeakingPracticeScreen({ navigation, onUpdateState, route }: Spe
       const nextPronunciationResult = await scorePronunciation(
         recording.uri,
         prompt.expectedText,
-        nextTranscriptionResult.transcript,
+        nextTranscriptionResult,
       );
 
       if (!mountedRef.current) {
