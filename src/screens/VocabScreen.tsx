@@ -21,7 +21,18 @@ import {
 import { awardXpForStudy } from '../lib/storage';
 import type { CommitUserState, RootNavigation } from '../navigation/AppNavigator';
 import { trackLocalEvent } from '../services/localEventLog';
-import type { UserState } from '../types/userState';
+import type { ReviewCard, UserState } from '../types/userState';
+
+const truncateText = (text: string, length = 100) => text.length > length ? text.slice(0, length) + '...' : text;
+
+const buildVocabPrompt = (card: ReviewCard) => {
+  const articleContext = card.article ? `(Artikeli: ${card.article}) ` : '';
+  let prompt = `"${truncateText(card.german)}" kelimesini çalışıyorum. Anlamı "${truncateText(card.turkish)}". ${articleContext}Bana bu kelimenin kullanımını kısaca açıklayıp, 3 tane basit Almanca örnek cümle kurar mısın?`;
+  if (card.exampleDe && card.exampleDe.length < 150) {
+    prompt += ` Örnek: "${card.exampleDe}"`;
+  }
+  return prompt;
+};
 
 type VocabScreenProps = {
   navigation: RootNavigation;
@@ -195,6 +206,15 @@ export function VocabScreen({ navigation, userState, onUpdateState }: VocabScree
                   style={styles.reviewButton}
                 />
               </View>
+            ) : null}
+
+            {revealed ? (
+              <AppButton
+                onPress={() => navigation.navigate('Chat', { initialPrompt: buildVocabPrompt(card) })}
+                title="Wolli'ye sor"
+                variant="secondary"
+                style={{ marginTop: spacing.sm }}
+              />
             ) : null}
           </View>
         ) : userState.reviewCards.length === 0 ? (
