@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { RouteProp } from '@react-navigation/native';
-import { ArrowLeft, BookOpen, Check, CheckCircle2, Home, Mic, NotebookTabs, RotateCcw } from 'lucide-react-native';
+import { ArrowLeft, BookOpen, Check, CheckCircle2, ClipboardCheck, Home, MessageCircle, Mic, NotebookTabs, RotateCcw } from 'lucide-react-native';
 
 import { AnimatedCard } from '../components/AnimatedCard';
 import { AppButton } from '../components/AppButton';
@@ -310,6 +310,9 @@ export function ExercisePlayerScreen({
     const goHome = () => navigation.navigate('Main', { initialTab: 'home' });
     const goVocab = () => navigation.navigate('Main', { initialTab: 'vocab' });
     const goMistakes = () => navigation.navigate('Mistakes');
+    const goSpeakingLibrary = () => navigation.navigate('SpeakingLibrary');
+    const goChat = () => navigation.navigate('Chat');
+    const goExam = () => navigation.navigate('Main', { initialTab: 'exam' });
     const goA2Review = () => navigation.navigate('LessonIntro', { lessonId: 'a2-01-gunluk-planlar' });
     const goB1PreviewOverview = () => navigation.navigate('LevelOverview', { levelId: 'B1' });
     const goSpeakingPrompt = () => navigation.navigate('SpeakingPractice', {
@@ -444,47 +447,61 @@ export function ExercisePlayerScreen({
             </View>
           ) : (
             <>
-              <AppButton
-                icon={hasNextLesson ? BookOpen : Home}
-                onPress={() => selectCompletionAction(hasNextLesson ? 'next_lesson' : 'home', goNextOrHome)}
-                title={hasNextLesson ? 'Sıradaki ders' : 'Ana sayfa'}
-              />
-              <View style={styles.secondaryActions}>
+              {hasNextLesson ? (
+                <AppButton
+                  icon={BookOpen}
+                  onPress={() => selectCompletionAction('next_lesson', goNextOrHome)}
+                  title="Sıradaki ders"
+                />
+              ) : null}
+
+              <View style={styles.completionPlanHeader}>
+                <Text style={styles.completionPlanTitle}>Şimdi ne yapalım?</Text>
+                <Text style={styles.completionPlanSubtitle}>
+                  Dersi bitirdin. Öğrendiklerini kısa bir pratikle güçlendirebilirsin.
+                </Text>
+              </View>
+
+              <View style={styles.completionPlanStack}>
                 <AppButton
                   icon={RotateCcw}
-                  onPress={() => selectCompletionAction('vocab_review', goVocab)}
-                  title="Kelime tekrarı"
+                  onPress={() => selectCompletionAction('go_vocab', goVocab)}
+                  title="Kelimeleri tekrar et"
                   variant="secondary"
-                  style={styles.secondaryButton}
                 />
                 {hasMistakes ? (
                   <AppButton
                     icon={NotebookTabs}
-                    onPress={() => selectCompletionAction('mistakes_review', goMistakes)}
-                    title="Hatalar"
+                    onPress={() => selectCompletionAction('go_mistakes', goMistakes)}
+                    title="Hatalarını incele"
                     variant="secondary"
-                    style={styles.secondaryButton}
-                  />
-                ) : lesson.speakingPrompt ? (
-                  <AppButton
-                    icon={Mic}
-                    onPress={() => selectCompletionAction('speaking_prompt', goSpeakingPrompt)}
-                    title="Sesli dene"
-                    variant="secondary"
-                    style={styles.secondaryButton}
                   />
                 ) : null}
+                <AppButton
+                  icon={Mic}
+                  onPress={() => selectCompletionAction('go_speaking', goSpeakingLibrary)}
+                  title="Sesli pratik yap"
+                  variant="secondary"
+                />
+                <AppButton
+                  icon={MessageCircle}
+                  onPress={() => selectCompletionAction('go_chat', goChat)}
+                  title="Wolli'ye sor"
+                  variant="secondary"
+                />
+                <AppButton
+                  icon={ClipboardCheck}
+                  onPress={() => selectCompletionAction('go_exam', goExam)}
+                  title="Sınav çöz"
+                  variant="secondary"
+                />
+                <AppButton
+                  icon={Home}
+                  onPress={() => selectCompletionAction('go_home', goHome)}
+                  title="Ana sayfaya dön"
+                  variant="secondary"
+                />
               </View>
-              {hasMistakes && lesson.speakingPrompt ? (
-                <Pressable
-                  accessibilityRole="button"
-                  onPress={() => selectCompletionAction('speaking_prompt', goSpeakingPrompt)}
-                  style={({ pressed }) => [styles.completionMiniAction, pressed && styles.pressed]}
-                >
-                  <Mic color={colors.royalPurple} size={18} strokeWidth={2.8} />
-                  <Text style={styles.completionMiniActionText}>Sesli pratik de hazır</Text>
-                </Pressable>
-              ) : null}
             </>
           )}
         </ScrollView>
@@ -1010,14 +1027,27 @@ const styles = StyleSheet.create({
     flexBasis: '47%',
     flexGrow: 1,
   },
-  secondaryActions: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
+  completionPlanHeader: {
+    alignItems: 'center',
+    gap: 4,
+    marginTop: spacing.md,
+    paddingHorizontal: spacing.sm,
   },
-  secondaryButton: {
-    flexBasis: '47%',
-    flexGrow: 1,
+  completionPlanTitle: {
+    ...typography.body,
+    color: colors.deepViolet,
+    fontWeight: '900',
+    textAlign: 'center',
+  },
+  completionPlanSubtitle: {
+    ...typography.small,
+    color: colors.muted,
+    fontWeight: '800',
+    textAlign: 'center',
+  },
+  completionPlanStack: {
+    gap: spacing.md,
+    width: '100%',
   },
   completionMiniAction: {
     alignItems: 'center',
