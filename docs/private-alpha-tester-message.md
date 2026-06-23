@@ -62,6 +62,7 @@ Teşekkürler! En çok şunu bilmek istiyorum: Nerede takıldın, hangi açıkla
 
 Bu sürümde tester geri bildirimlerine göre aşağıdaki küçük iyileştirmeler yapıldı:
 
+- **AI sohbet ve sesli pratik artık "Pratik" sekmesi altında birlikte bulunur.** Alt menüdeki "Pratik" sekmesine tıklayınca "Wolli ile yazış" ve "Sesli pratik yap" seçenekleri çıkar.
 - **Klavye açılınca alt navigation gizlenir.** AI sohbeti veya Sınav ekranında klavye açıkken artık alt menü ekranı sıkıştırmaz.
 - **Sınav ekranı daha rahat kullanılır.** Cevap butonu artık sayfanın akışı içinde; çift buton çakışması gitti.
 - **Sınav bekleme butonu "Kontrol ediliyor…" yazar.** Cevap gönderildikten sonra yükleniyor simgesi yerine açık Türkçe metin görünür.
