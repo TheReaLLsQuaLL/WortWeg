@@ -58,6 +58,14 @@ Lütfen şifre, API anahtarı, kimlik/pasaport, adres, ödeme bilgisi veya hassa
 Teşekkürler! En çok şunu bilmek istiyorum: Nerede takıldın, hangi açıklama işe yaradı, hangi özellik en faydalı geldi?
 ```
 
+## Alpha 0.4.0 Güncelleme Notu (Özel Test)
+
+- **Wolli artık hatalarını daha bağlamlı açıklayabilir.** Hatalar ve Zayıf Nokta Pratiği ekranlarından “Wolli’ye sor” ile ilgili soruyu otomatik hazırlanmış metinle sohbete taşıyabilirsin.
+- **Ders bitince Wolli’den özet isteyebilirsin.** Ders tamamlandıktan sonra Wolli’ye o dersin kısa özetini ve örneklerini sorabilirsin.
+- **Kelime tekrarında Wolli desteği eklendi.** Cevabı gösterdikten sonra “Wolli’ye sor” ile kelimenin artikelini, anlamını ve örnek cümlelerini sorabilirsin.
+
+---
+
 ## Alpha 0.3.0 Güncelleme Notu (Özel Test)
 
 - **Dersler artık kaldığın yeri hatırlar.** Dersi yarıda bırakırsan aynı derse döndüğünde “Kaldığın yerden devam et” seçeneği görünür.
