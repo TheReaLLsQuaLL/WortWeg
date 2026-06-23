@@ -43,6 +43,9 @@ import type { PlacementResult } from '../types/placement';
 import type { SpeakingStatsLevelId, UserState } from '../types/userState';
 import { trackLocalEvent } from '../services/localEventLog';
 import type { OnboardingCompletion } from '../services/onboardingService';
+import type { ExamReviewItem } from '../services/examService';
+import type { ExamQuestion } from '../data/exam.a1';
+import { ExamReviewScreen } from '../screens/ExamReviewScreen';
 
 export type RootStackParamList = {
   Onboarding: undefined;
@@ -71,7 +74,9 @@ export type RootStackParamList = {
   PlanSetup: { mode?: 'edit' } | undefined;
   CurriculumMap: undefined;
   LevelOverview: { levelId: CurriculumLevelId };
-  ExamResult: { score: number; totalCount: number; xpEarned: number };
+  ExamResult: { score: number; totalCount: number; xpEarned: number; reviewItems?: ExamReviewItem[] };
+  ExamReview: { reviewItems: ExamReviewItem[] };
+  ExamRetry: { initialQuestions: ExamQuestion[] };
 };
 
 export type RootNavigation = NativeStackNavigationProp<RootStackParamList>;
@@ -447,6 +452,18 @@ export function AppNavigator() {
               )}
             </Stack.Screen>
             <Stack.Screen name="ExamResult" component={ExamResultScreen} />
+            <Stack.Screen name="ExamReview" component={ExamReviewScreen} />
+            <Stack.Screen name="ExamRetry">
+              {({ navigation, route }) => (
+                <ExamScreen
+                  navigation={navigation}
+                  userState={userState}
+                  onUpdateState={commitUserState}
+                  initialQuestions={route.params.initialQuestions}
+                  isRetry={true}
+                />
+              )}
+            </Stack.Screen>
           </>
         )}
       </Stack.Navigator>

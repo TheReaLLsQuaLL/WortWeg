@@ -14,7 +14,7 @@ type ExamResultScreenProps = NativeStackScreenProps<
 >;
 
 export function ExamResultScreen({ navigation, route }: ExamResultScreenProps) {
-  const { score, totalCount, xpEarned } = route.params;
+  const { score, totalCount, xpEarned, reviewItems } = route.params;
   const percent = totalCount > 0 ? Math.round((score / totalCount) * 100) : 0;
   const passed = percent >= 60;
 
@@ -36,6 +36,13 @@ export function ExamResultScreen({ navigation, route }: ExamResultScreenProps) {
             tekrar çalışman için saklanabilir.
           </Text>
           <AppButton onPress={() => navigation.navigate('Main')} title="Ana ekrana dön" />
+          {reviewItems && reviewItems.length > 0 ? (
+            <AppButton
+              onPress={() => navigation.navigate('ExamReview', { reviewItems })}
+              title="Hataları Gözden Geçir"
+              variant="secondary"
+            />
+          ) : null}
         </View>
       </ScrollView>
     </SafeAreaView>

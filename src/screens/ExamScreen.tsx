@@ -22,7 +22,7 @@ import { withShuffledExamChoices } from '../lib/choiceUtils';
 import { getLocalDateKey } from '../lib/date';
 import { awardXpForStudy } from '../lib/storage';
 import type { RootNavigation, CommitUserState } from '../navigation/AppNavigator';
-import { getExamPracticeQuestions, submitExamAnswer } from '../services/examService';
+import { getExamPracticeQuestions, submitExamAnswer, type ExamReviewItem } from '../services/examService';
 import {
   cleanupRecording,
   getActiveRecordingStatus,
@@ -32,27 +32,33 @@ import {
 } from '../services/speechService';
 import type { AnswerResult } from '../types/exercise';
 import type { UserState } from '../types/userState';
+import type { ExamQuestion } from '../data/exam.a1';
 
 type ExamScreenProps = {
   navigation: RootNavigation;
   userState: UserState;
   onUpdateState: CommitUserState;
+  initialQuestions?: ExamQuestion[];
+  isRetry?: boolean;
 };
 
 export function ExamScreen({
   navigation,
   userState,
   onUpdateState,
+  initialQuestions,
+  isRetry,
 }: ExamScreenProps) {
   const sessionSeedRef = useRef('exam-' + Date.now().toString(36));
   const questions = useMemo(
-    () => getExamPracticeQuestions().map((item) => withShuffledExamChoices(item, sessionSeedRef.current)),
-    [],
+    () => initialQuestions ?? getExamPracticeQuestions().map((item) => withShuffledExamChoices(item, sessionSeedRef.current)),
+    [initialQuestions],
   );
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answer, setAnswer] = useState('');
   const [result, setResult] = useState<AnswerResult | null>(null);
   const [results, setResults] = useState<AnswerResult[]>([]);
+  const [reviewItems, setReviewItems] = useState<ExamReviewItem[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [recording, setRecording] = useState(false);
   const [recordingStopping, setRecordingStopping] = useState(false);
@@ -80,30 +86,33 @@ export function ExamScreen({
     const xpEarned = finalResults.reduce((sum, item) => sum + item.xpEarned, 0);
     const score = finalResults.filter((item) => item.correct).length;
 
-    await onUpdateState((state) =>
-      awardXpForStudy(
-        {
-          ...state,
-          examBestScore: Math.max(state.examBestScore ?? 0, score),
-          examHistory: [
-            ...state.examHistory,
-            {
-              date: getLocalDateKey(),
-              score,
-              total: questions.length,
-              xpEarned,
-              mode: 'a1-practice',
-            },
-          ],
-        },
-        xpEarned,
-      ),
-    );
+    if (!isRetry) {
+      await onUpdateState((state) =>
+        awardXpForStudy(
+          {
+            ...state,
+            examBestScore: Math.max(state.examBestScore ?? 0, score),
+            examHistory: [
+              ...state.examHistory,
+              {
+                date: getLocalDateKey(),
+                score,
+                total: questions.length,
+                xpEarned,
+                mode: 'a1-practice',
+              },
+            ],
+          },
+          xpEarned,
+        ),
+      );
+    }
 
     navigation.navigate('ExamResult', {
       score,
       totalCount: questions.length,
-      xpEarned,
+      xpEarned: isRetry ? 0 : xpEarned,
+      reviewItems,
     });
   };
 
@@ -141,8 +150,24 @@ export function ExamScreen({
         });
       }
 
+      const answerText =
+        question.section === 'speaking'
+          ? 'Sesli cevap'
+          : isChoiceQuestion
+            ? question.choices?.find((c) => c.id === answer)?.text ?? answer
+            : answer;
+
+      const reviewItem: ExamReviewItem = {
+        question,
+        userAnswer: answerText || 'Cevap verilmedi',
+        correctAnswer: question.expectedText ?? question.correctAnswer ?? '',
+        feedbackTr: answerResult.feedback,
+        isCorrect: answerResult.correct,
+      };
+
       const nextResults = [...results, answerResult];
 
+      setReviewItems([...reviewItems, reviewItem]);
       setResults(nextResults);
       setResult(answerResult);
     } catch (error) {

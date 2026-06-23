@@ -9,6 +9,14 @@ export type ExamSubmission =
   | { question: ExamQuestion; answer: string }
   | { question: ExamQuestion; audioUri: string };
 
+export type ExamReviewItem = {
+  question: ExamQuestion;
+  userAnswer: string;
+  correctAnswer: string;
+  feedbackTr?: string;
+  isCorrect: boolean;
+};
+
 export const getExamPracticeQuestions = () => examA1Questions;
 
 export const submitExamAnswer = async (
