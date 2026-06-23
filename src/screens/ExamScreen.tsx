@@ -10,7 +10,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Check, Mic, Square } from 'lucide-react-native';
+import { Mic, Square } from 'lucide-react-native';
 
 import { AppButton } from '../components/AppButton';
 import { HalftoneAccent } from '../components/HalftoneAccent';
@@ -341,16 +341,14 @@ export function ExamScreen({
 
           {result ? (
             <AppButton
-              icon={Check}
               onPress={next}
               title={currentIndex === questions.length - 1 ? 'Sonucu gör' : 'Sonraki soru'}
             />
           ) : question.section === 'speaking' ? null : (
             <AppButton
-              disabled={!canSubmit}
-              loading={submitting}
+              disabled={!canSubmit || submitting}
               onPress={submit}
-              title="Cevabı kontrol et"
+              title={submitting ? 'Kontrol ediliyor…' : 'Cevabı kontrol et'}
             />
           )}
         </ScrollView>
