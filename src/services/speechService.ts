@@ -190,6 +190,21 @@ const isSpeechBackendResponse = (value: unknown): value is SpeechBackendResponse
 const getFallbackEventSeverity = (reason: string) =>
   reason === 'missing-backend-url' ? 'warning' : 'error';
 
+const toSafeSpeechErrorKind = (reason: string): string => {
+  if (reason === 'timeout') return 'timeout';
+  if (reason === 'missing-backend-url') return 'missing-backend-url';
+  if (reason === 'backend-unreachable') return 'network-error';
+  if (reason === 'invalid-response') return 'parse-error';
+  if (reason.startsWith('http-') || reason.startsWith('health-http-')) return 'http-error';
+  if (reason.startsWith('health-')) return 'network-error';
+  return 'unknown';
+};
+
+const extractHttpStatus = (reason: string): number | undefined => {
+  const httpMatch = /^(?:http-|health-http-)(\d{3})$/.exec(reason);
+  return httpMatch ? Number(httpMatch[1]) : undefined;
+};
+
 const getEndpointHost = (url: string) => {
   try {
     return new URL(url).host;
@@ -528,6 +543,9 @@ export const transcribeGerman = async (
         platform: uploadInfo.platform,
         audioExtension: uploadInfo.extension,
         audioMimeType: uploadInfo.type,
+        fallbackReason: 'missing-backend-url',
+        errorKind: 'missing-backend-url',
+        timeoutMs,
       },
       severity: 'warning',
     });
@@ -680,11 +698,14 @@ export const transcribeGerman = async (
 
     return transcriptResult;
   } catch (error) {
+    const responseTimeMs = Date.now() - startedAt;
     const reason = error instanceof Error && error.name === 'AbortError'
       ? 'timeout'
       : error instanceof Error
         ? error.message
         : 'upload-failed';
+    const errorKind = toSafeSpeechErrorKind(reason);
+    const httpStatus = extractHttpStatus(reason);
 
     trackLocalEvent({
       type: 'speech_transcription_error',
@@ -696,6 +717,11 @@ export const transcribeGerman = async (
         platform: uploadInfo.platform,
         audioExtension: uploadInfo.extension,
         audioMimeType: uploadInfo.type,
+        fallbackReason: reason,
+        errorKind,
+        httpStatus,
+        durationMs: responseTimeMs,
+        timeoutMs,
       },
       severity: getFallbackEventSeverity(reason),
     });
@@ -709,6 +735,11 @@ export const transcribeGerman = async (
         platform: uploadInfo.platform,
         audioExtension: uploadInfo.extension,
         audioMimeType: uploadInfo.type,
+        fallbackReason: reason,
+        errorKind,
+        httpStatus,
+        durationMs: responseTimeMs,
+        timeoutMs,
       },
       severity: getFallbackEventSeverity(reason),
     });

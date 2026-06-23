@@ -76,6 +76,17 @@ const wait = (ms: number) =>
 const isDevelopment = process.env.NODE_ENV !== 'production';
 const DEFAULT_AI_TIMEOUT_MS = 30_000;
 
+const toSafeErrorKind = (reason: AiBackendFallbackReason['reason']): string => {
+  switch (reason) {
+    case 'timeout': return 'timeout';
+    case 'http-error': return 'http-error';
+    case 'fetch-failed': return 'network-error';
+    case 'invalid-response': return 'parse-error';
+    case 'missing-backend-url': return 'missing-backend-url';
+    default: return 'unknown';
+  }
+};
+
 const getAiTimeoutMs = () => {
   const rawTimeout = process.env.EXPO_PUBLIC_AI_TIMEOUT_MS?.trim();
   const parsedTimeout = rawTimeout ? Number(rawTimeout) : DEFAULT_AI_TIMEOUT_MS;
@@ -647,7 +658,13 @@ export const generateTeacherReply = async (
     trackLocalEvent({
       type: 'ai_chat_backend_fallback',
       screen: 'Chat',
-      metadata: { fallbackReason: fallbackReason.reason },
+      metadata: {
+        fallbackReason: fallbackReason.reason,
+        errorKind: toSafeErrorKind(fallbackReason.reason),
+        httpStatus: fallbackReason.status,
+        durationMs: fallbackReason.responseTimeMs,
+        timeoutMs: fallbackReason.timeoutMs,
+      },
       severity: fallbackReason.reason === 'missing-backend-url' ? 'warning' : 'error',
     });
   }

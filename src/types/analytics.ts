@@ -82,6 +82,9 @@ export type LocalEventMetadata = Partial<{
   source: string;
   actionId: string;
   count: number;
+  httpStatus: number;
+  timeoutMs: number;
+  errorKind: string;
 }>;
 
 export type LocalEvent = {

@@ -36,6 +36,9 @@ const allowedMetadataKeys = new Set<keyof LocalEventMetadata>([
   'source',
   'actionId',
   'count',
+  'httpStatus',
+  'timeoutMs',
+  'errorKind',
 ]);
 
 const makeEventId = () =>
@@ -58,6 +61,16 @@ const sanitizeMetadata = (metadata?: LocalEventMetadata): LocalEventMetadata | u
 
     if (key === 'durationMs' && typeof value === 'number' && Number.isFinite(value)) {
       safe.durationMs = Math.max(0, Math.round(value));
+      continue;
+    }
+
+    if (key === 'httpStatus' && typeof value === 'number' && Number.isFinite(value)) {
+      safe.httpStatus = Math.max(0, Math.round(value));
+      continue;
+    }
+
+    if (key === 'timeoutMs' && typeof value === 'number' && Number.isFinite(value)) {
+      safe.timeoutMs = Math.max(0, Math.round(value));
       continue;
     }
 
