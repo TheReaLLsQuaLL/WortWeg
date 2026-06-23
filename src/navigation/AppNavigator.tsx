@@ -49,7 +49,7 @@ export type RootStackParamList = {
   Main: { initialTab?: TabKey } | undefined;
   Chat: undefined;
   LessonIntro: { lessonId: string };
-  ExercisePlayer: { lessonId: string };
+  ExercisePlayer: { lessonId: string; resume?: boolean };
   SpeakingPractice: {
     promptId?: string;
     source?: string;
@@ -356,16 +356,21 @@ export function AppNavigator() {
               )}
             </Stack.Screen>
             <Stack.Screen name="Chat">
-              {() => (
+              {(props) => (
                 <ChatScreen
-                  userState={userState}
+                  {...props}
                   onUpdateState={commitUserState}
+                  userState={userState}
                 />
               )}
             </Stack.Screen>
             <Stack.Screen name="LessonIntro">
-              {({ navigation, route }) => (
-                <LessonIntroScreen navigation={navigation} route={route} />
+              {(props) => (
+                <LessonIntroScreen
+                  {...props}
+                  onUpdateState={commitUserState}
+                  userState={userState}
+                />
               )}
             </Stack.Screen>
             <Stack.Screen name="ExercisePlayer">

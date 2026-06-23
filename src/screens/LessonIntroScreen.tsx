@@ -22,19 +22,28 @@ import {
   typography,
 } from '../data/theme';
 import type {
+  CommitUserState,
   RootNavigation,
   RootStackParamList,
 } from '../navigation/AppNavigator';
 import { trackLocalEvent } from '../services/localEventLog';
+import type { UserState } from '../types/userState';
 
 type LessonIntroScreenProps = {
   navigation: RootNavigation;
   route: RouteProp<RootStackParamList, 'LessonIntro'>;
+  userState: UserState;
+  onUpdateState: CommitUserState;
 };
 
-export function LessonIntroScreen({ navigation, route }: LessonIntroScreenProps) {
+export function LessonIntroScreen({ navigation, route, userState, onUpdateState }: LessonIntroScreenProps) {
   const lesson = getLessonById(route.params.lessonId);
   const { contentPaddingBottom, footerPaddingBottom } = useDetailFooterSpacing();
+  const checkpoint = userState.lessonCheckpoint;
+
+  const isCheckpointValid =
+    checkpoint?.lessonId === lesson?.id &&
+    (Date.now() - new Date(checkpoint?.timestamp ?? 0).getTime() < 48 * 60 * 60 * 1000);
 
   useEffect(() => {
     if (lesson) {
@@ -214,13 +223,36 @@ export function LessonIntroScreen({ navigation, route }: LessonIntroScreenProps)
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: footerPaddingBottom }]}>
-        <AppButton
-          icon={Play}
-          onPress={() =>
-            navigation.navigate('ExercisePlayer', { lessonId: lesson.id })
-          }
-          title="Derse başla"
-        />
+        {isCheckpointValid ? (
+          <View style={styles.resumePanel}>
+            <Text style={styles.resumeTitle}>Kaldığın yerden devam et</Text>
+            <Text style={styles.resumeSubtitle}>Bu derste daha önce başladığın bir çalışma var.</Text>
+            <AppButton
+              icon={Play}
+              onPress={() =>
+                navigation.navigate('ExercisePlayer', { lessonId: lesson.id, resume: true })
+              }
+              title="Devam et"
+            />
+            <AppButton
+              onPress={() => {
+                onUpdateState((state) => ({ ...state, lessonCheckpoint: undefined }));
+                navigation.navigate('ExercisePlayer', { lessonId: lesson.id, resume: false });
+              }}
+              title="Baştan başla"
+              variant="secondary"
+            />
+            <Text style={styles.resumeHelper}>İstersen dersi en baştan tekrar başlatabilirsin.</Text>
+          </View>
+        ) : (
+          <AppButton
+            icon={Play}
+            onPress={() =>
+              navigation.navigate('ExercisePlayer', { lessonId: lesson.id })
+            }
+            title="Dersi başlat"
+          />
+        )}
       </View>
     </SafeAreaView>
   );
@@ -434,6 +466,29 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.12,
     shadowRadius: 0,
+  },
+  resumePanel: {
+    gap: spacing.md,
+  },
+  resumeTitle: {
+    ...typography.body,
+    color: colors.deepViolet,
+    fontWeight: '900',
+    textAlign: 'center',
+  },
+  resumeSubtitle: {
+    ...typography.small,
+    color: colors.muted,
+    fontWeight: '800',
+    textAlign: 'center',
+    marginBottom: spacing.xs,
+  },
+  resumeHelper: {
+    ...typography.small,
+    color: colors.muted,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginTop: spacing.xs,
   },
   center: {
     backgroundColor: colors.lavenderBackground,

@@ -1,5 +1,6 @@
 import type { ChatMessage } from './ai';
 import type { Article } from './lesson';
+import type { ExerciseAttempt } from './exercise';
 import type { LearningPlan, PrioritySkillId, StartLevelId, StudyStyleId, TargetLevelId, UserGoalId } from './learningPlan';
 import type { PlacementResult } from './placement';
 
@@ -57,6 +58,13 @@ export type LessonProgress = {
   lastStudiedAt: string;
 };
 
+export type LessonCheckpoint = {
+  lessonId: string;
+  currentIndex: number;
+  attempts: ExerciseAttempt[];
+  timestamp: string;
+};
+
 export type SpeakingStatsLevelId = 'A0' | 'A1' | 'A2' | 'B1_PREVIEW' | 'OTHER';
 
 export type SpeakingLevelStats = {
@@ -91,6 +99,7 @@ export type UserState = {
   lastStudyDate?: string;
   completedLessons: string[];
   lessonProgress: Record<string, LessonProgress>;
+  lessonCheckpoint?: LessonCheckpoint;
   reviewCards: ReviewCard[];
   mistakes: Mistake[];
   speakingStats: SpeakingStats;

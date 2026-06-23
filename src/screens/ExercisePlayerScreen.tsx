@@ -37,7 +37,7 @@ import type {
   RootNavigation,
   RootStackParamList,
 } from '../navigation/AppNavigator';
-import type { AnswerResult, ExerciseAttempt } from '../types/exercise';
+import type { AnswerResult, Exercise, ExerciseAttempt } from '../types/exercise';
 import type { Mistake, UserState } from '../types/userState';
 
 type ExercisePlayerScreenProps = {
@@ -100,9 +100,77 @@ export function ExercisePlayerScreen({
   const finishLockedRef = useRef(false);
   const { contentPaddingBottom, footerPaddingBottom } = useDetailFooterSpacing();
 
+  const isInitializedRef = useRef(false);
+
   useEffect(() => {
-    setQueue(initialExercises);
-    setCurrentIndex(0);
+    if (isInitializedRef.current) {
+      return;
+    }
+    isInitializedRef.current = true;
+
+    let finalQueue = [...initialExercises];
+    let finalIndex = 0;
+    let finalAttempts: ExerciseAttempt[] = [];
+
+    if (route.params.resume && userState.lessonCheckpoint?.lessonId === lesson?.id) {
+      const checkpoint = userState.lessonCheckpoint;
+      if (!checkpoint) return;
+      const isStale = Date.now() - new Date(checkpoint.timestamp).getTime() >= 48 * 60 * 60 * 1000;
+
+      const missingExercises = checkpoint.attempts.some(
+        (attempt) => !attempt.exerciseId.endsWith('-retry') && !initialExercises.find((e) => e.id === attempt.exerciseId)
+      );
+
+      if (!isStale && !missingExercises && checkpoint.currentIndex >= 0 && checkpoint.currentIndex <= initialExercises.length * 2) {
+        finalAttempts = checkpoint.attempts;
+        finalIndex = checkpoint.currentIndex;
+
+        const retriesToAdd: Exercise[] = [];
+        const retriedIds = new Set<string>();
+
+        for (const attempt of finalAttempts) {
+          if (!attempt.result.correct && !attempt.exerciseId.endsWith('-retry')) {
+            const originalExercise = initialExercises.find((e) => e.id === attempt.exerciseId);
+            if (originalExercise && !retriedIds.has(originalExercise.id)) {
+              retriedIds.add(originalExercise.id);
+
+              const retryBase = {
+                ...originalExercise,
+                id: originalExercise.id + '-retry',
+                isRetry: true,
+                choices: undefined,
+                correctChoiceId: undefined,
+                options: originalExercise.choices?.map((choice) => choice.text) ?? originalExercise.options,
+                buildWords: originalExercise.buildWords
+                  ? shuffleWithSeed(
+                      originalExercise.buildWords,
+                      originalExercise.id + ':' + sessionSeedRef.current + ':retry-words',
+                    )
+                  : undefined,
+              };
+
+              retriesToAdd.push(
+                withShuffledExerciseChoices(
+                  retryBase,
+                  sessionSeedRef.current + ':retry:' + (initialExercises.length + retriesToAdd.length),
+                )
+              );
+            }
+          }
+        }
+        finalQueue = [...initialExercises, ...retriesToAdd];
+
+        if (finalIndex < finalAttempts.length) {
+          finalIndex = finalAttempts.length;
+        }
+      } else {
+        onUpdateState((state) => ({ ...state, lessonCheckpoint: undefined })).catch(() => undefined);
+      }
+    }
+
+    setQueue(finalQueue);
+    setCurrentIndex(finalIndex);
+    setAttempts(finalAttempts);
     setSelectedAnswer('');
     setWrittenAnswer('');
     setBuiltWords([]);
@@ -110,7 +178,7 @@ export function ExercisePlayerScreen({
     setCompletion(null);
     answerLockedRef.current = false;
     finishLockedRef.current = false;
-  }, [initialExercises]);
+  }, [initialExercises, route.params.resume, userState.lessonCheckpoint, lesson?.id, onUpdateState]);
 
   const exercise = queue[currentIndex];
   const answer =
@@ -182,6 +250,7 @@ export function ExercisePlayerScreen({
           },
           reviewCards,
           mistakes: [...state.mistakes, ...mistakes],
+          lessonCheckpoint: undefined,
         }, xpEarned);
       });
       const nextLesson = getNextPlayableLesson(nextState.completedLessons, nextState.learningPlan);
@@ -264,6 +333,18 @@ export function ExercisePlayerScreen({
           ),
         ];
       });
+    }
+
+    if (lesson) {
+      onUpdateState((state) => ({
+        ...state,
+        lessonCheckpoint: {
+          lessonId: lesson.id,
+          currentIndex,
+          attempts: nextAttempts,
+          timestamp: new Date().toISOString(),
+        },
+      })).catch(() => undefined);
     }
   };
 
