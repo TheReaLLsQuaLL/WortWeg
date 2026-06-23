@@ -18,7 +18,8 @@
     "server:check": "tsx server/checkConfig.ts",
     "server:smoke": "tsx server/smokeTest.ts",
     "quality": "npm run typecheck && npm run content:qa && npm run server:check && git diff --check",
-    "quality:backend": "npm run server:smoke"
+    "quality:backend": "npm run server:smoke",
+    "speech:azure:smoke": "tsx scripts/azure-pronunciation-smoke.ts"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",
