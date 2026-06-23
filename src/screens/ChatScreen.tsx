@@ -9,6 +9,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Send } from 'lucide-react-native';
 
 import { AppButton } from '../components/AppButton';
@@ -105,6 +106,7 @@ const sanitizeTeacherMessage = (text: string) => {
 };
 
 export function ChatScreen({ userState, onUpdateState }: ChatScreenProps) {
+  const insets = useSafeAreaInsets();
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [sendingSlow, setSendingSlow] = useState(false);
@@ -305,7 +307,7 @@ export function ChatScreen({ userState, onUpdateState }: ChatScreenProps) {
             </View>
           ) : null}
         </AppScrollView>
-        <View style={styles.composer}>
+        <View style={[styles.composer, { paddingBottom: spacing.xl + insets.bottom }]}>
           <TextInput
             multiline
             onChangeText={setMessage}
@@ -449,7 +451,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.12,
     shadowRadius: 0,
-    paddingBottom: spacing.xl,
   },
   input: {
     ...typography.body,
