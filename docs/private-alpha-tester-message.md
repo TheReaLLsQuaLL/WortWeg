@@ -67,6 +67,9 @@ Bu sürümde tester geri bildirimlerine göre aşağıdaki küçük iyileştirme
 - **Sınav ekranı daha rahat kullanılır.** Cevap butonu artık sayfanın akışı içinde; çift buton çakışması gitti.
 - **Sınav bekleme butonu "Kontrol ediliyor…" yazar.** Cevap gönderildikten sonra yükleniyor simgesi yerine açık Türkçe metin görünür.
 - **AI/konuşma sorunlarında test bilgileri daha yardımcı olur.** Bağlantı hatası olursa Profil ekranındaki log daha fazla ayrıntı içerir (hata türü, süre). Hiçbir mesaj, transkript veya kişisel veri kaydedilmez.
+- **Çoktan seçmeli Sınav cevapları daha hızlı kontrol edilir.** Cevap artık anında değerlendirilir; açıklamalar önceden hazır olduğundan bekleme yoktur.
+- **AI ve Sınav bekleme animasyonları daha tutarlı hale getirildi.** Yükleniyor göstergesi artık senkronize üç nokta olarak görünür.
+- **Android alt navigation alanı için ekran boşlukları iyileştirildi.** Sınav ve AI sohbet ekranlarında içerik, Android sistem navigasyon çubuğuyla çakışmaz.
 
 Bu sürümde değişmeyen şeyler: ders içeriği, AI promptları, konuşma puanlaması, B1/B2 yolları, backend davranışı.
 
