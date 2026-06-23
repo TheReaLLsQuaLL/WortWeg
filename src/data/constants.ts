@@ -1,7 +1,7 @@
 import type { Article } from '../types/lesson';
 
 export const APP_NAME = 'WortWeg';
-export const APP_VERSION = '0.5.0-alpha';
+export const APP_VERSION = '0.6.0-alpha';
 export const ALPHA_BUILD_DATE = '2026-06-18';
 
 export const STORAGE_KEYS = {

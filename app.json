@@ -2,7 +2,7 @@
   "expo": {
     "name": "WortWeg",
     "slug": "wortweg",
-    "version": "0.5.0",
+    "version": "0.6.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "assetBundlePatterns": [
@@ -21,7 +21,7 @@
         "foregroundImage": "./assets/adaptive-icon.png"
       },
       "package": "com.toprakyildiz.wortweg",
-      "versionCode": 4,
+      "versionCode": 5,
       "permissions": [
         "android.permission.RECORD_AUDIO",
         "android.permission.MODIFY_AUDIO_SETTINGS"
