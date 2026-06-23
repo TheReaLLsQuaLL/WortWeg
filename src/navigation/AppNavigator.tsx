@@ -22,6 +22,7 @@ import { PlanOverviewScreen } from '../screens/PlanOverviewScreen';
 import { PlanSetupScreen } from '../screens/PlanSetupScreen';
 import { PlacementResultScreen } from '../screens/PlacementResultScreen';
 import { PlacementTestScreen } from '../screens/PlacementTestScreen';
+import { PracticeHubScreen } from '../screens/PracticeHubScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 import { SpeakingLibraryScreen } from '../screens/SpeakingLibraryScreen';
 import { SpeakingPracticeScreen } from '../screens/SpeakingPracticeScreen';
@@ -46,6 +47,7 @@ export type RootStackParamList = {
   PlacementTest: { setup: LearningPlanInput; profileName?: string };
   PlacementResult: { setup: LearningPlanInput; profileName?: string; result: PlacementResult };
   Main: { initialTab?: TabKey } | undefined;
+  Chat: undefined;
   LessonIntro: { lessonId: string };
   ExercisePlayer: { lessonId: string };
   SpeakingPractice: {
@@ -104,7 +106,7 @@ function MainTabs({ navigation, userState, onUpdateState, onResetApp, initialTab
           <VocabScreen navigation={navigation} userState={userState} onUpdateState={onUpdateState} />
         ) : null}
         {activeTab === 'chat' ? (
-          <ChatScreen userState={userState} onUpdateState={onUpdateState} />
+          <PracticeHubScreen navigation={navigation} userState={userState} />
         ) : null}
         {activeTab === 'exam' ? (
           <ExamScreen
@@ -350,6 +352,14 @@ export function AppNavigator() {
                   onUpdateState={commitUserState}
                   onResetApp={resetAppState}
                   initialTab={route.params?.initialTab}
+                />
+              )}
+            </Stack.Screen>
+            <Stack.Screen name="Chat">
+              {() => (
+                <ChatScreen
+                  userState={userState}
+                  onUpdateState={commitUserState}
                 />
               )}
             </Stack.Screen>

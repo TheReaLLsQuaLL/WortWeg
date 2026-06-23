@@ -125,7 +125,7 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
       icon: MessageCircle,
       title: 'AI ile pratik',
       detail: nextLesson ? nextLesson.title + ' için Wolli' : 'Wolli ile kısa pratik',
-      onPress: () => navigation.navigate('Main', { initialTab: 'chat' }),
+      onPress: () => navigation.navigate('Chat'),
     },
     {
       id: 'exam',
@@ -212,7 +212,7 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
         <View style={styles.quickActions}>
           <QuickAction badgeCount={dueCards.length} icon={RotateCcw} label="Kelime" onPress={() => navigation.navigate('Main', { initialTab: 'vocab' })} />
           <QuickAction badgeCount={mistakeCount} icon={NotebookTabs} label="Hatalar" onPress={() => navigation.navigate('Mistakes')} />
-          <QuickAction icon={MessageCircle} label="Wolli" onPress={() => navigation.navigate('Main', { initialTab: 'chat' })} />
+          <QuickAction icon={MessageCircle} label="Wolli" onPress={() => navigation.navigate('Chat')} />
           <QuickAction icon={Mic} label="Ses" onPress={() => navigation.navigate('SpeakingLibrary')} />
         </View>
         </AnimatedCard>

@@ -2,7 +2,7 @@ import {
   BookOpen,
   ClipboardList,
   Home,
-  MessageCircle,
+  Sparkles,
   User,
   type LucideIcon,
 } from 'lucide-react-native';
@@ -24,7 +24,7 @@ type TabItem = {
 const tabs: TabItem[] = [
   { key: 'home', label: 'Yol', Icon: Home },
   { key: 'vocab', label: 'Kelime', Icon: BookOpen },
-  { key: 'chat', label: 'AI', Icon: MessageCircle },
+  { key: 'chat', label: 'Pratik', Icon: Sparkles },
   { key: 'exam', label: 'Sınav', Icon: ClipboardList },
   { key: 'profile', label: 'Profil', Icon: User },
 ];
