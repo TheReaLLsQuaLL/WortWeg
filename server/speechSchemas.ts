@@ -16,6 +16,10 @@ export const speechTranscribeResponseSchema = z.object({
   modelUsed: z.string(),
   fallback: z.boolean(),
   durationMs: z.number().int().min(0),
+  pronunciationScore: z.number().optional(),
+  accuracyScore: z.number().optional(),
+  fluencyScore: z.number().optional(),
+  completenessScore: z.number().optional(),
 });
 
 export const speechErrorResponseSchema = z.object({

@@ -4,6 +4,7 @@ import multer from 'multer';
 
 import { getBackendConfig } from './config';
 import { transcribeAudio } from './sttClient';
+import { assessPronunciation } from './azureSpeechClient';
 import { speechTranscribeRequestSchema } from './speechSchemas';
 import { getUploadSizeLimitBytes, speechUpload } from './upload';
 
@@ -105,25 +106,68 @@ speechRouter.post('/transcribe', (request, response) => {
     });
 
     try {
-      const result = await transcribeAudio({
-        filePath: file.path,
-        originalName: file.originalname,
-        mimeType: file.mimetype,
-        language: requestData.language || 'de',
-        expectedText: requestData.expectedText,
-        prompt: requestData.prompt,
-      });
+      let result;
+      let usedAzure = false;
+
+      if (config.speechAzureEnabled && requestData.expectedText) {
+        const isSupportedFormat = file.mimetype === 'audio/wav' || file.mimetype === 'audio/ogg';
+
+        if (isSupportedFormat) {
+          try {
+            const azureResult = await assessPronunciation(
+              file.path,
+              requestData.expectedText,
+              file.mimetype,
+              config.speechProviderTimeoutMs
+            );
+
+            result = {
+              transcript: azureResult.transcript,
+              language: 'de',
+              confidence: azureResult.confidence,
+              provider: 'azure',
+              modelUsed: 'azure-pronunciation-assessment',
+              fallback: false,
+              durationMs: Date.now() - startedAt,
+              pronunciationScore: azureResult.pronunciationScore,
+              accuracyScore: azureResult.accuracyScore,
+              fluencyScore: azureResult.fluencyScore,
+              completenessScore: azureResult.completenessScore,
+            };
+            usedAzure = true;
+          } catch (azureError) {
+            logSpeechDebug('azure failed, falling back to openai', {
+              error: azureError instanceof Error ? azureError.message : String(azureError),
+            });
+          }
+        } else {
+          logSpeechDebug('unsupported-audio-format for azure, falling back to openai', {
+            mimetype: file.mimetype,
+          });
+        }
+      }
+
+      if (!usedAzure) {
+        result = await transcribeAudio({
+          filePath: file.path,
+          originalName: file.originalname,
+          mimeType: file.mimetype,
+          language: requestData.language || 'de',
+          expectedText: requestData.expectedText,
+          prompt: requestData.prompt,
+        });
+      }
 
       logSpeechDebug('response ready', {
-        provider: result.provider,
-        model: result.modelUsed,
-        fallback: result.fallback,
+        provider: result!.provider,
+        model: result!.modelUsed,
+        fallback: result!.fallback,
         durationMs: Date.now() - startedAt,
       });
 
       response.json(toPublicSpeechResponse({
-        ...result,
-        durationMs: Math.max(result.durationMs, Date.now() - startedAt),
+        ...result!,
+        durationMs: Math.max(result!.durationMs, Date.now() - startedAt),
       }));
     } catch {
       response.status(500).json({ error: 'Speech transcription failed.' });

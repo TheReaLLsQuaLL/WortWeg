@@ -51,11 +51,11 @@ export const submitExamAnswer = async (
   }
 
   const audioUri = 'audioUri' in submission ? submission.audioUri : '';
-  const transcription = await transcribeGerman(audioUri);
+  const transcription = await transcribeGerman(audioUri, question.expectedText);
   const pronunciation = await scorePronunciation(
     audioUri,
     question.expectedText ?? '',
-    transcription.transcript,
+    transcription,
   );
   const speakingGrade = await gradeSpeaking({
     expectedText: question.expectedText ?? '',

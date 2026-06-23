@@ -55,6 +55,8 @@ const getSpeechScoringProvider = () =>
 export type BackendConfig = {
   aiProviderTimeoutMs: number;
   allowedOrigins: string[];
+  azureSpeechKeyConfigured: boolean;
+  azureSpeechRegion: string;
   geminiApiKeyConfigured: boolean;
   host: string;
   includeProviderDiagnostics: boolean;
@@ -79,6 +81,8 @@ const buildBackendConfig = (): BackendConfig => {
   const sttProvider = getSttProvider();
   const speechScoringProvider = getSpeechScoringProvider();
   const speechAzureEnabled = parseBoolean(process.env.SPEECH_AZURE_ENABLED, false);
+  const azureSpeechKey = process.env.AZURE_SPEECH_KEY?.trim() || '';
+  const azureSpeechRegion = process.env.AZURE_SPEECH_REGION?.trim() || '';
   const rateLimitEnabled = parseBoolean(process.env.RATE_LIMIT_ENABLED, true);
   const allowedOrigins = parseAllowedOrigins(process.env.ALLOWED_ORIGINS);
   const missing: string[] = [];
@@ -100,12 +104,17 @@ const buildBackendConfig = (): BackendConfig => {
     invalid.push('STT_PROVIDER must be openai until another provider is implemented');
   }
 
-  if (speechScoringProvider !== 'transcript') {
-    invalid.push('SPEECH_SCORING_PROVIDER must be transcript until Azure/hybrid scoring is implemented');
+  if (speechScoringProvider !== 'transcript' && speechScoringProvider !== 'azure') {
+    invalid.push('SPEECH_SCORING_PROVIDER must be transcript or azure');
   }
 
   if (speechAzureEnabled) {
-    invalid.push('SPEECH_AZURE_ENABLED must remain false until Azure is implemented');
+    if (!azureSpeechKey) missing.push('AZURE_SPEECH_KEY');
+    if (!azureSpeechRegion) missing.push('AZURE_SPEECH_REGION');
+  }
+
+  if (speechScoringProvider === 'azure' && !speechAzureEnabled) {
+    invalid.push('SPEECH_SCORING_PROVIDER is azure but SPEECH_AZURE_ENABLED is false');
   }
 
   if (missing.length > 0 || invalid.length > 0) {
@@ -120,6 +129,8 @@ const buildBackendConfig = (): BackendConfig => {
   return {
     aiProviderTimeoutMs: parsePositiveInt(process.env.AI_PROVIDER_TIMEOUT_MS, DEFAULT_AI_PROVIDER_TIMEOUT_MS),
     allowedOrigins,
+    azureSpeechKeyConfigured: Boolean(azureSpeechKey),
+    azureSpeechRegion,
     geminiApiKeyConfigured: Boolean(process.env.GEMINI_API_KEY?.trim()),
     host: process.env.HOST?.trim() || DEFAULT_HOST,
     includeProviderDiagnostics: !isProduction,

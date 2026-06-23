@@ -46,6 +46,10 @@ export type TranscriptionResult = {
   backendBaseUrl?: string;
   backendUrlSource?: string;
   backendErrorMessage?: string;
+  pronunciationScore?: number;
+  accuracyScore?: number;
+  fluencyScore?: number;
+  completenessScore?: number;
 };
 
 export type SpeechProvider = 'openai' | 'ios-native' | 'android-native' | 'mlkit' | 'gemma';
@@ -169,6 +173,10 @@ type SpeechBackendResponse = {
   modelUsed?: string;
   fallback: boolean;
   durationMs: number;
+  pronunciationScore?: number;
+  accuracyScore?: number;
+  fluencyScore?: number;
+  completenessScore?: number;
 };
 
 const isSpeechBackendResponse = (value: unknown): value is SpeechBackendResponse => {
@@ -620,6 +628,9 @@ export const transcribeGerman = async (
       type: uploadInfo.type,
     } as unknown as Blob);
     formData.append('language', 'de');
+    if (expectedText) {
+      formData.append('expectedText', expectedText);
+    }
 
     const response = await fetch(endpoint, {
       method: 'POST',
@@ -660,6 +671,10 @@ export const transcribeGerman = async (
       httpStatus: response.status,
       backendBaseUrl: backendUrl,
       backendUrlSource: backendConfig.source,
+      pronunciationScore: body.pronunciationScore,
+      accuracyScore: body.accuracyScore,
+      fluencyScore: body.fluencyScore,
+      completenessScore: body.completenessScore,
     };
 
     const comparisonForEvent = expectedText?.trim()
@@ -774,11 +789,43 @@ export const transcribeGerman = async (
 export const scorePronunciation = async (
   audioUri: string,
   expectedText: string,
-  transcript?: string,
+  transcriptOrResult?: string | TranscriptionResult,
 ): Promise<PronunciationScore> => {
   await wait(850);
 
-  const comparison = compareTranscripts(expectedText, transcript ?? '');
+  const resultObj = typeof transcriptOrResult === 'object' ? transcriptOrResult : undefined;
+  const transcriptStr = typeof transcriptOrResult === 'string' ? transcriptOrResult : resultObj?.transcript ?? '';
+
+  if (resultObj && typeof resultObj.pronunciationScore === 'number') {
+    const isExcellent = resultObj.pronunciationScore >= 80;
+    const isGood = resultObj.pronunciationScore >= 60;
+    const tone = isExcellent ? 'success' : isGood ? 'info' : 'warning';
+
+    return {
+      pronunciationScore: resultObj.pronunciationScore,
+      isMock: false,
+      provider: 'azure', // using literal provider name for UI mapping compatibility, although the type may enforce local-transcript
+      comparison: compareTranscripts(expectedText, transcriptStr), // keep the UI word mapping populated
+      scorePercent: resultObj.pronunciationScore,
+      feedbackLevel: isExcellent ? 'excellent' : isGood ? 'good' : 'poor',
+      accuracyScore: resultObj.accuracyScore ?? 0,
+      fluencyScore: resultObj.fluencyScore ?? 0,
+      completenessScore: resultObj.completenessScore ?? 0,
+      feedbackTr: isExcellent ? 'Telaffuzun harika!' : isGood ? 'Telaffuzun anlaşılır, ama daha iyi olabilir.' : 'Telaffuzunu geliştirmek için tekrar dene.',
+      retrySuggestionTr: isExcellent ? 'Mükemmel!' : 'Biraz daha pratik yap.',
+      feedbackCategories: [
+        {
+          id: 'retrySuggestion',
+          title: 'Telaffuz Puanı: ' + resultObj.pronunciationScore.toFixed(0),
+          messageTr: `Akıcılık: ${resultObj.fluencyScore?.toFixed(0)} | Doğruluk: ${resultObj.accuracyScore?.toFixed(0)}`,
+          tone,
+        }
+      ],
+      wordFeedback: [],
+    } as unknown as PronunciationScore;
+  }
+
+  const comparison = compareTranscripts(expectedText, transcriptStr);
   const hasMissingWords = comparison.missingWords.length > 0;
   const hasExtraWords = comparison.extraWords.length > 0;
   const hasWordOrderHints = comparison.wordOrderHints.length > 0;
