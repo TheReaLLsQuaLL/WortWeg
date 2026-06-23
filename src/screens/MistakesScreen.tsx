@@ -88,6 +88,18 @@ export function MistakesScreen({ navigation, onUpdateState, userState }: Mistake
           </View>
         </AppCard>
 
+        {mistakes.length > 0 ? (
+          <AppCard style={styles.practiceCard}>
+            <Text style={styles.practiceCardTitle}>Zayıf Noktalarını Çalış</Text>
+            <Text style={styles.practiceCardSubtitle}>Son hatalarından kısa bir tekrar yap.</Text>
+            <AppButton
+              onPress={() => navigation.navigate('MistakePractice')}
+              title="Pratiğe başla"
+              style={{ marginTop: spacing.sm }}
+            />
+          </AppCard>
+        ) : null}
+
         {mistakes.length === 0 ? (
           <EmptyState
             actionTitle="Derse dön"
@@ -224,6 +236,27 @@ const styles = StyleSheet.create({
   body: {
     ...typography.body,
     color: colors.muted,
+  },
+  practiceCard: {
+    backgroundColor: colors.white,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.xl,
+    borderWidth: colors.comicBorderWidth,
+    borderTopColor: colors.primaryPurple,
+    borderTopWidth: 8,
+    padding: spacing.lg,
+    gap: spacing.xs,
+    ...shadows.comicSmall,
+  },
+  practiceCardTitle: {
+    ...typography.body,
+    color: colors.deepViolet,
+    fontWeight: '900',
+  },
+  practiceCardSubtitle: {
+    ...typography.small,
+    color: colors.muted,
+    marginBottom: spacing.xs,
   },
   mistakeGroup: {
     gap: spacing.sm,

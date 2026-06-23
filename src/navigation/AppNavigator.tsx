@@ -16,6 +16,8 @@ import { HomeScreen } from '../screens/HomeScreen';
 import { LessonIntroScreen } from '../screens/LessonIntroScreen';
 import { CurriculumMapScreen } from '../screens/CurriculumMapScreen';
 import { LevelOverviewScreen } from '../screens/LevelOverviewScreen';
+import { MistakePracticeScreen } from '../screens/MistakePracticeScreen';
+
 import { MistakesScreen } from '../screens/MistakesScreen';
 import { OnboardingScreen } from '../screens/OnboardingScreen';
 import { PlanOverviewScreen } from '../screens/PlanOverviewScreen';
@@ -64,6 +66,7 @@ export type RootStackParamList = {
   } | undefined;
   SpeakingLibrary: undefined;
   Mistakes: undefined;
+  MistakePractice: undefined;
   PlanOverview: undefined;
   PlanSetup: { mode?: 'edit' } | undefined;
   CurriculumMap: undefined;
@@ -358,6 +361,15 @@ export function AppNavigator() {
             <Stack.Screen name="Chat">
               {(props) => (
                 <ChatScreen
+                  {...props}
+                  onUpdateState={commitUserState}
+                  userState={userState}
+                />
+              )}
+            </Stack.Screen>
+            <Stack.Screen name="MistakePractice">
+              {(props) => (
+                <MistakePracticeScreen
                   {...props}
                   onUpdateState={commitUserState}
                   userState={userState}
