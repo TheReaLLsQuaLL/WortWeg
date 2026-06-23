@@ -70,6 +70,7 @@ export type BackendConfig = {
   rateLimitSpeechMax: number;
   rateLimitWindowMs: number;
   speechAzureEnabled: boolean;
+  speechAzureConversionEnabled: boolean;
   speechProviderTimeoutMs: number;
   speechScoringProvider: string;
   sttProvider: string;
@@ -81,6 +82,7 @@ const buildBackendConfig = (): BackendConfig => {
   const sttProvider = getSttProvider();
   const speechScoringProvider = getSpeechScoringProvider();
   const speechAzureEnabled = parseBoolean(process.env.SPEECH_AZURE_ENABLED, false);
+  const speechAzureConversionEnabled = parseBoolean(process.env.SPEECH_AZURE_CONVERSION_ENABLED, false);
   const azureSpeechKey = process.env.AZURE_SPEECH_KEY?.trim() || '';
   const azureSpeechRegion = process.env.AZURE_SPEECH_REGION?.trim() || '';
   const rateLimitEnabled = parseBoolean(process.env.RATE_LIMIT_ENABLED, true);
@@ -144,6 +146,7 @@ const buildBackendConfig = (): BackendConfig => {
     rateLimitSpeechMax: parsePositiveInt(process.env.RATE_LIMIT_SPEECH_MAX, DEFAULT_RATE_LIMIT_SPEECH_MAX),
     rateLimitWindowMs: parsePositiveInt(process.env.RATE_LIMIT_WINDOW_MS, DEFAULT_RATE_LIMIT_WINDOW_MS),
     speechAzureEnabled,
+    speechAzureConversionEnabled,
     speechProviderTimeoutMs: parsePositiveInt(process.env.SPEECH_PROVIDER_TIMEOUT_MS, DEFAULT_SPEECH_PROVIDER_TIMEOUT_MS),
     speechScoringProvider,
     sttProvider,

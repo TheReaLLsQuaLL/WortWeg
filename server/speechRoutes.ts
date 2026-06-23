@@ -5,6 +5,7 @@ import multer from 'multer';
 import { getBackendConfig } from './config';
 import { transcribeAudio } from './sttClient';
 import { assessPronunciation } from './azureSpeechClient';
+import { convertToAzureWav } from './audioConvert';
 import { speechTranscribeRequestSchema } from './speechSchemas';
 import { getUploadSizeLimitBytes, speechUpload } from './upload';
 
@@ -110,40 +111,67 @@ speechRouter.post('/transcribe', (request, response) => {
       let usedAzure = false;
 
       if (config.speechAzureEnabled && requestData.expectedText) {
-        const isSupportedFormat = file.mimetype === 'audio/wav' || file.mimetype === 'audio/ogg';
+        let isSupportedFormat = file.mimetype === 'audio/wav' || file.mimetype === 'audio/ogg';
+        const isM4a = file.mimetype === 'audio/mp4' || file.mimetype === 'audio/m4a' || file.mimetype === 'audio/x-m4a' || file.mimetype === 'audio/aac';
+        let convertedPath: string | null = null;
+        let finalPath = file.path;
+        let finalMimeType = file.mimetype;
 
-        if (isSupportedFormat) {
-          try {
-            const azureResult = await assessPronunciation(
-              file.path,
-              requestData.expectedText,
-              file.mimetype,
-              config.speechProviderTimeoutMs
-            );
+        try {
+          if (!isSupportedFormat && isM4a && config.speechAzureConversionEnabled) {
+            try {
+              convertedPath = await convertToAzureWav(file.path);
+              finalPath = convertedPath;
+              finalMimeType = 'audio/wav';
+              isSupportedFormat = true;
+            } catch (convError) {
+              logSpeechDebug('backend conversion failed, falling back to openai', {
+                error: convError instanceof Error ? convError.message : String(convError),
+              });
+            }
+          }
 
-            result = {
-              transcript: azureResult.transcript,
-              language: 'de',
-              confidence: azureResult.confidence,
-              provider: 'azure',
-              modelUsed: 'azure-pronunciation-assessment',
-              fallback: false,
-              durationMs: Date.now() - startedAt,
-              pronunciationScore: azureResult.pronunciationScore,
-              accuracyScore: azureResult.accuracyScore,
-              fluencyScore: azureResult.fluencyScore,
-              completenessScore: azureResult.completenessScore,
-            };
-            usedAzure = true;
-          } catch (azureError) {
-            logSpeechDebug('azure failed, falling back to openai', {
-              error: azureError instanceof Error ? azureError.message : String(azureError),
+          if (isSupportedFormat) {
+            try {
+              const azureResult = await assessPronunciation(
+                finalPath,
+                requestData.expectedText,
+                finalMimeType,
+                config.speechProviderTimeoutMs
+              );
+
+              result = {
+                transcript: azureResult.transcript,
+                language: 'de',
+                confidence: azureResult.confidence,
+                provider: 'azure',
+                modelUsed: 'azure-pronunciation-assessment',
+                fallback: false,
+                durationMs: Date.now() - startedAt,
+                pronunciationScore: azureResult.pronunciationScore,
+                accuracyScore: azureResult.accuracyScore,
+                fluencyScore: azureResult.fluencyScore,
+                completenessScore: azureResult.completenessScore,
+              };
+              usedAzure = true;
+            } catch (azureError) {
+              logSpeechDebug('azure failed, falling back to openai', {
+                error: azureError instanceof Error ? azureError.message : String(azureError),
+              });
+            }
+          } else {
+            logSpeechDebug('unsupported-audio-format for azure, falling back to openai', {
+              mimetype: file.mimetype,
             });
           }
-        } else {
-          logSpeechDebug('unsupported-audio-format for azure, falling back to openai', {
-            mimetype: file.mimetype,
-          });
+        } finally {
+          if (convertedPath) {
+            try {
+              await fs.unlink(convertedPath);
+            } catch (err) {
+              // Ignore cleanup error for converted file
+            }
+          }
         }
       }
 
