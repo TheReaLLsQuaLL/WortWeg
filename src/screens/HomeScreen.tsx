@@ -1,4 +1,4 @@
-import { BookOpen, ClipboardCheck, MessageCircle, Mic, NotebookTabs, RotateCcw, Sparkles } from 'lucide-react-native';
+import { BookOpen, ChevronRight, ClipboardCheck, MessageCircle, Mic, NotebookTabs, RotateCcw, Sparkles } from 'lucide-react-native';
 import { useEffect } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -94,25 +94,41 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
   const speakingPracticeDetail = speakingStats.totalAttempts > 0
     ? speakingStats.totalAttempts + ' deneme · en iyi ' + formatSpeakingScorePercent(speakingStats.bestScorePercent)
     : speakingLibrarySentences.length + ' hazır cümle';
-  const reviewItems = [
-    {
-      id: 'vocab',
-      icon: RotateCcw,
-      title: 'Kelime tekrarı',
-      detail: dueCards.length > 0
-        ? dueCards.length + ' kart hazır'
-        : userState.reviewCards.length > 0
-          ? 'Bugünlük tekrar tamam'
-          : 'Derslerden kart açılır',
-      onPress: () => navigation.navigate('Main', { initialTab: 'vocab' }),
-    },
-    {
+  const reviewItems = [];
+
+  if (nextLesson) {
+    reviewItems.push({
+      id: 'nextLesson',
+      icon: BookOpen,
+      title: 'Derse devam et',
+      detail: nextLesson.title,
+      onPress: () => navigation.navigate('LessonIntro', { lessonId: nextLesson.id }),
+    });
+  }
+
+  reviewItems.push({
+    id: 'vocab',
+    icon: RotateCcw,
+    title: 'Kelime tekrarı',
+    detail: dueCards.length > 0
+      ? dueCards.length + ' kart hazır'
+      : userState.reviewCards.length > 0
+        ? 'Bugünlük tekrar tamam'
+        : 'Derslerden kart açılır',
+    onPress: () => navigation.navigate('Main', { initialTab: 'vocab' }),
+  });
+
+  if (mistakeCount > 0) {
+    reviewItems.push({
       id: 'mistakes',
       icon: NotebookTabs,
       title: 'Hatalar',
-      detail: mistakeCount > 0 ? mistakeCount + ' hata tekrar bekliyor' : 'Yanlış yaptığın cümleleri gör',
+      detail: mistakeCount + ' hata tekrar bekliyor',
       onPress: () => navigation.navigate('Mistakes'),
-    },
+    });
+  }
+
+  reviewItems.push(
     {
       id: 'speaking',
       icon: Mic,
@@ -123,18 +139,18 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
     {
       id: 'ai',
       icon: MessageCircle,
-      title: 'AI ile pratik',
-      detail: nextLesson ? nextLesson.title + ' için Wolli' : 'Wolli ile kısa pratik',
+      title: 'Wolli ile pratik',
+      detail: 'Kısa pratik yap',
       onPress: () => navigation.navigate('Chat'),
     },
     {
       id: 'exam',
       icon: ClipboardCheck,
-      title: 'Sınav tarzı pratik',
+      title: 'Sınav denemesi',
       detail: latestExam ? latestExam.score + '/' + latestExam.total + ' son deneme' : 'Kısa deneme aç',
       onPress: () => navigation.navigate('Main', { initialTab: 'exam' }),
-    },
-  ];
+    }
+  );
 
   return (
     <Screen backgroundColor={colors.lavenderBackground}>
@@ -174,8 +190,8 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
           <AppCard style={styles.reviewPanel}>
             <View style={styles.sectionHeader}>
               <View>
-                <Text style={styles.sectionTitle}>Bugün ne çalışalım?</Text>
-                <Text style={styles.muted}>Kısa bir tekrar seç</Text>
+                <Text style={styles.sectionTitle}>Bugünkü çalışma planı</Text>
+                <Text style={styles.muted}>Günlük hedeflerini tamamla.</Text>
               </View>
             </View>
             <View style={styles.reviewGrid}>
@@ -254,6 +270,7 @@ function ReviewPlanItem({ detail, icon: Icon, onPress, title }: { detail: string
         <Text style={styles.reviewItemTitle}>{title}</Text>
         <Text style={styles.reviewItemDetail}>{detail}</Text>
       </View>
+      <ChevronRight color={colors.comicBorderColor} opacity={0.3} size={20} strokeWidth={2.8} />
     </Pressable>
   );
 }
@@ -374,19 +391,17 @@ const styles = StyleSheet.create({
     ...shadows.comic,
   },
   reviewGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: spacing.sm,
   },
   reviewItem: {
+    alignItems: 'center',
     backgroundColor: colors.paperLavender,
     borderColor: colors.comicBorderColor,
     borderRadius: radius.lg,
     borderWidth: colors.comicBorderWidth,
-    flexBasis: '48%',
-    flexGrow: 1,
-    gap: spacing.sm,
-    minHeight: 108,
+    flexDirection: 'row',
+    gap: spacing.md,
+    minHeight: 76,
     padding: spacing.md,
     ...shadows.comicSmall,
   },
@@ -401,6 +416,7 @@ const styles = StyleSheet.create({
     width: 38,
   },
   reviewItemCopy: {
+    flex: 1,
     gap: 2,
   },
   reviewItemTitle: {
