@@ -63,6 +63,7 @@ Teşekkürler! En çok şunu bilmek istiyorum: Nerede takıldın, hangi açıkla
 Bu sürümde tester geri bildirimlerine göre aşağıdaki iyileştirmeler yapıldı:
 
 - **Ana sayfada 'Bugünkü çalışma planı' eklendi.** Ders, kelime, konuşma, Wolli ve sınav adımları daha net bir sırayla görünür.
+- **Ders bitince 'Şimdi ne yapalım?' adımı eklendi.** Kelime, konuşma, Wolli ve sınav seçenekleri daha kolay bulunur.
 - **AI sohbet ve sesli pratik artık "Pratik" sekmesi altında birlikte bulunur.** Alt menüdeki "Pratik" sekmesine tıklayınca "Wolli ile yazış" ve "Sesli pratik yap" seçenekleri çıkar.
 - **Klavye açılınca alt navigation gizlenir.** AI sohbeti veya Sınav ekranında klavye açıkken artık alt menü ekranı sıkıştırmaz.
 - **Sınav ekranı daha rahat kullanılır.** Cevap butonu artık sayfanın akışı içinde; çift buton çakışması gitti.
