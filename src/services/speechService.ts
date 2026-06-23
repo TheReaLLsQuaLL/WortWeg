@@ -98,6 +98,7 @@ export type PronunciationScore = {
   accuracyScore: number;
   fluencyScore: number;
   completenessScore: number;
+  hasDetailedScores: boolean;
   feedbackTr: string;
   retrySuggestionTr: string;
   feedbackCategories: SpeechFeedbackCategory[];
@@ -811,6 +812,7 @@ export const scorePronunciation = async (
       accuracyScore: resultObj.accuracyScore ?? 0,
       fluencyScore: resultObj.fluencyScore ?? 0,
       completenessScore: resultObj.completenessScore ?? 0,
+      hasDetailedScores: true,
       feedbackTr: isExcellent ? 'Telaffuzun harika!' : isGood ? 'Telaffuzun anlaşılır, ama daha iyi olabilir.' : 'Telaffuzunu geliştirmek için tekrar dene.',
       retrySuggestionTr: isExcellent ? 'Mükemmel!' : 'Biraz daha pratik yap.',
       feedbackCategories: [
@@ -884,6 +886,7 @@ export const scorePronunciation = async (
       accuracyScore: 0,
       fluencyScore: 0,
       completenessScore: 0,
+      hasDetailedScores: false,
       feedbackTr: 'Ses kaydı veya hedef cümle bulunamadı.',
       retrySuggestionTr: 'Kaydı tekrar başlatıp hedef cümleyi oku.',
       feedbackCategories: [],
@@ -936,6 +939,7 @@ export const scorePronunciation = async (
     accuracyScore: comparison.scorePercent,
     fluencyScore: isExcellent ? 84 : isGood ? 74 : 62,
     completenessScore: hasMissingWords ? Math.max(45, 100 - comparison.missingWords.length * 18) : 92,
+    hasDetailedScores: false,
     feedbackTr: comparison.shortFeedbackTr,
     retrySuggestionTr: comparison.retrySuggestionTr,
     feedbackCategories,

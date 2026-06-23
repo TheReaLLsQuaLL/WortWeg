@@ -1423,6 +1423,30 @@ function ResultCard({
         ))}
       </View>
 
+      {pronunciationResult.hasDetailedScores ? (
+        <View style={styles.detailsCard}>
+          <Text style={styles.sectionTitle}>Telaffuz detayları</Text>
+          <View style={styles.detailsGrid}>
+            <View style={styles.detailItem}>
+              <Text style={styles.detailLabel}>Genel</Text>
+              <Text style={styles.detailValue}>{Math.round(pronunciationResult.pronunciationScore)}</Text>
+            </View>
+            <View style={styles.detailItem}>
+              <Text style={styles.detailLabel}>Doğruluk</Text>
+              <Text style={styles.detailValue}>{Math.round(pronunciationResult.accuracyScore)}</Text>
+            </View>
+            <View style={styles.detailItem}>
+              <Text style={styles.detailLabel}>Akıcılık</Text>
+              <Text style={styles.detailValue}>{Math.round(pronunciationResult.fluencyScore)}</Text>
+            </View>
+            <View style={styles.detailItem}>
+              <Text style={styles.detailLabel}>Tamamlama</Text>
+              <Text style={styles.detailValue}>{Math.round(pronunciationResult.completenessScore)}</Text>
+            </View>
+          </View>
+        </View>
+      ) : null}
+
       <View style={styles.feedbackNote}>
         <Text style={styles.sectionTitle}>Pratik geri bildirimi</Text>
         <Text style={styles.feedbackText}>{pronunciationResult.feedbackTr}</Text>
@@ -1832,11 +1856,43 @@ const styles = StyleSheet.create({
     borderRadius: radius.xl,
     borderWidth: colors.comicBorderWidth,
     borderTopColor: colors.yellowCta,
-    borderTopWidth: 10,
-    gap: spacing.md,
+    borderTopWidth: 8,
+    gap: spacing.lg,
     overflow: 'hidden',
     padding: spacing.xl,
-    ...shadows.lift,
+    ...shadows.comic,
+  },
+  detailsCard: {
+    backgroundColor: '#f3f4f6',
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.md,
+    borderWidth: colors.comicBorderWidth,
+    padding: spacing.md,
+  },
+  detailsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.md,
+    marginTop: spacing.sm,
+  },
+  detailItem: {
+    alignItems: 'center',
+    backgroundColor: colors.white,
+    borderColor: colors.comicBorderColor,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    flex: 1,
+    minWidth: '40%',
+    padding: spacing.sm,
+  },
+  detailLabel: {
+    ...typography.small,
+    color: colors.muted,
+  },
+  detailValue: {
+    ...typography.heading,
+    color: colors.deepViolet,
+    fontSize: 20,
   },
   resultHero: {
     alignItems: 'center',
