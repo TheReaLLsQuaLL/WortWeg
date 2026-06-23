@@ -58,6 +58,14 @@ Lütfen şifre, API anahtarı, kimlik/pasaport, adres, ödeme bilgisi veya hassa
 Teşekkürler! En çok şunu bilmek istiyorum: Nerede takıldın, hangi açıklama işe yaradı, hangi özellik en faydalı geldi?
 ```
 
+## Alpha 0.5.0 Güncelleme Notu (Özel Test)
+
+- **Sınav sonrası gözden geçirme eklendi.** Sınavı bitirdikten sonra hangi soruları doğru/yanlış yaptığını, kendi cevabını ve doğru cevabı görebilirsin.
+- **Açıklamalar artık sınavdan sonra daha görünür.** Uygunsa Türkçe açıklama/geri bildirim aynı ekranda gösterilir.
+- **Yanlışları tekrar çözebilirsin.** Sadece yanlış yaptığın soruları yeniden çözerek pratik yapabilirsin. Bu tekrar modu XP veya sınav geçmişini değiştirmez.
+
+---
+
 ## Alpha 0.4.0 Güncelleme Notu (Özel Test)
 
 - **Wolli artık hatalarını daha bağlamlı açıklayabilir.** Hatalar ve Zayıf Nokta Pratiği ekranlarından “Wolli’ye sor” ile ilgili soruyu otomatik hazırlanmış metinle sohbete taşıyabilirsin.
