@@ -58,6 +58,21 @@ Lütfen şifre, API anahtarı, kimlik/pasaport, adres, ödeme bilgisi veya hassa
 Teşekkürler! En çok şunu bilmek istiyorum: Nerede takıldın, hangi açıklama işe yaradı, hangi özellik en faydalı geldi?
 ```
 
+## Alpha 0.1.2 Güncelleme Notu (Özel Test)
+
+Bu sürümde tester geri bildirimlerine göre aşağıdaki küçük iyileştirmeler yapıldı:
+
+- **Klavye açılınca alt navigation gizlenir.** AI sohbeti veya Sınav ekranında klavye açıkken artık alt menü ekranı sıkıştırmaz.
+- **Sınav ekranı daha rahat kullanılır.** Cevap butonu artık sayfanın akışı içinde; çift buton çakışması gitti.
+- **Sınav bekleme butonu "Kontrol ediliyor…" yazar.** Cevap gönderildikten sonra yükleniyor simgesi yerine açık Türkçe metin görünür.
+- **AI/konuşma sorunlarında test bilgileri daha yardımcı olur.** Bağlantı hatası olursa Profil ekranındaki log daha fazla ayrıntı içerir (hata türü, süre). Hiçbir mesaj, transkript veya kişisel veri kaydedilmez.
+
+Bu sürümde değişmeyen şeyler: ders içeriği, AI promptları, konuşma puanlaması, B1/B2 yolları, backend davranışı.
+
+Bu özel alpha testidir. Public sürüm, Play Store veya iOS/TestFlight hazırlığı yoktur.
+
+---
+
 ## Before Sending
 
 - Replace `APK_LINK_HERE`.
