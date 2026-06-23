@@ -62,6 +62,7 @@ Teşekkürler! En çok şunu bilmek istiyorum: Nerede takıldın, hangi açıkla
 
 - **Dersler artık kaldığın yeri hatırlar.** Dersi yarıda bırakırsan aynı derse döndüğünde “Kaldığın yerden devam et” seçeneği görünür.
 - **Zayıf Nokta Pratiği eklendi.** Hatalar ekranından son yanlışlarını kısa bir pratikle tekrar edebilirsin.
+- **Ana sayfaya “Son Çalışmalar” eklendi.** Son ders, konuşma pratiği, sınav veya Wolli kullanımın güvenli özet olarak görünür.
 
 ---
 
