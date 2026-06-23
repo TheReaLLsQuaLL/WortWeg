@@ -392,7 +392,12 @@ export function ExercisePlayerScreen({
     const goVocab = () => navigation.navigate('Main', { initialTab: 'vocab' });
     const goMistakes = () => navigation.navigate('Mistakes');
     const goSpeakingLibrary = () => navigation.navigate('SpeakingLibrary');
-    const goChat = () => navigation.navigate('Chat');
+    const buildLessonPrompt = () => {
+      if (!lesson) return undefined;
+      return `"${lesson.title}" dersini bitirdim. Bu dersteki önemli noktaları kısa ve Türkçe özetler misin? Sonra 3 tane basit Almanca örnek cümle ver.`;
+    };
+
+    const goChat = () => navigation.navigate('Chat', { initialPrompt: buildLessonPrompt() });
     const goExam = () => navigation.navigate('Main', { initialTab: 'exam' });
     const goA2Review = () => navigation.navigate('LessonIntro', { lessonId: 'a2-01-gunluk-planlar' });
     const goB1PreviewOverview = () => navigation.navigate('LevelOverview', { levelId: 'B1' });

@@ -12,6 +12,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Send } from 'lucide-react-native';
 
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+
 import { AppButton } from '../components/AppButton';
 import { Chip } from '../components/Chip';
 import { HalftoneAccent } from '../components/HalftoneAccent';
@@ -21,13 +23,13 @@ import { Mascot } from '../components/Mascot';
 import { TopBar } from '../components/TopBar';
 import { getLessonById, getNextPlayableLesson, isB1PreviewLessonId } from '../data/lessons';
 import { colors, radius, shadows, spacing, typography } from '../data/theme';
-import type { CommitUserState } from '../navigation/AppNavigator';
+import type { CommitUserState, RootStackParamList } from '../navigation/AppNavigator';
 import { generateTeacherReply } from '../services/aiTeacher';
 import { trackLocalEvent } from '../services/localEventLog';
 import type { ChatMessage, LessonContext } from '../types/ai';
 import type { UserState } from '../types/userState';
 
-type ChatScreenProps = {
+type ChatScreenProps = NativeStackScreenProps<RootStackParamList, 'Chat'> & {
   userState: UserState;
   onUpdateState: CommitUserState;
 };
@@ -105,12 +107,13 @@ const sanitizeTeacherMessage = (text: string) => {
   return visibleBlocks.length > 0 ? visibleBlocks.join('\n\n') : OFFLINE_WOLLI_TEXT;
 };
 
-export function ChatScreen({ userState, onUpdateState }: ChatScreenProps) {
+export function ChatScreen({ route, userState, onUpdateState }: ChatScreenProps) {
   const insets = useSafeAreaInsets();
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [sendingSlow, setSendingSlow] = useState(false);
   const slowTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hasConsumedInitialPromptRef = useRef(false);
   const scrollRef = useRef<ScrollView>(null);
   const lessonContext = buildLessonContext(userState);
   const activeStarterChips = lessonContext
@@ -128,6 +131,14 @@ export function ChatScreen({ userState, onUpdateState }: ChatScreenProps) {
   useEffect(() => {
     trackLocalEvent({ type: 'ai_chat_opened', screen: 'Chat' });
   }, []);
+
+  useEffect(() => {
+    const initialPrompt = route.params?.initialPrompt;
+    if (initialPrompt && !hasConsumedInitialPromptRef.current && message.trim() === '') {
+      setMessage(initialPrompt);
+      hasConsumedInitialPromptRef.current = true;
+    }
+  }, [route.params?.initialPrompt, message]);
 
   useEffect(() => {
     scrollToEnd();

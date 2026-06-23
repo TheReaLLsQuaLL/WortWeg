@@ -27,6 +27,16 @@ import type { UserState, Mistake } from '../types/userState';
 import type { AnswerResult, Exercise } from '../types/exercise';
 import { getChoiceText, shuffleWithSeed, withShuffledExerciseChoices } from '../lib/choiceUtils';
 
+const truncateText = (text: string, length = 100) => text.length > length ? text.slice(0, length) + '...' : text;
+
+const buildMistakePrompt = (mistake: Mistake) => {
+  let prompt = `Şu Almanca hatamı açıklar mısın? Soru: "${truncateText(mistake.prompt)}" Benim cevabım: "${truncateText(mistake.userAnswer)}" Doğru cevap: "${truncateText(mistake.expectedAnswer)}". Kısa ve Türkçe anlat, sonra 1 benzer örnek ver.`;
+  if (mistake.feedbackTr && mistake.feedbackTr.length < 150) {
+    prompt += ` Önceki açıklama: "${mistake.feedbackTr}"`;
+  }
+  return prompt;
+};
+
 type MistakePracticeScreenProps = {
   navigation: RootNavigation;
   userState: UserState;
@@ -301,9 +311,25 @@ export function MistakePracticeScreen({ navigation, userState, onUpdateState }: 
 
         <View style={[styles.footer, { paddingBottom: footerPaddingBottom }]}>
           {isFallback ? (
-            <AppButton onPress={goFallbackNext} title="Anladım" />
+            <View style={{ gap: spacing.sm }}>
+              <AppButton onPress={goFallbackNext} title="Anladım" />
+              <AppButton
+                onPress={() => navigation.navigate('Chat', { initialPrompt: mistake ? buildMistakePrompt(mistake) : undefined })}
+                title="Wolli'ye sor"
+                variant="secondary"
+              />
+            </View>
           ) : result ? (
-            <AppButton icon={Check} onPress={goNext} title="Devam et" />
+            <View style={{ gap: spacing.sm }}>
+              <AppButton icon={Check} onPress={goNext} title="Devam et" />
+              {!result.correct && (
+                <AppButton
+                  onPress={() => navigation.navigate('Chat', { initialPrompt: mistake ? buildMistakePrompt(mistake) : undefined })}
+                  title="Wolli'ye sor"
+                  variant="secondary"
+                />
+              )}
+            </View>
           ) : (
             <AppButton
               disabled={!answer.trim()}

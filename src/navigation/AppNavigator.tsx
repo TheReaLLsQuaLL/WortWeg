@@ -49,7 +49,7 @@ export type RootStackParamList = {
   PlacementTest: { setup: LearningPlanInput; profileName?: string };
   PlacementResult: { setup: LearningPlanInput; profileName?: string; result: PlacementResult };
   Main: { initialTab?: TabKey } | undefined;
-  Chat: undefined;
+  Chat: { initialPrompt?: string } | undefined;
   LessonIntro: { lessonId: string };
   ExercisePlayer: { lessonId: string; resume?: boolean };
   SpeakingPractice: {

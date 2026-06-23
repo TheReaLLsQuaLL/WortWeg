@@ -13,6 +13,16 @@ import type { CommitUserState, RootNavigation } from '../navigation/AppNavigator
 import { trackLocalEvent } from '../services/localEventLog';
 import type { Mistake, UserState } from '../types/userState';
 
+const truncateText = (text: string, length = 100) => text.length > length ? text.slice(0, length) + '...' : text;
+
+const buildMistakePrompt = (mistake: Mistake) => {
+  let prompt = `Şu Almanca hatamı açıklar mısın? Soru: "${truncateText(mistake.prompt)}" Benim cevabım: "${truncateText(mistake.userAnswer)}" Doğru cevap: "${truncateText(mistake.expectedAnswer)}". Kısa ve Türkçe anlat, sonra 1 benzer örnek ver.`;
+  if (mistake.feedbackTr && mistake.feedbackTr.length < 150) {
+    prompt += ` Önceki açıklama: "${mistake.feedbackTr}"`;
+  }
+  return prompt;
+};
+
 type MistakesScreenProps = {
   navigation: RootNavigation;
   userState: UserState;
@@ -139,6 +149,12 @@ export function MistakesScreen({ navigation, onUpdateState, userState }: Mistake
                             style={styles.rowButton}
                           />
                         </View>
+                        <AppButton
+                          onPress={() => navigation.navigate('Chat', { initialPrompt: buildMistakePrompt(mistake) })}
+                          title="Wolli'ye sor"
+                          variant="secondary"
+                          style={{ marginTop: spacing.sm }}
+                        />
                       </>
                     ) : (
                       <AppButton
