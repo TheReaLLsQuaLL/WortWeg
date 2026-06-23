@@ -58,6 +58,13 @@ Lütfen şifre, API anahtarı, kimlik/pasaport, adres, ödeme bilgisi veya hassa
 Teşekkürler! En çok şunu bilmek istiyorum: Nerede takıldın, hangi açıklama işe yaradı, hangi özellik en faydalı geldi?
 ```
 
+## Alpha 0.3.0 Güncelleme Notu (Özel Test)
+
+- **Dersler artık kaldığın yeri hatırlar.** Dersi yarıda bırakırsan aynı derse döndüğünde “Kaldığın yerden devam et” seçeneği görünür.
+- **Zayıf Nokta Pratiği eklendi.** Hatalar ekranından son yanlışlarını kısa bir pratikle tekrar edebilirsin.
+
+---
+
 ## Alpha 0.2.0 Güncelleme Notu (Özel Test)
 
 Bu sürümde tester geri bildirimlerine göre aşağıdaki iyileştirmeler yapıldı:
