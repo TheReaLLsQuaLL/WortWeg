@@ -50,6 +50,13 @@ export type TranscriptionResult = {
   accuracyScore?: number;
   fluencyScore?: number;
   completenessScore?: number;
+  words?: AzureWordFeedback[];
+};
+
+export type AzureWordFeedback = {
+  word: string;
+  accuracyScore?: number;
+  errorType?: string;
 };
 
 export type SpeechProvider = 'openai' | 'ios-native' | 'android-native' | 'mlkit' | 'gemma';
@@ -81,7 +88,7 @@ export type WordPronunciationFeedback = {
 };
 
 export type SpeechFeedbackCategory = {
-  id: 'correctWords' | 'missingWords' | 'extraWords' | 'wordOrder' | 'retrySuggestion';
+  id: 'correctWords' | 'missingWords' | 'extraWords' | 'wordOrder' | 'retrySuggestion' | 'mispronouncedWords';
   title: string;
   messageTr?: string;
   words?: string[];
@@ -178,6 +185,7 @@ type SpeechBackendResponse = {
   accuracyScore?: number;
   fluencyScore?: number;
   completenessScore?: number;
+  words?: AzureWordFeedback[];
 };
 
 const isSpeechBackendResponse = (value: unknown): value is SpeechBackendResponse => {
@@ -676,6 +684,7 @@ export const transcribeGerman = async (
       accuracyScore: body.accuracyScore,
       fluencyScore: body.fluencyScore,
       completenessScore: body.completenessScore,
+      words: body.words,
     };
 
     const comparisonForEvent = expectedText?.trim()
@@ -801,12 +810,106 @@ export const scorePronunciation = async (
     const isExcellent = resultObj.pronunciationScore >= 80;
     const isGood = resultObj.pronunciationScore >= 60;
     const tone = isExcellent ? 'success' : isGood ? 'info' : 'warning';
+    const comparison = compareTranscripts(expectedText, transcriptStr);
+
+    let feedbackCategories: SpeechFeedbackCategory[] = [];
+    const knownErrorTypes = new Set(['None', 'Omission', 'Insertion', 'Mispronunciation']);
+    const usableWords = (resultObj.words || []).filter(w =>
+      typeof w.word === 'string' &&
+      w.word.trim().length > 0 &&
+      w.errorType &&
+      knownErrorTypes.has(w.errorType)
+    );
+
+    if (usableWords.length > 0) {
+      const correctWords = usableWords.filter(w => w.errorType === 'None').map(w => w.word);
+      const missingWords = usableWords.filter(w => w.errorType === 'Omission').map(w => w.word);
+      const extraWords = usableWords.filter(w => w.errorType === 'Insertion').map(w => w.word);
+      const mispronouncedWords = usableWords.filter(w => w.errorType === 'Mispronunciation').map(w => w.word);
+
+      feedbackCategories.push({
+        id: 'correctWords',
+        title: 'Doğru kelimeler',
+        words: correctWords,
+        messageTr: correctWords.length > 0 ? undefined : 'Henüz hedef kelimeler net duyulmadı.',
+        tone: correctWords.length > 0 ? 'success' : 'warning',
+      });
+
+      feedbackCategories.push({
+        id: 'missingWords',
+        title: 'Eksik kelimeler',
+        words: missingWords,
+        messageTr: missingWords.length > 0 ? undefined : 'Eksik kelime görünmüyor.',
+        tone: missingWords.length > 0 ? 'warning' : 'success',
+      });
+
+      feedbackCategories.push({
+        id: 'extraWords',
+        title: 'Fazla kelimeler',
+        words: extraWords,
+        messageTr: extraWords.length > 0 ? undefined : 'Fazla kelime görünmüyor.',
+        tone: extraWords.length > 0 ? 'warning' : 'success',
+      });
+
+      if (mispronouncedWords.length > 0) {
+        feedbackCategories.push({
+          id: 'mispronouncedWords',
+          title: 'Telaffuzu zayıf kelimeler',
+          words: mispronouncedWords,
+          tone: 'warning',
+        });
+      }
+    } else {
+      const hasMissingWords = comparison.missingWords.length > 0;
+      const hasExtraWords = comparison.extraWords.length > 0;
+      const hasWordOrderHints = comparison.wordOrderHints.length > 0;
+
+      feedbackCategories = [
+        {
+          id: 'correctWords',
+          title: 'Doğru kelimeler',
+          words: comparison.matchedWords,
+          messageTr: comparison.matchedWords.length > 0 ? undefined : 'Henüz hedef kelimeler net duyulmadı.',
+          tone: comparison.matchedWords.length > 0 ? 'success' : 'warning',
+        },
+        {
+          id: 'missingWords',
+          title: 'Eksik kelimeler',
+          words: comparison.missingWords,
+          messageTr: hasMissingWords ? undefined : 'Eksik kelime görünmüyor.',
+          tone: hasMissingWords ? 'warning' : 'success',
+        },
+        {
+          id: 'extraWords',
+          title: 'Fazla kelimeler',
+          words: comparison.extraWords,
+          messageTr: hasExtraWords ? undefined : 'Fazla kelime görünmüyor.',
+          tone: hasExtraWords ? 'warning' : 'success',
+        },
+      ];
+
+      if (hasWordOrderHints) {
+        feedbackCategories.push({
+          id: 'wordOrder',
+          title: 'Kelime sırası',
+          messageTr: comparison.wordOrderHints[0],
+          tone: 'info',
+        });
+      }
+    }
+
+    feedbackCategories.push({
+      id: 'retrySuggestion',
+      title: 'Telaffuz Puanı: ' + resultObj.pronunciationScore.toFixed(0),
+      messageTr: `Akıcılık: ${resultObj.fluencyScore?.toFixed(0)} | Doğruluk: ${resultObj.accuracyScore?.toFixed(0)}`,
+      tone,
+    });
 
     return {
       pronunciationScore: resultObj.pronunciationScore,
       isMock: false,
       provider: 'azure', // using literal provider name for UI mapping compatibility, although the type may enforce local-transcript
-      comparison: compareTranscripts(expectedText, transcriptStr), // keep the UI word mapping populated
+      comparison, // keep the UI word mapping populated
       scorePercent: resultObj.pronunciationScore,
       feedbackLevel: isExcellent ? 'excellent' : isGood ? 'good' : 'poor',
       accuracyScore: resultObj.accuracyScore ?? 0,
@@ -815,14 +918,7 @@ export const scorePronunciation = async (
       hasDetailedScores: true,
       feedbackTr: isExcellent ? 'Telaffuzun harika!' : isGood ? 'Telaffuzun anlaşılır, ama daha iyi olabilir.' : 'Telaffuzunu geliştirmek için tekrar dene.',
       retrySuggestionTr: isExcellent ? 'Mükemmel!' : 'Biraz daha pratik yap.',
-      feedbackCategories: [
-        {
-          id: 'retrySuggestion',
-          title: 'Telaffuz Puanı: ' + resultObj.pronunciationScore.toFixed(0),
-          messageTr: `Akıcılık: ${resultObj.fluencyScore?.toFixed(0)} | Doğruluk: ${resultObj.accuracyScore?.toFixed(0)}`,
-          tone,
-        }
-      ],
+      feedbackCategories,
       wordFeedback: [],
     } as unknown as PronunciationScore;
   }
