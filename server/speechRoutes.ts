@@ -99,6 +99,22 @@ speechRouter.post('/transcribe', (request, response) => {
 
     const requestData = parsedBody.data;
 
+    const diag = {
+      expectedTextPresent: Boolean(requestData.expectedText),
+      expectedTextLength: requestData.expectedText?.length || 0,
+      azureEnabled: config.speechAzureEnabled,
+      scoringProvider: config.speechScoringProvider,
+      azureKeyConfigured: config.azureSpeechKeyConfigured,
+      azureRegionConfigured: Boolean(config.azureSpeechRegion),
+      azureConversionEnabled: config.speechAzureConversionEnabled,
+      azureAttempted: false,
+      azureSucceeded: false,
+      azureHasPronunciationScore: false,
+      azureWordsCount: 0,
+      azureError: undefined as string | undefined,
+      openaiFallbackUsed: false,
+    };
+
     logSpeechDebug('endpoint hit', {
       fileSize: file.size,
       language: requestData.language,
@@ -132,6 +148,7 @@ speechRouter.post('/transcribe', (request, response) => {
           }
 
           if (isSupportedFormat) {
+            diag.azureAttempted = true;
             try {
               const azureResult = await assessPronunciation(
                 finalPath,
@@ -139,6 +156,10 @@ speechRouter.post('/transcribe', (request, response) => {
                 finalMimeType,
                 config.speechProviderTimeoutMs
               );
+
+              diag.azureSucceeded = true;
+              diag.azureHasPronunciationScore = typeof azureResult.pronunciationScore === 'number';
+              diag.azureWordsCount = azureResult.words?.length || 0;
 
               result = {
                 transcript: azureResult.transcript,
@@ -156,8 +177,9 @@ speechRouter.post('/transcribe', (request, response) => {
               };
               usedAzure = true;
             } catch (azureError) {
+              diag.azureError = azureError instanceof Error ? azureError.message : String(azureError);
               logSpeechDebug('azure failed, falling back to openai', {
-                error: azureError instanceof Error ? azureError.message : String(azureError),
+                error: diag.azureError,
               });
             }
           } else {
@@ -177,6 +199,7 @@ speechRouter.post('/transcribe', (request, response) => {
       }
 
       if (!usedAzure) {
+        diag.openaiFallbackUsed = true;
         result = await transcribeAudio({
           filePath: file.path,
           originalName: file.originalname,
@@ -186,6 +209,8 @@ speechRouter.post('/transcribe', (request, response) => {
           prompt: requestData.prompt,
         });
       }
+
+      console.log('[WortWeg Backend] Speech Request Diagnostics:', diag);
 
       logSpeechDebug('response ready', {
         provider: result!.provider,
