@@ -6,6 +6,7 @@ import { lessonsB1Preview } from './lessons.b1Preview';
 import { lessonsB2 } from './lessons.b2';
 import { lessonsC1 } from './lessons.c1';
 import { lessonsC2 } from './lessons.c2';
+import { lessonsExam } from './lessons.exam';
 import type { CurriculumLevelId } from '../types/curriculum';
 import type { LearningPlan, StartLevelId, TargetLevelId } from '../types/learningPlan';
 import type { Lesson } from '../types/lesson';
@@ -15,7 +16,15 @@ type MainPathLesson = Lesson & { cefr: MainPathLevel };
 
 const mainPathLessons: MainPathLesson[] = [...lessonsA0, ...lessonsA1, ...lessonsA2] as MainPathLesson[];
 
-export const playableLessons: Lesson[] = [...mainPathLessons, ...lessonsB1Preview, ...lessonsB1B2, ...lessonsB2, ...lessonsC1, ...lessonsC2];
+export const playableLessons: Lesson[] = [
+  ...mainPathLessons,
+  ...lessonsB1Preview,
+  ...lessonsB1B2,
+  ...lessonsB2,
+  ...lessonsC1,
+  ...lessonsC2,
+  ...lessonsExam,
+];
 
 export {
   B1_PREVIEW_LESSON_ID,
@@ -30,7 +39,7 @@ export {
   isB1PreviewLessonId,
   lessonsB1Preview,
 } from './lessons.b1Preview';
-export { lessonsA0, lessonsA1, lessonsA2, lessonsB2, lessonsC1, lessonsC2 };
+export { lessonsA0, lessonsA1, lessonsA2, lessonsB1B2, lessonsB2, lessonsC1, lessonsC2, lessonsExam };
 
 export const playableLevelOrder: MainPathLevel[] = ['A0', 'A1', 'A2'];
 
