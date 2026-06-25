@@ -99,27 +99,6 @@ speechRouter.post('/transcribe', (request, response) => {
 
     const requestData = parsedBody.data;
 
-    const diag = {
-      expectedTextPresent: Boolean(requestData.expectedText),
-      expectedTextLength: requestData.expectedText?.length || 0,
-      azureEnabled: config.speechAzureEnabled,
-      scoringProvider: config.speechScoringProvider,
-      azureKeyConfigured: config.azureSpeechKeyConfigured,
-      azureRegionConfigured: Boolean(config.azureSpeechRegion),
-      azureConversionEnabled: config.speechAzureConversionEnabled,
-      azureAttempted: false,
-      azureSucceeded: false,
-      azureHasPronunciationScore: false,
-      azureWordsCount: 0,
-      azureError: undefined as string | undefined,
-      openaiFallbackUsed: false,
-      uploadedMimeType: file.mimetype,
-      uploadedOriginalName: file.originalname,
-      detectedAudioExtension: undefined as string | undefined,
-      azureSupportedFormat: false,
-      azureConvertibleFormat: false,
-    };
-
     logSpeechDebug('endpoint hit', {
       fileSize: file.size,
       language: requestData.language,
@@ -134,7 +113,6 @@ speechRouter.post('/transcribe', (request, response) => {
       if (config.speechAzureEnabled && requestData.expectedText) {
         const originalNameLower = (file.originalname || '').toLowerCase();
         const extension = originalNameLower.includes('.') ? originalNameLower.split('.').pop() : '';
-        diag.detectedAudioExtension = extension;
 
         const isMimeWav = file.mimetype === 'audio/wav' || file.mimetype === 'audio/wave' || file.mimetype === 'audio/x-wav' || file.mimetype === 'audio/ogg';
         const isExtWav = extension === 'wav' || extension === 'wave' || extension === 'ogg';
@@ -143,9 +121,6 @@ speechRouter.post('/transcribe', (request, response) => {
         const isMimeM4a = file.mimetype === 'audio/mp4' || file.mimetype === 'audio/m4a' || file.mimetype === 'audio/x-m4a' || file.mimetype === 'audio/aac';
         const isExtM4a = extension === 'm4a' || extension === 'mp4' || extension === 'aac';
         const isM4a = isMimeM4a || (file.mimetype === 'application/octet-stream' && isExtM4a);
-
-        diag.azureSupportedFormat = isSupportedFormat;
-        diag.azureConvertibleFormat = isM4a;
 
         let convertedPath: string | null = null;
         let finalPath = file.path;
@@ -170,7 +145,6 @@ speechRouter.post('/transcribe', (request, response) => {
           }
 
           if (isSupportedFormat) {
-            diag.azureAttempted = true;
             try {
               const azureResult = await assessPronunciation(
                 finalPath,
@@ -178,10 +152,6 @@ speechRouter.post('/transcribe', (request, response) => {
                 finalMimeType,
                 config.speechProviderTimeoutMs
               );
-
-              diag.azureSucceeded = true;
-              diag.azureHasPronunciationScore = typeof azureResult.pronunciationScore === 'number';
-              diag.azureWordsCount = azureResult.words?.length || 0;
 
               result = {
                 transcript: azureResult.transcript,
@@ -199,9 +169,8 @@ speechRouter.post('/transcribe', (request, response) => {
               };
               usedAzure = true;
             } catch (azureError) {
-              diag.azureError = azureError instanceof Error ? azureError.message : String(azureError);
               logSpeechDebug('azure failed, falling back to openai', {
-                error: diag.azureError,
+                error: azureError instanceof Error ? azureError.message : String(azureError),
               });
             }
           } else {
@@ -221,7 +190,6 @@ speechRouter.post('/transcribe', (request, response) => {
       }
 
       if (!usedAzure) {
-        diag.openaiFallbackUsed = true;
         result = await transcribeAudio({
           filePath: file.path,
           originalName: file.originalname,
@@ -231,8 +199,6 @@ speechRouter.post('/transcribe', (request, response) => {
           prompt: requestData.prompt,
         });
       }
-
-      console.log('[WortWeg Backend] Speech Request Diagnostics:', diag);
 
       logSpeechDebug('response ready', {
         provider: result!.provider,

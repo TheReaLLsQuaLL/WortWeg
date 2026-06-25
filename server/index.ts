@@ -18,17 +18,6 @@ const healthRateLimit = createRateLimitMiddleware('health', config.rateLimitHeal
 const aiRateLimit = createRateLimitMiddleware('ai', config.rateLimitAiMax);
 const speechRateLimit = createRateLimitMiddleware('speech', config.rateLimitSpeechMax);
 
-console.log('[WortWeg Backend] Startup Diagnostics:', {
-  nodeEnv: config.nodeEnv,
-  speechAzureEnabled: config.speechAzureEnabled,
-  speechScoringProvider: config.speechScoringProvider,
-  speechAzureConversionEnabled: config.speechAzureConversionEnabled,
-  azureSpeechKeyConfigured: config.azureSpeechKeyConfigured,
-  azureSpeechRegionConfigured: Boolean(config.azureSpeechRegion),
-  azureSpeechRegion: config.azureSpeechRegion,
-  sttProvider: config.sttProvider,
-});
-
 const toPublicAiResponse = (data: AiTeacherResponse) => {
   if (config.includeProviderDiagnostics) {
     return data;
