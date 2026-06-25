@@ -20,6 +20,11 @@ export const speechTranscribeResponseSchema = z.object({
   accuracyScore: z.number().optional(),
   fluencyScore: z.number().optional(),
   completenessScore: z.number().optional(),
+  words: z.array(z.object({
+    word: z.string(),
+    accuracyScore: z.number().optional(),
+    errorType: z.string().optional(),
+  })).optional(),
 });
 
 export const speechErrorResponseSchema = z.object({

@@ -152,6 +152,7 @@ speechRouter.post('/transcribe', (request, response) => {
                 accuracyScore: azureResult.accuracyScore,
                 fluencyScore: azureResult.fluencyScore,
                 completenessScore: azureResult.completenessScore,
+                words: azureResult.words,
               };
               usedAzure = true;
             } catch (azureError) {

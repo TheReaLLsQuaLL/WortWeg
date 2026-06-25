@@ -9,6 +9,11 @@ export type AzurePronunciationResult = {
   accuracyScore: number;
   fluencyScore: number;
   completenessScore: number;
+  words?: {
+    word: string;
+    accuracyScore?: number;
+    errorType?: string;
+  }[];
 };
 
 export const assessPronunciation = async (
@@ -75,6 +80,26 @@ export const assessPronunciation = async (
       throw new Error('Azure response missing PronScore');
     }
 
+    const rawWords = Array.isArray(bestResult.Words) ? bestResult.Words : [];
+    const validWords = rawWords
+      .filter((w: any) => typeof w?.Word === 'string' && w.Word.trim().length > 0)
+      .map((w: any) => {
+        const accuracyScore = Number.isFinite(w.PronunciationAssessment?.AccuracyScore)
+          ? w.PronunciationAssessment.AccuracyScore
+          : undefined;
+        const errorType = typeof w.PronunciationAssessment?.ErrorType === 'string' && w.PronunciationAssessment.ErrorType.trim().length > 0
+          ? w.PronunciationAssessment.ErrorType.trim()
+          : undefined;
+
+        return {
+          word: w.Word.trim(),
+          ...(accuracyScore !== undefined ? { accuracyScore } : {}),
+          ...(errorType !== undefined ? { errorType } : {}),
+        };
+      });
+
+    const words = validWords.length > 0 ? validWords : undefined;
+
     return {
       transcript: bestResult.Display || bestResult.Lexical || data.DisplayText || '',
       confidence: typeof bestResult.Confidence === 'number' ? bestResult.Confidence : 1,
@@ -82,6 +107,7 @@ export const assessPronunciation = async (
       accuracyScore: bestResult.AccuracyScore || 0,
       fluencyScore: bestResult.FluencyScore || 0,
       completenessScore: bestResult.CompletenessScore || 0,
+      words: words && words.length > 0 ? words : undefined,
     };
   } catch (error) {
     const reason = error instanceof Error && error.name === 'AbortError' ? 'timeout' : error instanceof Error ? error.message : 'azure-unknown-error';
