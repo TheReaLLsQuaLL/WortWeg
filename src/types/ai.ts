@@ -11,7 +11,7 @@ export type ChatMessage = {
 
 export type LessonContext = {
   lessonId: string;
-  level: 'A0' | 'A1' | 'A2' | 'B1' | 'B2';
+  level: 'A0' | 'A1' | 'A2' | 'B1' | 'B2' | 'C1';
   title: string;
   grammarLabels: string[];
   vocabularyHeadwords: string[];
