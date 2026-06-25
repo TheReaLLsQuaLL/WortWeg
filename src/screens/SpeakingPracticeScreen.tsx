@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, PanResponder, Platform, Pressable, StyleSheet, Text, View, type GestureResponderEvent } from 'react-native';
+import { Animated, AppState, PanResponder, Platform, Pressable, StyleSheet, Text, View, type GestureResponderEvent } from 'react-native';
 import { useFocusEffect, type RouteProp } from '@react-navigation/native';
 import { ArrowLeft, CheckCircle2, Mic, MicOff, Play, RotateCcw, Trash2, WifiOff } from 'lucide-react-native';
 
@@ -737,7 +737,16 @@ export function SpeakingPracticeScreen({ navigation, onUpdateState, route }: Spe
     });
 
     try {
-      if (!permission?.granted) {
+      let currentGranted = permission?.granted;
+      if (currentGranted) {
+        const osCheck = await getMicrophonePermission();
+        currentGranted = osCheck.granted;
+        if (!currentGranted) {
+          setPermission(osCheck);
+        }
+      }
+
+      if (!currentGranted) {
         const nextPermission = await ensureMicrophonePermission('manual');
 
         if (!nextPermission?.granted) {
@@ -1097,6 +1106,26 @@ export function SpeakingPracticeScreen({ navigation, onUpdateState, route }: Spe
     return 'Cümleyi sakin ve net oku.';
   })();
   const showRecorderIntro = status !== 'noVoice' && status !== 'error' && status !== 'tooShort' && status !== 'permissionDenied';
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState === 'active') {
+        void ensureMicrophonePermission('auto');
+      } else if (nextAppState === 'background' || nextAppState === 'inactive') {
+        const currentStatus = statusRef.current;
+        if (currentStatus === 'recording' || currentStatus === 'cancelArmed') {
+          cancelArmedRef.current = true;
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
+          finishPressRecording();
+        }
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ensureMicrophonePermission]);
 
   return (
     <Screen backgroundColor={colors.lavenderBackground}>
