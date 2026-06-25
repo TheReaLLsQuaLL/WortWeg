@@ -71,6 +71,9 @@ speechRouter.post('/transcribe', (request, response) => {
 
   speechUpload.single('audio')(request, response, async (uploadError) => {
     if (uploadError) {
+      if (request.file) {
+        await removeTempFile(request.file);
+      }
       sendUploadError(response, uploadError);
       return;
     }
