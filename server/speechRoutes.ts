@@ -113,6 +113,11 @@ speechRouter.post('/transcribe', (request, response) => {
       azureWordsCount: 0,
       azureError: undefined as string | undefined,
       openaiFallbackUsed: false,
+      uploadedMimeType: file.mimetype,
+      uploadedOriginalName: file.originalname,
+      detectedAudioExtension: undefined as string | undefined,
+      azureSupportedFormat: false,
+      azureConvertibleFormat: false,
     };
 
     logSpeechDebug('endpoint hit', {
@@ -127,11 +132,28 @@ speechRouter.post('/transcribe', (request, response) => {
       let usedAzure = false;
 
       if (config.speechAzureEnabled && requestData.expectedText) {
-        let isSupportedFormat = file.mimetype === 'audio/wav' || file.mimetype === 'audio/ogg';
-        const isM4a = file.mimetype === 'audio/mp4' || file.mimetype === 'audio/m4a' || file.mimetype === 'audio/x-m4a' || file.mimetype === 'audio/aac';
+        const originalNameLower = (file.originalname || '').toLowerCase();
+        const extension = originalNameLower.includes('.') ? originalNameLower.split('.').pop() : '';
+        diag.detectedAudioExtension = extension;
+
+        const isMimeWav = file.mimetype === 'audio/wav' || file.mimetype === 'audio/wave' || file.mimetype === 'audio/x-wav' || file.mimetype === 'audio/ogg';
+        const isExtWav = extension === 'wav' || extension === 'wave' || extension === 'ogg';
+        let isSupportedFormat = isMimeWav || (file.mimetype === 'application/octet-stream' && isExtWav);
+
+        const isMimeM4a = file.mimetype === 'audio/mp4' || file.mimetype === 'audio/m4a' || file.mimetype === 'audio/x-m4a' || file.mimetype === 'audio/aac';
+        const isExtM4a = extension === 'm4a' || extension === 'mp4' || extension === 'aac';
+        const isM4a = isMimeM4a || (file.mimetype === 'application/octet-stream' && isExtM4a);
+
+        diag.azureSupportedFormat = isSupportedFormat;
+        diag.azureConvertibleFormat = isM4a;
+
         let convertedPath: string | null = null;
         let finalPath = file.path;
         let finalMimeType = file.mimetype;
+
+        if (file.mimetype === 'application/octet-stream') {
+          if (isExtWav) finalMimeType = extension === 'ogg' ? 'audio/ogg' : 'audio/wav';
+        }
 
         try {
           if (!isSupportedFormat && isM4a && config.speechAzureConversionEnabled) {
