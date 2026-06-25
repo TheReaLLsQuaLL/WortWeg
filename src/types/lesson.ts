@@ -1,6 +1,6 @@
 import type { Exercise } from './exercise';
 
-export type CEFRLevel = 'A0' | 'A1' | 'A2' | 'B1' | 'B2' | 'C1';
+export type CEFRLevel = 'A0' | 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
 export type Article = 'der' | 'die' | 'das';
 
 export type VocabItem = {
