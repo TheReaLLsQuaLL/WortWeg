@@ -6,6 +6,7 @@ import { AnimatedCard } from '../components/AnimatedCard';
 import { AppButton } from '../components/AppButton';
 import { AppCard } from '../components/AppCard';
 import { HalftoneAccent } from '../components/HalftoneAccent';
+import { OwlyMascot } from '../components/OwlyMascot';
 import { ProgressPill } from '../components/ProgressPill';
 import { AppScrollView, Screen } from '../components/layout';
 import { RoadmapPath, type RoadmapPathItem } from '../components/RoadmapPath';
@@ -207,7 +208,7 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
   );
 
   return (
-    <Screen backgroundColor={colors.lavenderBackground}>
+    <Screen backgroundColor={colors.midnightBackground}>
       <TopBar
         streak={userState.streak}
         subtitle={(plan?.currentLevel ?? 'A0') + ' · Bugün ' + Math.min(userState.todayXp, dailyGoalXp) + '/' + dailyGoalXp + ' XP'}
@@ -215,19 +216,22 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
         xp={userState.xp}
       />
       <AppScrollView contentContainerStyle={styles.content} style={styles.scroll}>
+        <View style={styles.mascotContainer}>
+          <View style={styles.greetingBubble}>
+            <Text style={styles.greetingText}>Guten Morgen! Pratiğe devam edelim mi?</Text>
+            <View style={styles.greetingTail} />
+          </View>
+          <OwlyMascot state="idle" width={140} height={140} />
+        </View>
+
         <AnimatedCard>
           <AppCard style={styles.todayCard}>
-          <HalftoneAccent color={colors.yellowCta} opacity={0.14} size="medium" style={styles.todayTexture} />
-          <View style={styles.missionBurst} />
-          <View style={styles.missionSticker}>
-            <Text style={styles.missionStickerText}>W</Text>
-          </View>
           <View style={styles.todayHeader}>
             <View style={styles.todayIcon}>
-              <Sparkles color={colors.comicBorderColor} size={24} strokeWidth={2.6} />
+              <Sparkles color={colors.midnightBackground} size={24} strokeWidth={2.6} />
             </View>
             <View style={styles.flexCopy}>
-              <ProgressPill label="Bugünkü adım" tone="yellow" />
+              <ProgressPill label="Sıradaki adım" tone="yellow" />
               <Text style={styles.todayTitle}>{primaryTitle}</Text>
               <Text style={styles.todayMeta}>{primaryMeta}</Text>
             </View>
@@ -236,7 +240,7 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
             <View style={[styles.goalFill, { flex: dailyProgress }]} />
             <View style={{ flex: 1 - dailyProgress }} />
           </View>
-          <AppButton icon={BookOpen} onPress={startPrimary} title={primaryButton} />
+          <AppButton icon={BookOpen} onPress={startPrimary} title={primaryButton} variant="primary" />
           </AppCard>
         </AnimatedCard>
 
@@ -377,15 +381,50 @@ function ReviewPlanItem({ detail, icon: Icon, onPress, title }: { detail: string
 
 const styles = StyleSheet.create({
   scroll: {
-    backgroundColor: colors.lavenderBackground,
+    backgroundColor: colors.midnightBackground,
   },
   content: {
-    backgroundColor: colors.lavenderBackground,
+    backgroundColor: colors.midnightBackground,
     gap: spacing.md,
     padding: spacing.lg,
   },
+  mascotContainer: {
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    position: 'relative',
+  },
+  greetingBubble: {
+    backgroundColor: colors.white,
+    borderRadius: radius.xl,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    marginBottom: spacing.md,
+    position: 'relative',
+    ...shadows.comic,
+  },
+  greetingText: {
+    ...typography.body,
+    color: colors.deepViolet,
+    fontWeight: '800',
+  },
+  greetingTail: {
+    position: 'absolute',
+    bottom: -8,
+    left: '50%',
+    marginLeft: -8,
+    width: 0,
+    height: 0,
+    borderLeftWidth: 8,
+    borderRightWidth: 8,
+    borderTopWidth: 8,
+    borderStyle: 'solid',
+    backgroundColor: 'transparent',
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    borderTopColor: colors.white,
+  },
   todayCard: {
-    backgroundColor: colors.deepViolet,
+    backgroundColor: colors.midnightSurface,
     borderRadius: radius.xl,
     gap: spacing.lg,
     overflow: 'hidden',
@@ -394,7 +433,7 @@ const styles = StyleSheet.create({
   },
   missionBurst: {
     backgroundColor: colors.primaryPurple,
-    borderColor: colors.comicBorderColor,
+    borderColor: colors.cyanAccent,
     borderRadius: 999,
     borderWidth: colors.comicBorderWidth,
     height: 164,
@@ -430,18 +469,17 @@ const styles = StyleSheet.create({
   },
   todayIcon: {
     alignItems: 'center',
-    backgroundColor: colors.yellowCta,
-    borderColor: colors.comicBorderColor,
+    backgroundColor: colors.cyanAccent,
+    borderColor: colors.midnightAccent,
     borderRadius: radius.xl,
     borderWidth: colors.comicBorderWidth,
     height: 64,
     justifyContent: 'center',
     width: 64,
-    ...shadows.comic,
   },
   flexCopy: {
     flex: 1,
-    gap: spacing.xs,
+    gap: 4,
   },
   kicker: {
     ...typography.small,
@@ -459,16 +497,16 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   goalBar: {
-    backgroundColor: colors.white,
-    borderColor: colors.comicBorderColor,
+    backgroundColor: colors.midnightAccent,
+    borderColor: colors.midnightAccent,
     borderRadius: radius.pill,
-    borderWidth: colors.comicBorderWidth,
+    borderWidth: 1,
     flexDirection: 'row',
-    height: 10,
+    height: 8,
     overflow: 'hidden',
   },
   goalFill: {
-    backgroundColor: colors.yellow,
+    backgroundColor: colors.cyanAccent,
   },
   section: {
     backgroundColor: colors.paper,

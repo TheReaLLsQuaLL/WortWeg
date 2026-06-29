@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WortWeg Owly Animations</title>
+    <style>
+        body {
+            background-color: #0F0D1C;
+            color: #FFFFFF;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px;
+            margin: 0;
+        }
+        h1 {
+            color: #00E5FF;
+            margin-bottom: 10px;
+        }
+        p {
+            color: #8A8DAB;
+            margin-bottom: 40px;
+        }
+        .container {
+            display: flex;
+            gap: 40px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .card {
+            background: #1E1B3A;
+            padding: 30px;
+            border-radius: 24px;
+            text-align: center;
+            width: 300px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
+            border: 1px solid rgba(0, 229, 255, 0.1);
+        }
+        .card h2 {
+            margin-top: 0;
+            color: #FFFFFF;
+            font-size: 20px;
+        }
+        svg {
+            width: 100%;
+            height: auto;
+            overflow: visible;
+        }
+
+        /* -------------------------
+           1. IDLE ANIMATION
+           ------------------------- */
+        .state-idle #body {
+            transform-origin: 250px 300px;
+            animation: breathe 4s infinite ease-in-out;
+        }
+        .state-idle #head {
+            transform-origin: 250px 250px;
+            animation: head-bob 4s infinite ease-in-out;
+        }
+        .state-idle #wing-left {
+            transform-origin: 140px 260px;
+            animation: wing-breathe-l 4s infinite ease-in-out;
+        }
+        .state-idle #wing-right {
+            transform-origin: 360px 260px;
+            animation: wing-breathe-r 4s infinite ease-in-out;
+        }
+        .state-idle .eye-group {
+            transform-origin: center;
+            transform-box: fill-box;
+            animation: blink 5s infinite;
+        }
+
+        @keyframes breathe {
+            0%, 100% { transform: scaleY(1); }
+            50% { transform: scaleY(1.02) scaleX(0.99); }
+        }
+        @keyframes head-bob {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+        }
+        @keyframes wing-breathe-l {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(4deg); }
+        }
+        @keyframes wing-breathe-r {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(-4deg); }
+        }
+        @keyframes blink {
+            0%, 46%, 49%, 100% { transform: scaleY(1); }
+            47%, 48% { transform: scaleY(0.1); }
+        }
+
+        /* -------------------------
+           2. LISTENING ANIMATION
+           ------------------------- */
+        .state-listening #wing-right {
+            transform-origin: 360px 260px;
+            transform: rotate(-130deg) translate(-20px, 10px);
+        }
+        .state-listening #head {
+            transform-origin: 250px 250px;
+            animation: head-tilt 2s infinite alternate ease-in-out;
+        }
+        .state-listening .eye-group {
+            transform-origin: center;
+            transform-box: fill-box;
+            animation: blink 4s infinite;
+        }
+        .audio-waves {
+            opacity: 0; /* Hidden by default */
+        }
+        .state-listening .audio-waves {
+            opacity: 1;
+        }
+        .state-listening .wave {
+            transform-origin: center;
+            transform-box: fill-box;
+            animation: pulse-wave 0.6s infinite alternate ease-in-out;
+        }
+        .state-listening .wave:nth-child(1) { animation-delay: 0.0s; }
+        .state-listening .wave:nth-child(2) { animation-delay: 0.2s; }
+        .state-listening .wave:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes head-tilt {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(6deg); }
+        }
+        @keyframes pulse-wave {
+            0% { transform: scaleY(0.4); opacity: 0.3; }
+            100% { transform: scaleY(1.2); opacity: 1; }
+        }
+
+        /* -------------------------
+           3. SUCCESS ANIMATION
+           ------------------------- */
+        .state-success #owly {
+            transform-origin: 250px 450px;
+            animation: jump 0.5s cubic-bezier(0.28, 0.84, 0.42, 1) infinite alternate;
+        }
+        .state-success #wing-left {
+            transform-origin: 140px 260px;
+            animation: flap-l 0.5s infinite alternate;
+        }
+        .state-success #wing-right {
+            transform-origin: 360px 260px;
+            animation: flap-r 0.5s infinite alternate;
+        }
+        .state-success .eye-pupil {
+            display: none; /* Hide default eyes */
+        }
+        .state-success .eye-happy {
+            display: block !important; /* Show happy arches */
+        }
+
+        @keyframes jump {
+            0% { transform: translateY(0) scaleY(0.95) scaleX(1.05); }
+            100% { transform: translateY(-40px) scaleY(1.05) scaleX(0.95); }
+        }
+        @keyframes flap-l {
+            0% { transform: rotate(20deg); }
+            100% { transform: rotate(130deg); }
+        }
+        @keyframes flap-r {
+            0% { transform: rotate(-20deg); }
+            100% { transform: rotate(-130deg); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>WortWeg Animations Preview</h1>
+    <p>Pure CSS + SVG. Zero images, zero heavy libraries. Perfect for mobile performance.</p>
+
+    <div class="container">
+        
+        <!-- CARD 1: IDLE -->
+        <div class="card state-idle">
+            <h2>Idle / Waiting</h2>
+            <svg viewBox="0 0 500 500">
+                <g id="owly">
+                    <g id="feet" fill="#FFB300" stroke="#D99800" stroke-width="3" stroke-linejoin="round">
+                        <path d="M 210 400 L 190 430 L 200 435 L 215 425 L 225 435 L 235 430 L 230 400 Z" />
+                        <path d="M 290 400 L 270 430 L 280 435 L 285 425 L 295 435 L 305 430 L 290 400 Z" />
+                    </g>
+                    <g id="tail">
+                        <path d="M 160 380 Q 120 420 140 440 Q 160 410 180 390 Z" fill="#1E1B3A" stroke="#00E5FF" stroke-width="4" stroke-linejoin="round"/>
+                    </g>
+                    <g id="body">
+                        <ellipse cx="250" cy="270" rx="110" ry="130" fill="#1E1B3A" stroke="#141226" stroke-width="4"/>
+                        <ellipse cx="250" cy="300" rx="80" ry="90" fill="#FFFFFF" opacity="0.08" />
+                        <path d="M 140 250 Q 250 300 360 250 Q 370 270 360 290 Q 250 330 140 290 Z" fill="#141226" stroke="#00E5FF" stroke-width="4" />
+                        <line x1="230" y1="285" x2="230" y2="340" stroke="#00E5FF" stroke-width="6" stroke-linecap="round"/>
+                        <circle cx="230" cy="340" r="5" fill="#FFB300" />
+                        <line x1="270" y1="285" x2="270" y2="325" stroke="#00E5FF" stroke-width="6" stroke-linecap="round"/>
+                        <circle cx="270" cy="325" r="5" fill="#FFB300" />
+                    </g>
+                    <g id="head">
+                        <ellipse cx="250" cy="160" rx="125" ry="95" fill="#1E1B3A" />
+                        <path d="M 150 90 Q 130 50 170 80" fill="none" stroke="#1E1B3A" stroke-width="24" stroke-linecap="round" />
+                        <path d="M 350 90 Q 370 50 330 80" fill="none" stroke="#1E1B3A" stroke-width="24" stroke-linecap="round" />
+                        <path d="M 135 160 Q 135 100 195 120 Q 250 145 250 160 Q 250 145 305 120 Q 365 100 365 160 Q 365 220 250 240 Q 135 220 135 160 Z" fill="#FFFFFF" />
+                        
+                        <!-- Left Eye Group -->
+                        <g id="eye-left" class="eye-group">
+                            <circle cx="195" cy="165" r="35" fill="#1E1B3A" />
+                            <circle cx="195" cy="165" r="28" fill="#FFB300" />
+                            <g class="eye-pupil">
+                                <circle cx="195" cy="165" r="18" fill="#1E1B3A" />
+                                <circle cx="202" cy="158" r="6" fill="#FFFFFF" />
+                            </g>
+                            <path class="eye-happy" d="M 175 165 Q 195 140 215 165" fill="none" stroke="#1E1B3A" stroke-width="8" stroke-linecap="round" style="display:none;" />
+                        </g>
+
+                        <!-- Right Eye Group -->
+                        <g id="eye-right" class="eye-group">
+                            <circle cx="305" cy="165" r="35" fill="#1E1B3A" />
+                            <circle cx="305" cy="165" r="28" fill="#FFB300" />
+                            <g class="eye-pupil">
+                                <circle cx="305" cy="165" r="18" fill="#1E1B3A" />
+                                <circle cx="312" cy="158" r="6" fill="#FFFFFF" />
+                            </g>
+                            <path class="eye-happy" d="M 285 165 Q 305 140 325 165" fill="none" stroke="#1E1B3A" stroke-width="8" stroke-linecap="round" style="display:none;" />
+                        </g>
+
+                        <g id="beak">
+                            <path d="M 235 190 Q 250 175 265 190 L 255 220 Q 250 230 245 220 Z" fill="#FFB300" stroke="#D99800" stroke-width="2" stroke-linejoin="round"/>
+                        </g>
+                    </g>
+                    <g id="wings">
+                        <path id="wing-left" d="M 140 260 Q 90 330 110 390 Q 140 360 150 340 Z" fill="#1E1B3A" stroke="#00E5FF" stroke-width="4" stroke-linejoin="round"/>
+                        <path id="wing-right" d="M 360 260 Q 410 330 390 390 Q 360 360 350 340 Z" fill="#1E1B3A" stroke="#00E5FF" stroke-width="4" stroke-linejoin="round"/>
+                    </g>
+                </g>
+            </svg>
+        </div>
+
+        <!-- CARD 2: LISTENING -->
+        <div class="card state-listening">
+            <h2>Listening Practice</h2>
+            <svg viewBox="0 0 500 500">
+                <!-- Audio Waves -->
+                <g class="audio-waves" fill="#00E5FF">
+                    <rect class="wave" x="420" y="220" width="8" height="60" rx="4" />
+                    <rect class="wave" x="440" y="200" width="8" height="100" rx="4" />
+                    <rect class="wave" x="460" y="230" width="8" height="40" rx="4" />
+                </g>
+                <g id="owly">
+                    <g id="feet" fill="#FFB300" stroke="#D99800" stroke-width="3" stroke-linejoin="round">
+                        <path d="M 210 400 L 190 430 L 200 435 L 215 425 L 225 435 L 235 430 L 230 400 Z" />
+                        <path d="M 290 400 L 270 430 L 280 435 L 285 425 L 295 435 L 305 430 L 290 400 Z" />
+                    </g>
+                    <g id="tail">
+                        <path d="M 160 380 Q 120 420 140 440 Q 160 410 180 390 Z" fill="#1E1B3A" stroke="#00E5FF" stroke-width="4" stroke-linejoin="round"/>
+                    </g>
+                    <g id="body">
+                        <ellipse cx="250" cy="270" rx="110" ry="130" fill="#1E1B3A" stroke="#141226" stroke-width="4"/>
+                        <ellipse cx="250" cy="300" rx="80" ry="90" fill="#FFFFFF" opacity="0.08" />
+                        <path d="M 140 250 Q 250 300 360 250 Q 370 270 360 290 Q 250 330 140 290 Z" fill="#141226" stroke="#00E5FF" stroke-width="4" />
+                        <line x1="230" y1="285" x2="230" y2="340" stroke="#00E5FF" stroke-width="6" stroke-linecap="round"/>
+                        <circle cx="230" cy="340" r="5" fill="#FFB300" />
+                        <line x1="270" y1="285" x2="270" y2="325" stroke="#00E5FF" stroke-width="6" stroke-linecap="round"/>
+                        <circle cx="270" cy="325" r="5" fill="#FFB300" />
+                    </g>
+                    <g id="head">
+                        <ellipse cx="250" cy="160" rx="125" ry="95" fill="#1E1B3A" />
+                        <path d="M 150 90 Q 130 50 170 80" fill="none" stroke="#1E1B3A" stroke-width="24" stroke-linecap="round" />
+                        <path d="M 350 90 Q 370 50 330 80" fill="none" stroke="#1E1B3A" stroke-width="24" stroke-linecap="round" />
+                        <path d="M 135 160 Q 135 100 195 120 Q 250 145 250 160 Q 250 145 305 120 Q 365 100 365 160 Q 365 220 250 240 Q 135 220 135 160 Z" fill="#FFFFFF" />
+                        
+                        <!-- Left Eye Group -->
+                        <g id="eye-left" class="eye-group">
+                            <circle cx="195" cy="165" r="35" fill="#1E1B3A" />
+                            <circle cx="195" cy="165" r="28" fill="#FFB300" />
+                            <g class="eye-pupil">
+                                <circle cx="195" cy="165" r="18" fill="#1E1B3A" />
+                                <circle cx="202" cy="158" r="6" fill="#FFFFFF" />
+                            </g>
+                        </g>
+
+                        <!-- Right Eye Group -->
+                        <g id="eye-right" class="eye-group">
+                            <circle cx="305" cy="165" r="35" fill="#1E1B3A" />
+                            <circle cx="305" cy="165" r="28" fill="#FFB300" />
+                            <g class="eye-pupil">
+                                <circle cx="305" cy="165" r="18" fill="#1E1B3A" />
+                                <circle cx="312" cy="158" r="6" fill="#FFFFFF" />
+                            </g>
+                        </g>
+
+                        <g id="beak">
+                            <path d="M 235 190 Q 250 175 265 190 L 255 220 Q 250 230 245 220 Z" fill="#FFB300" stroke="#D99800" stroke-width="2" stroke-linejoin="round"/>
+                        </g>
+                    </g>
+                    <g id="wings">
+                        <path id="wing-left" d="M 140 260 Q 90 330 110 390 Q 140 360 150 340 Z" fill="#1E1B3A" stroke="#00E5FF" stroke-width="4" stroke-linejoin="round"/>
+                        <!-- Right wing is manipulated by CSS to be raised to ear -->
+                        <path id="wing-right" d="M 360 260 Q 410 330 390 390 Q 360 360 350 340 Z" fill="#1E1B3A" stroke="#00E5FF" stroke-width="4" stroke-linejoin="round"/>
+                    </g>
+                </g>
+            </svg>
+        </div>
+
+        <!-- CARD 3: SUCCESS -->
+        <div class="card state-success">
+            <h2>Lesson Complete</h2>
+            <svg viewBox="0 0 500 500">
+                <g id="owly">
+                    <g id="feet" fill="#FFB300" stroke="#D99800" stroke-width="3" stroke-linejoin="round">
+                        <path d="M 210 400 L 190 430 L 200 435 L 215 425 L 225 435 L 235 430 L 230 400 Z" />
+                        <path d="M 290 400 L 270 430 L 280 435 L 285 425 L 295 435 L 305 430 L 290 400 Z" />
+                    </g>
+                    <g id="tail">
+                        <path d="M 160 380 Q 120 420 140 440 Q 160 410 180 390 Z" fill="#1E1B3A" stroke="#00E5FF" stroke-width="4" stroke-linejoin="round"/>
+                    </g>
+                    <g id="body">
+                        <ellipse cx="250" cy="270" rx="110" ry="130" fill="#1E1B3A" stroke="#141226" stroke-width="4"/>
+                        <ellipse cx="250" cy="300" rx="80" ry="90" fill="#FFFFFF" opacity="0.08" />
+                        <path d="M 140 250 Q 250 300 360 250 Q 370 270 360 290 Q 250 330 140 290 Z" fill="#141226" stroke="#00E5FF" stroke-width="4" />
+                        <line x1="230" y1="285" x2="230" y2="340" stroke="#00E5FF" stroke-width="6" stroke-linecap="round"/>
+                        <circle cx="230" cy="340" r="5" fill="#FFB300" />
+                        <line x1="270" y1="285" x2="270" y2="325" stroke="#00E5FF" stroke-width="6" stroke-linecap="round"/>
+                        <circle cx="270" cy="325" r="5" fill="#FFB300" />
+                    </g>
+                    <g id="head">
+                        <ellipse cx="250" cy="160" rx="125" ry="95" fill="#1E1B3A" />
+                        <path d="M 150 90 Q 130 50 170 80" fill="none" stroke="#1E1B3A" stroke-width="24" stroke-linecap="round" />
+                        <path d="M 350 90 Q 370 50 330 80" fill="none" stroke="#1E1B3A" stroke-width="24" stroke-linecap="round" />
+                        <path d="M 135 160 Q 135 100 195 120 Q 250 145 250 160 Q 250 145 305 120 Q 365 100 365 160 Q 365 220 250 240 Q 135 220 135 160 Z" fill="#FFFFFF" />
+                        
+                        <!-- Left Eye Group -->
+                        <g id="eye-left" class="eye-group">
+                            <circle cx="195" cy="165" r="35" fill="#1E1B3A" />
+                            <circle cx="195" cy="165" r="28" fill="#FFB300" />
+                            <g class="eye-pupil">
+                                <circle cx="195" cy="165" r="18" fill="#1E1B3A" />
+                                <circle cx="202" cy="158" r="6" fill="#FFFFFF" />
+                            </g>
+                            <!-- Happy eye arc -->
+                            <path class="eye-happy" d="M 175 165 Q 195 140 215 165" fill="none" stroke="#1E1B3A" stroke-width="8" stroke-linecap="round" style="display:none;" />
+                        </g>
+
+                        <!-- Right Eye Group -->
+                        <g id="eye-right" class="eye-group">
+                            <circle cx="305" cy="165" r="35" fill="#1E1B3A" />
+                            <circle cx="305" cy="165" r="28" fill="#FFB300" />
+                            <g class="eye-pupil">
+                                <circle cx="305" cy="165" r="18" fill="#1E1B3A" />
+                                <circle cx="312" cy="158" r="6" fill="#FFFFFF" />
+                            </g>
+                            <!-- Happy eye arc -->
+                            <path class="eye-happy" d="M 285 165 Q 305 140 325 165" fill="none" stroke="#1E1B3A" stroke-width="8" stroke-linecap="round" style="display:none;" />
+                        </g>
+
+                        <g id="beak">
+                            <path d="M 235 190 Q 250 175 265 190 L 255 220 Q 250 230 245 220 Z" fill="#FFB300" stroke="#D99800" stroke-width="2" stroke-linejoin="round"/>
+                        </g>
+                    </g>
+                    <g id="wings">
+                        <path id="wing-left" d="M 140 260 Q 90 330 110 390 Q 140 360 150 340 Z" fill="#1E1B3A" stroke="#00E5FF" stroke-width="4" stroke-linejoin="round"/>
+                        <path id="wing-right" d="M 360 260 Q 410 330 390 390 Q 360 360 350 340 Z" fill="#1E1B3A" stroke="#00E5FF" stroke-width="4" stroke-linejoin="round"/>
+                    </g>
+                </g>
+            </svg>
+        </div>
+
+    </div>
+
+</body>
+</html>

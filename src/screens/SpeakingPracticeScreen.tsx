@@ -6,6 +6,7 @@ import { ArrowLeft, CheckCircle2, Mic, MicOff, Play, RotateCcw, Trash2, WifiOff 
 import { AppButton } from '../components/AppButton';
 import { AppScrollView, Screen } from '../components/layout';
 import { HalftoneAccent } from '../components/HalftoneAccent';
+import { OwlyMascot } from '../components/OwlyMascot';
 import { SpeakerButton } from '../components/SpeakerButton';
 import { colors, radius, shadows, spacing, typography } from '../data/theme';
 import { getBackendDebugInfo } from '../config/backend';
@@ -1127,8 +1128,18 @@ export function SpeakingPracticeScreen({ navigation, onUpdateState, route }: Spe
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ensureMicrophonePermission]);
 
+  const mascotState = useMemo(() => {
+    if (status === 'recording' || status === 'cancelArmed') return 'listening';
+    if (status === 'noVoice' || status === 'tooShort' || status === 'error') return 'mistake';
+    if (status === 'result') {
+      if (pronunciationResult && pronunciationResult.scorePercent >= 80) return 'success';
+      if (pronunciationResult && pronunciationResult.scorePercent < 60) return 'mistake';
+    }
+    return 'idle';
+  }, [status, pronunciationResult]);
+
   return (
-    <Screen backgroundColor={colors.lavenderBackground}>
+    <Screen backgroundColor={colors.midnightBackground}>
       <View style={styles.header}>
         <Pressable
           accessibilityRole="button"
@@ -1144,6 +1155,10 @@ export function SpeakingPracticeScreen({ navigation, onUpdateState, route }: Spe
       </View>
 
       <AppScrollView contentContainerStyle={styles.content} style={styles.scroll}>
+        <View style={{ alignItems: 'center', marginBottom: spacing.md }}>
+           <OwlyMascot state={mascotState} width={120} height={120} />
+        </View>
+
         <View style={styles.promptCard}>
           <HalftoneAccent opacity={0.07} size="small" style={styles.promptTexture} />
           <View style={styles.promptTopRow}>
@@ -1564,12 +1579,13 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
   scroll: {
-    backgroundColor: colors.lavenderBackground,
+    backgroundColor: colors.midnightBackground,
   },
   content: {
-    backgroundColor: colors.lavenderBackground,
+    backgroundColor: colors.midnightBackground,
     gap: spacing.lg,
-    padding: spacing.lg,
+    padding: spacing.md,
+    paddingBottom: 160,
   },
   promptCard: {
     backgroundColor: colors.white,

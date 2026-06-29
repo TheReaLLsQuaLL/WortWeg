@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
+  <!-- Master Vector File for "Owly" -->
+  <!-- Designed for Rive/Lottie Import -->
+
+  <!-- Background for preview (optional, can be removed in production) -->
+  <rect width="500" height="500" fill="#F4F4F9" rx="40" />
+
+  <g id="owly" transform="translate(0, 10)">
+    
+    <!-- Legs/Feet (Layer: Back) -->
+    <g id="feet" fill="#FFB300" stroke="#D99800" stroke-width="3" stroke-linejoin="round">
+      <path d="M 210 400 L 190 430 L 200 435 L 215 425 L 225 435 L 235 430 L 230 400 Z" />
+      <path d="M 290 400 L 270 430 L 280 435 L 285 425 L 295 435 L 305 430 L 290 400 Z" />
+    </g>
+
+    <!-- Tail (Layer: Back) -->
+    <g id="tail">
+      <path d="M 160 380 Q 120 420 140 440 Q 160 410 180 390 Z" fill="#1E1B3A" stroke="#00E5FF" stroke-width="4" stroke-linejoin="round"/>
+    </g>
+
+    <!-- Main Body (Layer: Middle) -->
+    <g id="body">
+      <!-- Torso -->
+      <ellipse cx="250" cy="270" rx="110" ry="130" fill="#1E1B3A" stroke="#141226" stroke-width="4"/>
+      
+      <!-- Lighter Belly Area -->
+      <ellipse cx="250" cy="300" rx="80" ry="90" fill="#FFFFFF" opacity="0.08" />
+
+      <!-- Minimal Hoodie Wrap -->
+      <path d="M 140 250 Q 250 300 360 250 Q 370 270 360 290 Q 250 330 140 290 Z" fill="#141226" stroke="#00E5FF" stroke-width="4" />
+      
+      <!-- Hoodie Strings -->
+      <line x1="230" y1="285" x2="230" y2="340" stroke="#00E5FF" stroke-width="6" stroke-linecap="round"/>
+      <circle cx="230" cy="340" r="5" fill="#FFB300" />
+      
+      <line x1="270" y1="285" x2="270" y2="325" stroke="#00E5FF" stroke-width="6" stroke-linecap="round"/>
+      <circle cx="270" cy="325" r="5" fill="#FFB300" />
+    </g>
+
+    <!-- Head (Layer: Front) -->
+    <g id="head">
+      <!-- Head Base -->
+      <ellipse cx="250" cy="160" rx="125" ry="95" fill="#1E1B3A" />
+
+      <!-- Ear Tufts -->
+      <path d="M 150 90 Q 130 50 170 80" fill="none" stroke="#1E1B3A" stroke-width="24" stroke-linecap="round" />
+      <path d="M 350 90 Q 370 50 330 80" fill="none" stroke="#1E1B3A" stroke-width="24" stroke-linecap="round" />
+
+      <!-- White Eye Mask (Owl Face) -->
+      <path d="M 135 160 Q 135 100 195 120 Q 250 145 250 160 Q 250 145 305 120 Q 365 100 365 160 Q 365 220 250 240 Q 135 220 135 160 Z" fill="#FFFFFF" />
+
+      <!-- Left Eye Group -->
+      <g id="eye-left">
+        <!-- Outer Navy Ring -->
+        <circle cx="195" cy="165" r="35" fill="#1E1B3A" />
+        <!-- Amber Iris -->
+        <circle cx="195" cy="165" r="28" fill="#FFB300" />
+        <!-- Dark Pupil -->
+        <circle cx="195" cy="165" r="18" fill="#1E1B3A" />
+        <!-- Highlight -->
+        <circle cx="202" cy="158" r="6" fill="#FFFFFF" />
+      </g>
+
+      <!-- Right Eye Group -->
+      <g id="eye-right">
+        <!-- Outer Navy Ring -->
+        <circle cx="305" cy="165" r="35" fill="#1E1B3A" />
+        <!-- Amber Iris -->
+        <circle cx="305" cy="165" r="28" fill="#FFB300" />
+        <!-- Dark Pupil -->
+        <circle cx="305" cy="165" r="18" fill="#1E1B3A" />
+        <!-- Highlight -->
+        <circle cx="312" cy="158" r="6" fill="#FFFFFF" />
+      </g>
+
+      <!-- Beak -->
+      <g id="beak">
+        <path d="M 235 190 Q 250 175 265 190 L 255 220 Q 250 230 245 220 Z" fill="#FFB300" stroke="#D99800" stroke-width="2" stroke-linejoin="round"/>
+      </g>
+    </g>
+
+    <!-- Wings (Layer: Front) -->
+    <g id="wings">
+      <!-- Left Wing (Idle) -->
+      <path id="wing-left" d="M 140 260 Q 90 330 110 390 Q 140 360 150 340 Z" fill="#1E1B3A" stroke="#00E5FF" stroke-width="4" stroke-linejoin="round"/>
+      
+      <!-- Right Wing (Idle) -->
+      <path id="wing-right" d="M 360 260 Q 410 330 390 390 Q 360 360 350 340 Z" fill="#1E1B3A" stroke="#00E5FF" stroke-width="4" stroke-linejoin="round"/>
+    </g>
+
+  </g>
+</svg>
