@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { ArrowLeft, BookOpen, CheckCircle2, NotebookTabs } from 'lucide-react-native';
 
 import { AppButton } from '../components/AppButton';
 import { AppCard } from '../components/AppCard';
+import { OwlyCoachCard, type CoachCardState } from '../components/OwlyCoachCard';
 import { EmptyState } from '../components/EmptyState';
 import { HalftoneAccent } from '../components/HalftoneAccent';
 import { AppScrollView, Screen } from '../components/layout';
@@ -43,6 +44,65 @@ export function MistakesScreen({ navigation, onUpdateState, userState }: Mistake
 
     return [...groups, { lessonId: mistake.lessonId, title: lessonTitle, items: [mistake] }];
   }, []);
+
+  const weakPointData = useMemo(() => {
+    let articleMistakes = 0;
+    let orderMistakes = 0;
+
+    mistakes.forEach(m => {
+      const lowerFeedback = m.feedbackTr.toLowerCase();
+      if (lowerFeedback.includes('artikel') || lowerFeedback.includes('der') || lowerFeedback.includes('die') || lowerFeedback.includes('das')) {
+        articleMistakes++;
+      }
+      if (lowerFeedback.includes('sıra') || lowerFeedback.includes('yer') || lowerFeedback.includes('kelime sırası') || lowerFeedback.includes('sıralama')) {
+        orderMistakes++;
+      }
+    });
+
+    const isPronunciationWeak = userState.speakingStats && userState.speakingStats.totalAttempts > 0 && (userState.speakingStats.latestScorePercent ?? 100) < 70;
+
+    if (isPronunciationWeak) {
+      return {
+        type: 'pronunciation',
+        title: "Owly bir şey fark etti.",
+        message: "Telaffuzda (özellikle R sesi) zorlanıyorsun. Biraz daha pratik yapalım mı?",
+        state: 'practice' as CoachCardState,
+        action: 'Telaffuz Çalış'
+      };
+    } else if (articleMistakes > orderMistakes && articleMistakes > 2) {
+      return {
+        type: 'grammar_articles',
+        title: "Owly bir şey fark etti.",
+        message: "Artikel (der/die/das) kullanımı zor olabilir, birlikte geliştirebiliriz. Hazır mısın?",
+        state: 'weakPoint' as CoachCardState,
+        action: 'Artikel Çalış'
+      };
+    } else if (orderMistakes > 0) {
+      return {
+        type: 'grammar_order',
+        title: "Owly bir şey fark etti.",
+        message: "Cümle dizilişinde hatalar yapıyorsun. Almancada fiil 2. sıradadır. Üzerinden geçelim mi?",
+        state: 'weakPoint' as CoachCardState,
+        action: 'Kuralları İncele'
+      };
+    } else if (mistakes.length > 0) {
+      return {
+        type: 'general',
+        title: "Harika gidiyorsun!",
+        message: "Hatalar öğrenmenin en iyi yoludur. Buradaki kelimeleri tekrar etmeye ne dersin?",
+        state: 'normal' as CoachCardState,
+        action: 'Pratik Yap'
+      };
+    } else {
+      return {
+        type: 'perfect',
+        title: "Mükemmel!",
+        message: "Şu an hiç hatan yok. Yeni derslere geçmek için harika bir zaman.",
+        state: 'success' as CoachCardState,
+        action: 'Derslere Dön'
+      };
+    }
+  }, [mistakes, userState.speakingStats]);
 
   const clearMistake = async (mistakeId: string) => {
     const mistake = userState.mistakes.find((item) => item.id === mistakeId);
@@ -98,17 +158,24 @@ export function MistakesScreen({ navigation, onUpdateState, userState }: Mistake
           </View>
         </AppCard>
 
-        {mistakes.length > 0 ? (
-          <AppCard style={styles.practiceCard}>
-            <Text style={styles.practiceCardTitle}>Zayıf Noktalarını Çalış</Text>
-            <Text style={styles.practiceCardSubtitle}>Son hatalarından kısa bir tekrar yap.</Text>
-            <AppButton
-              onPress={() => navigation.navigate('MistakePractice')}
-              title="Pratiğe başla"
-              style={{ marginTop: spacing.sm }}
-            />
-          </AppCard>
-        ) : null}
+        <View style={styles.trainingRoomSection}>
+          <Text style={styles.sectionTitle}>Owly'nin Antrenman Odası</Text>
+          <OwlyCoachCard
+            state={weakPointData.state}
+            title={weakPointData.title}
+            message={weakPointData.message}
+            actionText={weakPointData.action}
+            onAction={() => {
+              if (weakPointData.type === 'pronunciation') {
+                navigation.navigate('SpeakingLibrary');
+              } else if (weakPointData.type === 'perfect') {
+                navigation.navigate('Main', { initialTab: 'home' });
+              } else {
+                navigation.navigate('MistakePractice');
+              }
+            }}
+          />
+        </View>
 
         {mistakes.length === 0 ? (
           <EmptyState
@@ -244,10 +311,14 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: spacing.xs,
   },
+  trainingRoomSection: {
+    marginBottom: spacing.xl,
+    gap: spacing.md,
+  },
   sectionTitle: {
     ...typography.heading,
     color: colors.deepViolet,
-    fontWeight: '900',
+    fontSize: 20,
   },
   body: {
     ...typography.body,

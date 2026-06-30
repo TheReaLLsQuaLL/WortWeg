@@ -28,6 +28,7 @@ import { PracticeHubScreen } from '../screens/PracticeHubScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 import { SpeakingLibraryScreen } from '../screens/SpeakingLibraryScreen';
 import { SpeakingPracticeScreen } from '../screens/SpeakingPracticeScreen';
+import { OwlyTalkScreen } from '../screens/OwlyTalkScreen';
 import { VocabScreen } from '../screens/VocabScreen';
 import {
   defaultUserState,
@@ -77,6 +78,7 @@ export type RootStackParamList = {
   ExamResult: { score: number; totalCount: number; xpEarned: number; reviewItems?: ExamReviewItem[] };
   ExamReview: { reviewItems: ExamReviewItem[] };
   ExamRetry: { initialQuestions: ExamQuestion[] };
+  OwlyTalk: undefined;
 };
 
 export type RootNavigation = NativeStackNavigationProp<RootStackParamList>;
@@ -412,6 +414,11 @@ export function AppNavigator() {
             <Stack.Screen name="SpeakingLibrary">
               {({ navigation }) => (
                 <SpeakingLibraryScreen navigation={navigation} userState={userState} />
+              )}
+            </Stack.Screen>
+            <Stack.Screen name="OwlyTalk">
+              {({ navigation }) => (
+                <OwlyTalkScreen navigation={navigation} userState={userState} />
               )}
             </Stack.Screen>
             <Stack.Screen name="Mistakes">

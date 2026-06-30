@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Animated, Easing, View } from 'react-native';
 import Svg, { Circle, Ellipse, G, Line, Path, Rect } from 'react-native-svg';
 
-export type OwlyState = 'idle' | 'listening' | 'success' | 'mistake' | 'thinking';
+export type OwlyState = 'idle' | 'listening' | 'success' | 'mistake' | 'thinking' | 'talking';
 
 type OwlyMascotProps = {
   state?: OwlyState;
@@ -20,6 +20,7 @@ export function OwlyMascot({ state = 'idle', width = 160, height = 160 }: OwlyMa
   const jumpAnim = useRef(new Animated.Value(0)).current;
   const headTilt = useRef(new Animated.Value(0)).current;
   const audioWaveAnim = useRef(new Animated.Value(0)).current;
+  const beakAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     breatheAnim.stopAnimation();
@@ -29,6 +30,7 @@ export function OwlyMascot({ state = 'idle', width = 160, height = 160 }: OwlyMa
     jumpAnim.stopAnimation();
     headTilt.stopAnimation();
     audioWaveAnim.stopAnimation();
+    beakAnim.stopAnimation();
 
     if (state === 'idle' || state === 'mistake') {
       Animated.loop(
@@ -106,13 +108,36 @@ export function OwlyMascot({ state = 'idle', width = 160, height = 160 }: OwlyMa
         ])
       ).start();
     }
-  }, [state, breatheAnim, blinkAnim, rightWingRot, leftWingRot, jumpAnim, headTilt, audioWaveAnim]);
+
+    if (state === 'talking') {
+      Animated.spring(rightWingRot, { toValue: -30, useNativeDriver: true }).start();
+      Animated.spring(leftWingRot, { toValue: 30, useNativeDriver: true }).start();
+
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(breatheAnim, { toValue: 1.02, duration: 1000, useNativeDriver: true, easing: Easing.inOut(Easing.ease) }),
+          Animated.timing(breatheAnim, { toValue: 1, duration: 1000, useNativeDriver: true, easing: Easing.inOut(Easing.ease) }),
+        ])
+      ).start();
+
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(beakAnim, { toValue: 1, duration: 150, useNativeDriver: true }),
+          Animated.timing(beakAnim, { toValue: 0, duration: 150, useNativeDriver: true }),
+          Animated.timing(beakAnim, { toValue: 0.5, duration: 100, useNativeDriver: true }),
+          Animated.timing(beakAnim, { toValue: 0, duration: 100, useNativeDriver: true }),
+          Animated.delay(200),
+        ])
+      ).start();
+    }
+  }, [state, breatheAnim, blinkAnim, rightWingRot, leftWingRot, jumpAnim, headTilt, audioWaveAnim, beakAnim]);
 
   const rightWingStr = rightWingRot.interpolate({ inputRange: [-180, 180], outputRange: ['-180deg', '180deg'] });
   const leftWingStr = leftWingRot.interpolate({ inputRange: [-180, 180], outputRange: ['-180deg', '180deg'] });
   const headRotStr = headTilt.interpolate({ inputRange: [-180, 180], outputRange: ['-180deg', '180deg'] });
   const audioWaveScale = audioWaveAnim.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1.2] });
   const audioWaveOpacity = audioWaveAnim.interpolate({ inputRange: [0, 1], outputRange: [0.3, 1] });
+  const beakScaleY = beakAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 1.4] });
 
   const isMistake = state === 'mistake';
   const isHappy = state === 'success';
@@ -189,7 +214,9 @@ export function OwlyMascot({ state = 'idle', width = 160, height = 160 }: OwlyMa
               </G>
             </AnimatedG>
 
-            <Path d="M 235 190 Q 250 175 265 190 L 255 220 Q 250 230 245 220 Z" fill="#FFB300" stroke="#D99800" strokeWidth="2" strokeLinejoin="round" />
+            <AnimatedG transform={[{ scaleY: beakScaleY as any }]} originX="250" originY="190">
+              <Path d="M 235 190 Q 250 175 265 190 L 255 220 Q 250 230 245 220 Z" fill="#FFB300" stroke="#D99800" strokeWidth="2" strokeLinejoin="round" />
+            </AnimatedG>
           </AnimatedG>
 
           <AnimatedG transform={[{ rotate: leftWingStr as any }]} originX="140" originY="260">
