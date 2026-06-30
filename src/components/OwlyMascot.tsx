@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Animated, Easing, View } from 'react-native';
 import Svg, { Circle, Ellipse, G, Line, Path, Rect } from 'react-native-svg';
 
-export type OwlyState = 'idle' | 'listening' | 'success' | 'mistake';
+export type OwlyState = 'idle' | 'listening' | 'success' | 'mistake' | 'thinking';
 
 type OwlyMascotProps = {
   state?: OwlyState;
@@ -91,6 +91,18 @@ export function OwlyMascot({ state = 'idle', width = 160, height = 160 }: OwlyMa
         Animated.sequence([
           Animated.timing(rightWingRot, { toValue: -120, duration: 250, useNativeDriver: true }),
           Animated.timing(rightWingRot, { toValue: -20, duration: 250, useNativeDriver: true }),
+        ])
+      ).start();
+    }
+
+    if (state === 'thinking') {
+      Animated.spring(headTilt, { toValue: -10, useNativeDriver: true }).start();
+      Animated.spring(rightWingRot, { toValue: -60, useNativeDriver: true }).start();
+
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(jumpAnim, { toValue: -8, duration: 1000, useNativeDriver: true, easing: Easing.inOut(Easing.ease) }),
+          Animated.timing(jumpAnim, { toValue: 0, duration: 1000, useNativeDriver: true, easing: Easing.inOut(Easing.ease) }),
         ])
       ).start();
     }

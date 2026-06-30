@@ -1130,6 +1130,7 @@ export function SpeakingPracticeScreen({ navigation, onUpdateState, route }: Spe
 
   const mascotState = useMemo(() => {
     if (status === 'recording' || status === 'cancelArmed') return 'listening';
+    if (status === 'analyzing') return 'thinking';
     if (status === 'noVoice' || status === 'tooShort' || status === 'error') return 'mistake';
     if (status === 'result') {
       if (pronunciationResult && pronunciationResult.scorePercent >= 80) return 'success';
@@ -1428,76 +1429,80 @@ function ResultCard({
   replaying: boolean;
   transcriptionResult: TranscriptionResult;
 }) {
-  const resultColor = getResultColor(pronunciationResult);
+  const scoreAnim = useRef(new Animated.Value(0)).current;
+  const [displayScore, setDisplayScore] = useState(0);
+
+  useEffect(() => {
+    const listenerId = scoreAnim.addListener((state) => {
+      setDisplayScore(Math.round(state.value));
+    });
+    Animated.timing(scoreAnim, {
+      toValue: pronunciationResult.scorePercent,
+      duration: 1200,
+      useNativeDriver: false,
+    }).start();
+
+    return () => {
+      scoreAnim.removeListener(listenerId);
+    };
+  }, [scoreAnim, pronunciationResult.scorePercent]);
+
   const scorePercent = pronunciationResult.scorePercent;
+  const isHigh = scorePercent >= 80;
+  const isLow = scorePercent < 60;
+
+  const resultColor = isHigh ? colors.cyanAccent : isLow ? colors.errorCoral : colors.yellowCta;
+  const owlyMessage = isHigh ? "Sehr gut! Keep going." : isLow ? "Komm schon, lass es uns nochmal versuchen!" : "Gute Arbeit! Noch ein bisschen üben.";
+  const progressMessage = isHigh ? "Bu telaffuz harikaydı!" : isLow ? "Daha çok pratikle başarabiliriz." : "İyi gidiyorsun, biraz daha vurgu.";
+
+  const words = expectedText.split(/\s+/);
 
   return (
     <View style={styles.feedbackCard}>
-      <HalftoneAccent color={colors.yellowCta} opacity={0.12} size="medium" style={styles.resultTexture} />
-      <View style={styles.resultHero}>
-        <CheckCircle2 color={resultColor} size={28} />
-        <View style={styles.resultHeroCopy}>
-          <Text style={[styles.resultTitle, { color: resultColor }]}>{getResultTitle(pronunciationResult)}</Text>
-          <Text style={styles.body}>Hedefe yakınlık</Text>
+      <HalftoneAccent color={resultColor} opacity={0.12} size="medium" style={styles.resultTexture} />
+
+      <View style={styles.coachBubble}>
+        <Text style={styles.coachBubbleText}>{owlyMessage}</Text>
+        <View style={styles.coachBubbleTail} />
+      </View>
+
+      <View style={styles.premiumScoreRow}>
+        <View style={styles.scoreDetails}>
+          <Text style={styles.premiumScoreTitle}>Telaffuz Puanın</Text>
+          <Text style={styles.premiumScoreImprovement}>{progressMessage}</Text>
         </View>
-        <View style={[styles.scoreSticker, { borderColor: resultColor }]}>
-          <Text style={[styles.similarityScore, { color: resultColor }]}>
-            {scorePercent}
-          </Text>
+        <Animated.View style={[styles.premiumScoreCircle, { borderColor: resultColor }]}>
+           <Text style={[styles.premiumScoreText, { color: resultColor }]}>{displayScore}%</Text>
+        </Animated.View>
+      </View>
+
+      <View style={styles.premiumWordFeedback}>
+        <Text style={styles.sentenceLabel}>Detaylı Analiz</Text>
+        <View style={styles.wordWrap}>
+          {words.map((word, index) => {
+            const cleanWord = word.replace(/[.,!?]/g, '');
+            const hasIssue = pronunciationResult.wordFeedback?.some(w => w.word.toLowerCase() === cleanWord.toLowerCase() || cleanWord.toLowerCase().includes(w.word.toLowerCase()));
+            const wordColor = hasIssue ? colors.errorCoral : colors.cyanAccent;
+            return (
+              <View key={index} style={[styles.wordBubble, { backgroundColor: hasIssue ? colors.midnightSurface : colors.midnightAccent, borderColor: wordColor }]}>
+                <Text style={[styles.wordText, { color: wordColor }]}>{word}</Text>
+              </View>
+            );
+          })}
         </View>
       </View>
 
-      <View style={styles.sentenceGrid}>
-        <View style={styles.sentenceCard}>
-          <Text style={styles.sentenceLabel}>Beklenen</Text>
-          <Text style={styles.expectedResultText}>{expectedText}</Text>
-        </View>
-        <View style={styles.sentenceCard}>
-          <Text style={styles.sentenceLabel}>Söylediğin</Text>
-          <Text style={styles.transcriptText}>{transcriptionResult.transcript || 'Metin alınamadı.'}</Text>
-          {transcriptionResult.fallback ? (
-            <Text style={styles.fallbackText}>Şimdilik yerel tahmin kullanıldı.</Text>
-          ) : null}
-        </View>
-      </View>
-
-      {pronunciationResult.hasDetailedScores ? (
-        <View style={styles.detailsCard}>
-          <Text style={styles.sectionTitle}>Gelişmiş telaffuz analizi</Text>
-          <Text style={styles.detailsHelperText}>
-            Bu analiz, telaffuzunun doğruluk, akıcılık ve tamamlama yönlerini ayrı ayrı değerlendirir.
-          </Text>
-          <View style={styles.detailsGrid}>
-            <View style={styles.detailItem}>
-              <Text style={styles.detailLabel}>Genel puan</Text>
-              <Text style={styles.detailValue}>{Math.round(pronunciationResult.pronunciationScore)}</Text>
-            </View>
-            <View style={styles.detailItem}>
-              <Text style={styles.detailLabel}>Doğruluk</Text>
-              <Text style={styles.detailValue}>{Math.round(pronunciationResult.accuracyScore)}</Text>
-            </View>
-            <View style={styles.detailItem}>
-              <Text style={styles.detailLabel}>Akıcılık</Text>
-              <Text style={styles.detailValue}>{Math.round(pronunciationResult.fluencyScore)}</Text>
-            </View>
-            <View style={styles.detailItem}>
-              <Text style={styles.detailLabel}>Tamamlama</Text>
-              <Text style={styles.detailValue}>{Math.round(pronunciationResult.completenessScore)}</Text>
-            </View>
-          </View>
-        </View>
-      ) : null}
-
-      <View style={styles.feedbackCategoryGrid}>
-        {pronunciationResult.feedbackCategories.map((category) => (
-          <FeedbackCategoryCard category={category} key={category.id} />
-        ))}
-      </View>
-
-      <View style={styles.feedbackNote}>
-        <Text style={styles.sectionTitle}>Pratik geri bildirimi</Text>
-        <Text style={styles.feedbackText}>{pronunciationResult.feedbackTr}</Text>
-      </View>
+      {pronunciationResult.wordFeedback && pronunciationResult.wordFeedback.length > 0 && (
+         <View style={styles.premiumTips}>
+            <Text style={styles.sectionTitle}>Owly'nin Tavsiyesi</Text>
+            {pronunciationResult.wordFeedback.slice(0, 3).map((tip, idx) => (
+              <View key={idx} style={styles.premiumTipRow}>
+                 <Text style={styles.premiumTipWord}>{tip.word}:</Text>
+                 <Text style={styles.premiumTipText}>{tip.suggestionTr}</Text>
+              </View>
+            ))}
+         </View>
+      )}
 
       <View style={styles.resultActions}>
         <AppButton icon={RotateCcw} onPress={onRetry} title="Tekrar dene" />
@@ -1513,34 +1518,6 @@ function ResultCard({
           variant="secondary"
         />
       </View>
-    </View>
-  );
-}
-
-function FeedbackCategoryCard({ category }: { category: SpeechFeedbackCategory }) {
-  const toneStyle =
-    category.tone === 'success'
-      ? styles.successCategory
-      : category.tone === 'error'
-        ? styles.errorCategory
-        : category.tone === 'info'
-          ? styles.infoCategory
-          : styles.warningCategory;
-
-  return (
-    <View style={[styles.feedbackCategoryCard, toneStyle]}>
-      <Text style={styles.feedbackCategoryTitle}>{category.title}</Text>
-      {category.words && category.words.length > 0 ? (
-        <View style={styles.wordChipRow}>
-          {category.words.slice(0, 6).map((word, index) => (
-            <View key={category.id + '-' + word + '-' + index} style={styles.wordChip}>
-              <Text style={styles.wordChipText}>{word}</Text>
-            </View>
-          ))}
-        </View>
-      ) : (
-        <Text style={styles.feedbackCategoryText}>{category.messageTr}</Text>
-      )}
     </View>
   );
 }
@@ -1928,6 +1905,117 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     marginTop: spacing.sm,
   },
+  resultActions: {
+    gap: spacing.md,
+    marginTop: spacing.xl,
+  },
+  coachBubble: {
+    backgroundColor: colors.white,
+    borderRadius: radius.xl,
+    padding: spacing.md,
+    alignSelf: 'center',
+    marginBottom: spacing.xl,
+    ...shadows.comic,
+    maxWidth: '80%',
+    position: 'relative',
+    marginTop: spacing.md,
+  },
+  coachBubbleText: {
+    ...typography.body,
+    fontWeight: '700',
+    color: colors.deepViolet,
+    textAlign: 'center',
+  },
+  coachBubbleTail: {
+    position: 'absolute',
+    bottom: -10,
+    left: '50%',
+    marginLeft: -10,
+    width: 0,
+    height: 0,
+    borderLeftWidth: 10,
+    borderRightWidth: 10,
+    borderTopWidth: 10,
+    borderStyle: 'solid',
+    backgroundColor: 'transparent',
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    borderTopColor: colors.white,
+  },
+  premiumScoreRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.midnightSurface,
+    padding: spacing.lg,
+    borderRadius: radius.xl,
+    borderWidth: 2,
+    borderColor: colors.midnightAccent,
+    marginBottom: spacing.xl,
+  },
+  scoreDetails: {
+    flex: 1,
+  },
+  premiumScoreTitle: {
+    ...typography.heading,
+    color: colors.white,
+    marginBottom: spacing.xs,
+  },
+  premiumScoreImprovement: {
+    ...typography.small,
+    color: colors.muted,
+  },
+  premiumScoreCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.midnightBackground,
+  },
+  premiumScoreText: {
+    ...typography.heading,
+    fontSize: 28,
+  },
+  premiumWordFeedback: {
+    marginBottom: spacing.xl,
+  },
+  wordWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    marginTop: spacing.md,
+  },
+  wordBubble: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.md,
+    borderWidth: 2,
+  },
+  wordText: {
+    ...typography.body,
+    fontWeight: '700',
+  },
+  premiumTips: {
+    backgroundColor: colors.midnightSurface,
+    borderRadius: radius.xl,
+    padding: spacing.lg,
+    marginBottom: spacing.xl,
+  },
+  premiumTipRow: {
+    marginTop: spacing.sm,
+  },
+  premiumTipWord: {
+    ...typography.body,
+    fontWeight: '700',
+    color: colors.errorCoral,
+  },
+  premiumTipText: {
+    ...typography.small,
+    color: colors.muted,
+    marginTop: 2,
+  },
   detailItem: {
     alignItems: 'center',
     backgroundColor: colors.white,
@@ -2102,9 +2190,6 @@ const styles = StyleSheet.create({
   feedbackText: {
     ...typography.body,
     color: colors.deepViolet,
-  },
-  resultActions: {
-    gap: spacing.sm,
   },
   pressed: {
     opacity: 0.78,
