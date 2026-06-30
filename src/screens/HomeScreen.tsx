@@ -9,7 +9,7 @@ import { HalftoneAccent } from '../components/HalftoneAccent';
 import { OwlyMascot } from '../components/OwlyMascot';
 import { ProgressPill } from '../components/ProgressPill';
 import { AppScrollView, Screen } from '../components/layout';
-import { RoadmapPath, type RoadmapPathItem } from '../components/RoadmapPath';
+import { CurriculumJourneyMap } from '../components/CurriculumJourneyMap';
 import { TopBar } from '../components/TopBar';
 import { getLessonById, getNextPlayableLesson, getPlayableLessonsForPlan, isLessonUnlocked } from '../data/lessons';
 import { speakingLibrarySentences } from '../data/speakingLibrary';
@@ -43,31 +43,6 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
   const activeLessonIndex = nextLesson
     ? lessonPath.findIndex((lesson) => lesson.id === nextLesson.id)
     : Math.max(0, lessonPath.length - 1);
-  const roadmapStart = Math.max(0, activeLessonIndex - 1);
-  const roadmapLessons = lessonPath.slice(roadmapStart, roadmapStart + 4);
-  const roadmapItems: RoadmapPathItem[] = roadmapLessons.map((lesson) => {
-    const completed = userState.completedLessons.includes(lesson.id);
-    const unlocked = isLessonUnlocked(lesson.id, userState.completedLessons, plan);
-
-    return {
-      id: lesson.id,
-      title: lesson.title,
-      meta: lesson.cefr + ' · ' + lesson.estimatedMinutes + ' dk',
-      completed,
-      current: nextLesson?.id === lesson.id,
-      locked: !unlocked,
-      onPress: unlocked ? () => navigation.navigate('LessonIntro', { lessonId: lesson.id }) : undefined,
-    };
-  });
-
-  if (!nextLesson && lessonPath.length > 0) {
-    roadmapItems.push({
-      id: 'coming-soon-a2',
-      title: 'Sıradaki modüller',
-      meta: 'Oynanabilir içerik yakında',
-      comingSoon: true,
-    });
-  }
 
   const startPrimary = () => {
     if (nextLesson) {
@@ -313,19 +288,12 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
         </AnimatedCard>
 
         <AnimatedCard delayMs={70}>
-          <AppCard style={styles.section}>
-          <HalftoneAccent color={colors.primaryPurple} opacity={0.05} size="large" style={styles.mapPanelTexture} />
-          <View style={styles.sectionHeader}>
-            <View>
-              <Text style={styles.sectionTitle}>Yolun</Text>
-              <Text style={styles.muted}>{completedCount}/{lessonPath.length} ders · %{Math.round(coverage * 100)}</Text>
-            </View>
-            <Pressable onPress={() => navigation.navigate('CurriculumMap')} style={({ pressed }) => [styles.textButton, pressed && styles.pressed]}>
-              <Text style={styles.textButtonLabel}>Harita</Text>
-            </Pressable>
-          </View>
-          <RoadmapPath items={roadmapItems} />
-          </AppCard>
+          <CurriculumJourneyMap
+            lessonPath={lessonPath}
+            completedLessonIds={userState.completedLessons}
+            nextLessonId={nextLesson?.id}
+            onPressLesson={(lessonId) => navigation.navigate('LessonIntro', { lessonId })}
+          />
         </AnimatedCard>
 
         <AnimatedCard delayMs={120}>
