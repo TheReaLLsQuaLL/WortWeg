@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { AppButton } from '../components/AppButton';
-import { Mascot } from '../components/Mascot';
+import { OwlyMascot } from '../components/OwlyMascot';
 import { colors, radius, spacing, typography } from '../data/theme';
 import type { RootStackParamList } from '../navigation/AppNavigator';
 
@@ -21,7 +21,7 @@ export function ExamResultScreen({ navigation, route }: ExamResultScreenProps) {
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Mascot size={96} />
+        <OwlyMascot state="success" width={96} height={96} />
         <View style={styles.card}>
           <Trophy color={colors.yellow} fill={colors.yellow} size={42} />
           <Text style={styles.title}>A1 pratiği tamamlandı</Text>

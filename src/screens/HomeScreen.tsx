@@ -71,58 +71,15 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
     ? speakingStats.totalAttempts + ' deneme · en iyi ' + formatSpeakingScorePercent(speakingStats.bestScorePercent)
     : speakingLibrarySentences.length + ' hazır cümle';
 
-  const recentActivities = useMemo(() => {
-    const activities: Array<{ id: string; type: string; title: string; timestamp: string; meta?: string }> = [];
-
-    Object.entries(userState.lessonProgress).forEach(([lessonId, progress]) => {
-      if (progress.completed && progress.lastStudiedAt) {
-        const lesson = getLessonById(lessonId);
-        activities.push({
-          id: `lesson-${lessonId}`,
-          type: 'lesson',
-          title: 'Ders Tamamlandı',
-          meta: lesson ? lesson.title : undefined,
-          timestamp: progress.lastStudiedAt,
-        });
-      }
-    });
-
-    if (userState.speakingStats.lastPracticedAt) {
-      activities.push({
-        id: 'speaking',
-        type: 'speaking',
-        title: 'Sesli Pratik',
-        timestamp: userState.speakingStats.lastPracticedAt,
-      });
+  const coachGreeting = useMemo(() => {
+    if (userState.completedLessons.length === 0) {
+      return { title: 'Selam!', text: 'Ben Owly, Almanca koçun. Hadi ilk dersine başlayalım!' };
     }
-
-    userState.examHistory.forEach((exam, idx) => {
-      activities.push({
-        id: `exam-${idx}`,
-        type: 'exam',
-        title: 'Sınav Denemesi',
-        meta: `%${Math.round((exam.score / Math.max(1, exam.total)) * 100)} Başarı`,
-        timestamp: exam.date,
-      });
-    });
-
-    const userMessages = userState.chatMessages.filter(m => m.role === 'user');
-    if (userMessages.length > 0) {
-      const lastMessage = userMessages[userMessages.length - 1];
-      if (lastMessage) {
-        activities.push({
-          id: 'chat',
-          type: 'chat',
-          title: 'Wolli ile Sohbet',
-          timestamp: lastMessage.createdAt,
-        });
-      }
+    if (userState.streak > 2) {
+      return { title: 'Harika!', text: `${userState.streak} gün üst üste pratik yapıyorsun. Devam edelim mi?` };
     }
-
-    return activities
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-      .slice(0, 3);
-  }, [userState]);
+    return { title: 'Hoş geldin!', text: 'Tekrar hoş geldin! Kaldığın yerden devam edelim.' };
+  }, [userState.completedLessons.length, userState.streak]);
 
   const reviewItems = [];
 
@@ -191,12 +148,15 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
         xp={userState.xp}
       />
       <AppScrollView contentContainerStyle={styles.content} style={styles.scroll}>
-        <View style={styles.mascotContainer}>
+        <View style={styles.coachWelcomeCard}>
+          <View style={styles.coachMascot}>
+            <OwlyMascot state="idle" width={100} height={100} />
+          </View>
           <View style={styles.greetingBubble}>
-            <Text style={styles.greetingText}>Guten Morgen! Pratiğe devam edelim mi?</Text>
+            <Text style={styles.greetingTitle}>{coachGreeting.title}</Text>
+            <Text style={styles.greetingText}>{coachGreeting.text}</Text>
             <View style={styles.greetingTail} />
           </View>
-          <OwlyMascot state="idle" width={140} height={140} />
         </View>
 
         <AnimatedCard>
@@ -241,52 +201,6 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
           </AppCard>
         </AnimatedCard>
 
-        <AnimatedCard delayMs={60}>
-          <AppCard style={styles.reviewPanel}>
-            <View style={styles.sectionHeader}>
-              <View>
-                <Text style={styles.sectionTitle}>Son Çalışmalar</Text>
-                <Text style={styles.muted}>Yakın zamanda tamamladığın aktiviteler.</Text>
-              </View>
-            </View>
-
-            {recentActivities.length === 0 ? (
-              <View style={{ paddingVertical: spacing.md, alignItems: 'center' }}>
-                <Text style={styles.muted}>Henüz tamamlanmış bir çalışma yok.</Text>
-                <Text style={[styles.muted, { fontSize: 12, marginTop: spacing.xs, textAlign: 'center' }]}>Bir ders veya pratik seçerek hemen öğrenmeye başla.</Text>
-              </View>
-            ) : (
-              <View style={styles.reviewGrid}>
-                {recentActivities.map((activity) => {
-                  let Icon = BookOpen;
-                  if (activity.type === 'speaking') Icon = Mic;
-                  if (activity.type === 'exam') Icon = ClipboardCheck;
-                  if (activity.type === 'chat') Icon = MessageCircle;
-
-                  const activityDate = new Date(activity.timestamp);
-                  const isToday = new Date().toDateString() === activityDate.toDateString();
-                  const isYesterday = new Date(Date.now() - 86400000).toDateString() === activityDate.toDateString();
-                  const timeLabel = isToday ? 'Bugün' : isYesterday ? 'Dün' : activityDate.toLocaleDateString('tr-TR');
-
-                  const detail = activity.meta ? `${activity.meta} · ${timeLabel}` : timeLabel;
-
-                  return (
-                    <View key={activity.id} style={[styles.reviewItem, { paddingVertical: spacing.sm, paddingHorizontal: spacing.sm }]}>
-                      <View style={[styles.reviewIconWrap, { backgroundColor: colors.paper }]}>
-                        <Icon color={colors.royalPurple} size={19} strokeWidth={2.8} />
-                      </View>
-                      <View style={styles.reviewItemCopy}>
-                        <Text style={styles.reviewItemTitle}>{activity.title}</Text>
-                        <Text style={styles.reviewItemDetail}>{detail}</Text>
-                      </View>
-                    </View>
-                  );
-                })}
-              </View>
-            )}
-          </AppCard>
-        </AnimatedCard>
-
         <AnimatedCard delayMs={70}>
           <CurriculumJourneyMap
             lessonPath={lessonPath}
@@ -305,12 +219,7 @@ export function HomeScreen({ navigation, userState }: HomeScreenProps) {
         </View>
         </AnimatedCard>
 
-        {plan ? (
-          <Pressable onPress={() => navigation.navigate('PlanOverview')} style={({ pressed }) => [styles.planStrip, pressed && styles.pressed]}>
-            <Text style={styles.planTitle}>Planın</Text>
-            <Text style={styles.planText}>{plan.currentLevel} → {plan.targetLevel} · {plan.dailyMinutes} dk/gün</Text>
-          </Pressable>
-        ) : null}
+
       </AppScrollView>
     </Screen>
   );
@@ -321,7 +230,7 @@ function QuickAction({ badgeCount = 0, icon: Icon, label, onPress }: { badgeCoun
 
   return (
     <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.quickAction, pressed && styles.pressed]}>
-      <Icon color={colors.royalPurple} size={20} strokeWidth={2.6} />
+      <Icon color={colors.cyanAccent} size={20} strokeWidth={2.6} />
       <Text style={styles.quickLabel}>{label}</Text>
       {badgeCount > 0 ? (
         <View style={styles.quickBadge}>
@@ -336,13 +245,13 @@ function ReviewPlanItem({ detail, icon: Icon, onPress, title }: { detail: string
   return (
     <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.reviewItem, pressed && styles.pressed]}>
       <View style={styles.reviewIconWrap}>
-        <Icon color={colors.comicBorderColor} size={19} strokeWidth={2.8} />
+        <Icon color={colors.cyanAccent} size={19} strokeWidth={2.8} />
       </View>
       <View style={styles.reviewItemCopy}>
         <Text style={styles.reviewItemTitle}>{title}</Text>
         <Text style={styles.reviewItemDetail}>{detail}</Text>
       </View>
-      <ChevronRight color={colors.comicBorderColor} opacity={0.3} size={20} strokeWidth={2.8} />
+      <ChevronRight color={colors.muted} opacity={0.3} size={20} strokeWidth={2.8} />
     </Pressable>
   );
 }
@@ -356,40 +265,53 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     padding: spacing.lg,
   },
-  mascotContainer: {
+  coachWelcomeCard: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacing.md,
-    position: 'relative',
+    gap: spacing.md,
+    marginBottom: spacing.xs,
+  },
+  coachMascot: {
+    width: 100,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   greetingBubble: {
+    flex: 1,
     backgroundColor: colors.white,
-    borderRadius: radius.xl,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    marginBottom: spacing.md,
+    borderRadius: radius.lg,
+    padding: spacing.md,
+    borderWidth: 2,
+    borderColor: colors.comicBorderColor,
     position: 'relative',
-    ...shadows.comic,
+    ...shadows.comicSmall,
+  },
+  greetingTitle: {
+    ...typography.body,
+    fontWeight: '900',
+    color: colors.deepViolet,
+    marginBottom: 2,
   },
   greetingText: {
-    ...typography.body,
-    color: colors.deepViolet,
+    ...typography.small,
+    color: colors.muted,
     fontWeight: '800',
   },
   greetingTail: {
     position: 'absolute',
-    bottom: -8,
-    left: '50%',
-    marginLeft: -8,
+    left: -10,
+    top: '50%',
+    marginTop: -10,
     width: 0,
     height: 0,
-    borderLeftWidth: 8,
-    borderRightWidth: 8,
-    borderTopWidth: 8,
+    borderTopWidth: 10,
+    borderBottomWidth: 10,
+    borderRightWidth: 10,
     borderStyle: 'solid',
     backgroundColor: 'transparent',
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
-    borderTopColor: colors.white,
+    borderTopColor: 'transparent',
+    borderBottomColor: 'transparent',
+    borderRightColor: colors.white,
   },
   todayCard: {
     backgroundColor: colors.midnightSurface,
@@ -400,12 +322,12 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   missionBurst: {
-    backgroundColor: colors.primaryPurple,
-    borderColor: colors.cyanAccent,
+    backgroundColor: colors.cyanAccent,
+    borderColor: colors.midnightAccent,
     borderRadius: 999,
     borderWidth: colors.comicBorderWidth,
     height: 164,
-    opacity: 0.82,
+    opacity: 0.1,
     position: 'absolute',
     right: -46,
     top: -62,
@@ -488,35 +410,33 @@ const styles = StyleSheet.create({
     ...shadows.comic,
   },
   reviewPanel: {
-    backgroundColor: colors.white,
-    borderColor: colors.comicBorderColor,
+    backgroundColor: colors.midnightSurface,
+    borderColor: colors.midnightAccent,
     borderRadius: radius.xl,
-    borderWidth: colors.comicBorderWidth,
+    borderWidth: 1,
     gap: spacing.md,
     padding: spacing.lg,
-    ...shadows.comic,
   },
   reviewGrid: {
     gap: spacing.sm,
   },
   reviewItem: {
     alignItems: 'center',
-    backgroundColor: colors.paperLavender,
-    borderColor: colors.comicBorderColor,
+    backgroundColor: colors.midnightBackground,
+    borderColor: colors.midnightAccent,
     borderRadius: radius.lg,
-    borderWidth: colors.comicBorderWidth,
+    borderWidth: 1,
     flexDirection: 'row',
     gap: spacing.md,
     minHeight: 76,
     padding: spacing.md,
-    ...shadows.comicSmall,
   },
   reviewIconWrap: {
     alignItems: 'center',
-    backgroundColor: colors.yellowCta,
-    borderColor: colors.comicBorderColor,
+    backgroundColor: colors.midnightAccent,
+    borderColor: colors.midnightAccent,
     borderRadius: radius.md,
-    borderWidth: colors.comicBorderWidth,
+    borderWidth: 1,
     height: 38,
     justifyContent: 'center',
     width: 38,
@@ -527,7 +447,7 @@ const styles = StyleSheet.create({
   },
   reviewItemTitle: {
     ...typography.small,
-    color: colors.deepViolet,
+    color: colors.white,
     fontWeight: '900',
   },
   reviewItemDetail: {
@@ -543,7 +463,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     ...typography.heading,
-    color: colors.deepViolet,
+    color: colors.white,
   },
   muted: {
     ...typography.small,
@@ -573,10 +493,10 @@ const styles = StyleSheet.create({
   },
   quickAction: {
     alignItems: 'center',
-    backgroundColor: colors.white,
-    borderColor: colors.comicBorderColor,
+    backgroundColor: colors.midnightSurface,
+    borderColor: colors.midnightAccent,
     borderRadius: radius.lg,
-    borderWidth: colors.comicBorderWidth,
+    borderWidth: 1,
     flexBasis: '46%',
     flexDirection: 'row',
     flexGrow: 1,
@@ -585,7 +505,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    ...shadows.comicSmall,
   },
   todayTexture: {
     bottom: 0,
@@ -596,16 +515,16 @@ const styles = StyleSheet.create({
   },
   quickLabel: {
     ...typography.small,
-    color: colors.deepViolet,
+    color: colors.white,
     fontWeight: '900',
     textAlign: 'center',
   },
   quickBadge: {
     alignItems: 'center',
     backgroundColor: colors.yellowCta,
-    borderColor: colors.comicBorderColor,
+    borderColor: colors.midnightAccent,
     borderRadius: radius.pill,
-    borderWidth: colors.comicBorderWidth,
+    borderWidth: 1,
     minWidth: 24,
     paddingHorizontal: spacing.xs,
     paddingVertical: 2,

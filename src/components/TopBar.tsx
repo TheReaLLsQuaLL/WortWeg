@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { colors, radius, shadows, spacing, typography } from '../data/theme';
 import { HalftoneAccent } from './HalftoneAccent';
-import { Mascot } from './Mascot';
+import { OwlyMascot } from './OwlyMascot';
 import { StatPill } from './StatPill';
 
 type TopBarProps = {
@@ -22,7 +22,7 @@ export function TopBar({ title, subtitle, xp, streak, variant = 'paper' }: TopBa
       {!dark ? <HalftoneAccent opacity={0.08} size="small" style={styles.texture} /> : null}
       <View style={styles.titleRow}>
         <View style={styles.avatarWrap}>
-          <Mascot size={48} />
+          <OwlyMascot state="idle" width={48} height={48} />
         </View>
         <View style={styles.copy}>
           <Text style={[styles.title, dark && styles.darkTitle]} numberOfLines={1}>

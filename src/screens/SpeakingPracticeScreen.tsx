@@ -1447,12 +1447,19 @@ function ResultCard({
     };
   }, [scoreAnim, pronunciationResult.scorePercent]);
 
+  const [messageIndex] = useState(Math.floor(Math.random() * 5));
+
   const scorePercent = pronunciationResult.scorePercent;
   const isHigh = scorePercent >= 80;
   const isLow = scorePercent < 60;
 
   const resultColor = isHigh ? colors.cyanAccent : isLow ? colors.errorCoral : colors.yellowCta;
-  const owlyMessage = isHigh ? "Sehr gut! Keep going." : isLow ? "Komm schon, lass es uns nochmal versuchen!" : "Gute Arbeit! Noch ein bisschen üben.";
+
+  const highMessages = ["Harika! Bu telaffuzu çok iyi yaptın.", "Mükemmel bir deneme!", "Bravo, çok net anlaşıldı!", "Aynen böyle devam et!", "Çok doğal duyuluyor."];
+  const midMessages = ["İyi gidiyorsun, biraz daha vurguya dikkat edelim.", "Fena değil, bir kez daha deneyelim mi?", "Güzel, ama daha akıcı olabilir.", "Biraz daha pratikle mükemmel olacak.", "Doğru yoldasın, pes etme."];
+  const lowMessages = ["Hadi, pes etmeden bir daha deneyelim!", "Birlikte başaracağız, tekrar dene.", "Zor kelimeler, endişelenme, baştan alalım.", "Biraz takıldık, tekrar edelim.", "Pes etmek yok, bir daha söyleyelim!"];
+
+  const owlyMessage = isHigh ? highMessages[messageIndex] : isLow ? lowMessages[messageIndex] : midMessages[messageIndex];
   const progressMessage = isHigh ? "Bu telaffuz harikaydı!" : isLow ? "Daha çok pratikle başarabiliriz." : "İyi gidiyorsun, biraz daha vurgu.";
 
   const words = expectedText.split(/\s+/);

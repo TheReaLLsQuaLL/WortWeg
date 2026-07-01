@@ -120,7 +120,7 @@ export function CurriculumJourneyMap({ lessonPath, completedLessonIds, nextLesso
 
   return (
     <View style={styles.container}>
-      <HalftoneAccent color={colors.primaryPurple} opacity={0.05} size="large" style={styles.mapTexture} />
+      <HalftoneAccent color={colors.cyanAccent} opacity={0.05} size="large" style={styles.mapTexture} />
       <View style={styles.header}>
         <View>
           <Text style={styles.journeyTitle}>German Journey</Text>
@@ -164,16 +164,6 @@ export function CurriculumJourneyMap({ lessonPath, completedLessonIds, nextLesso
                       />
                       {isAbsoluteLast && <View style={styles.hideLastLine} />}
                     </View>
-                    
-                    {isCurrent && (
-                      <View style={styles.mascotCallout}>
-                        <View style={styles.mascotBubble}>
-                          <Text style={styles.mascotBubbleText}>Bereit für die nächste Lektion?</Text>
-                          <View style={styles.mascotBubbleTail} />
-                        </View>
-                        <OwlyMascot state="idle" width={100} height={100} />
-                      </View>
-                    )}
                   </View>
                 );
               })}
@@ -230,14 +220,14 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   levelBadge: {
-    backgroundColor: colors.primaryPurple,
+    backgroundColor: colors.cyanAccent,
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,
     borderRadius: radius.sm,
   },
   levelBadgeText: {
     ...typography.small,
-    color: colors.white,
+    color: colors.deepViolet,
     fontWeight: '900',
   },
   levelTitle: {
@@ -317,44 +307,5 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 8,
     elevation: 3,
-  },
-  mascotCallout: {
-    position: 'absolute',
-    right: -10,
-    top: -20,
-    alignItems: 'center',
-    zIndex: 10,
-  },
-  mascotBubble: {
-    backgroundColor: colors.white,
-    borderRadius: radius.lg,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    marginBottom: 4,
-    maxWidth: 140,
-    ...shadows.comicSmall,
-  },
-  mascotBubbleText: {
-    ...typography.small,
-    fontSize: 11,
-    color: colors.deepViolet,
-    fontWeight: '800',
-    textAlign: 'center',
-  },
-  mascotBubbleTail: {
-    position: 'absolute',
-    bottom: -6,
-    left: '50%',
-    marginLeft: -6,
-    width: 0,
-    height: 0,
-    borderLeftWidth: 6,
-    borderRightWidth: 6,
-    borderTopWidth: 6,
-    borderStyle: 'solid',
-    backgroundColor: 'transparent',
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
-    borderTopColor: colors.white,
   },
 });

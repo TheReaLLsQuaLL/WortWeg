@@ -19,7 +19,7 @@ import { Chip } from '../components/Chip';
 import { HalftoneAccent } from '../components/HalftoneAccent';
 import { InlineLoadingDots } from '../components/InlineLoadingDots';
 import { AppScrollView, Screen } from '../components/layout';
-import { Mascot } from '../components/Mascot';
+import { OwlyMascot } from '../components/OwlyMascot';
 import { TopBar } from '../components/TopBar';
 import { getLessonById, getNextPlayableLesson, isB1PreviewLessonId } from '../data/lessons';
 import { colors, radius, shadows, spacing, typography } from '../data/theme';
@@ -253,7 +253,7 @@ export function ChatScreen({ route, userState, onUpdateState }: ChatScreenProps)
               <HalftoneAccent color={colors.primaryPurple} opacity={0.08} size="small" style={styles.emptyTexture} />
               <View style={styles.aiIntroRow}>
                 <View style={styles.aiAvatar}>
-                  <Mascot size={54} />
+                  <OwlyMascot state={sending ? "thinking" : "idle"} width={54} height={54} />
                 </View>
                 <View style={styles.aiIntroCopy}>
                   <Text style={styles.kicker}>Wolli hazır</Text>

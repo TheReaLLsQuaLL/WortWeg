@@ -82,7 +82,7 @@ export function AppButton({
 
 const styles = StyleSheet.create({
   base: {
-    backgroundColor: colors.yellowCta,
+    backgroundColor: colors.cyanAccent,
     borderColor: colors.comicBorderColor,
     borderRadius: radius.lg,
     borderWidth: colors.comicBorderWidth,
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     ...shadows.comic,
   },
   primary: {
-    backgroundColor: colors.yellowCta,
+    backgroundColor: colors.cyanAccent,
   },
   content: {
     alignItems: 'center',

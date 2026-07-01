@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { colors, radius, shadows, spacing } from '../data/theme';
 import { ComicSpeechBubble } from './ComicSpeechBubble';
-import { Mascot } from './Mascot';
+import { OwlyMascot } from './OwlyMascot';
 
 type WolliBubbleProps = {
   children?: ReactNode;
@@ -14,7 +14,7 @@ export function WolliBubble({ children, text }: WolliBubbleProps) {
   return (
     <View style={styles.wrap}>
       <View style={styles.avatar}>
-        <Mascot size={56} />
+        <OwlyMascot state="talking" width={56} height={56} />
       </View>
       <ComicSpeechBubble text={text} tone="paper">
         {children}

@@ -6,7 +6,7 @@ import { AppButton } from '../components/AppButton';
 import { HalftoneAccent } from '../components/HalftoneAccent';
 import { AppScrollView, Screen } from '../components/layout';
 import { ArticleWord } from '../components/ArticleWord';
-import { Mascot } from '../components/Mascot';
+import { OwlyMascot } from '../components/OwlyMascot';
 import { SpeakerButton } from '../components/SpeakerButton';
 import { TopBar } from '../components/TopBar';
 import { XP } from '../data/constants';
@@ -221,7 +221,7 @@ export function VocabScreen({ navigation, userState, onUpdateState }: VocabScree
           <View style={styles.emptyReviewCard}>
             <HalftoneAccent color={colors.primaryPurple} opacity={0.08} size="small" style={styles.emptyReviewTexture} />
             <View style={styles.emptyMascotBadge}>
-              <Mascot size={62} />
+              <OwlyMascot state="idle" width={62} height={62} />
             </View>
             <View style={styles.emptyCopy}>
               <Text style={styles.doneTitle}>Henüz kart yok</Text>

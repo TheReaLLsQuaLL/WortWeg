@@ -29,7 +29,7 @@ import {
 import { AnimatedCard } from '../components/AnimatedCard';
 import { AppButton } from '../components/AppButton';
 import { HalftoneAccent } from '../components/HalftoneAccent';
-import { Mascot } from '../components/Mascot';
+import { OwlyMascot } from '../components/OwlyMascot';
 import { OnboardingProgressHeader } from '../components/OnboardingProgressHeader';
 import {
   dailyMinuteOptions,
@@ -403,7 +403,7 @@ export function OnboardingScreen({ navigation, onComplete }: OnboardingScreenPro
   const renderStep = () => {
     if (stepId === 'welcome') {
       return (
-        <StepPanel title="Almancanı birlikte planlayalım" helper="Wolli sana kısa bir yol haritası hazırlayacak.">
+        <StepPanel title="Almancanı birlikte planlayalım" helper="Owly sana kısa bir yol haritası hazırlayacak.">
           <ValueIllustration />
         </StepPanel>
       );
@@ -648,18 +648,18 @@ export function OnboardingScreen({ navigation, onComplete }: OnboardingScreenPro
             {stepId === 'welcome' ? (
               <View style={styles.mascotFrame}>
                 <HalftoneAccent color={colors.yellowCta} opacity={0.16} size="medium" style={styles.mascotTexture} />
-                <Mascot size={118} />
+                <OwlyMascot state="idle" width={118} height={118} />
                 <View style={styles.mascotSticker}>
-                  <Text style={styles.mascotStickerText}>WOLLI</Text>
+                  <Text style={styles.mascotStickerText}>OWLY</Text>
                 </View>
               </View>
             ) : (
               <View style={styles.mascotMiniRow}>
                 <View style={styles.mascotMiniAvatar}>
-                  <Mascot size={44} />
+                  <OwlyMascot state="listening" width={56} height={56} />
                 </View>
                 <View style={styles.mascotMiniBubble}>
-                  <Text style={styles.mascotMiniLabel}>WOLLI</Text>
+                  <Text style={styles.mascotMiniLabel}>OWLY</Text>
                   <Text style={styles.mascotMiniText}>
                     {stepId === 'mini_demo'
                       ? 'Renkler artikelı hatırlamana yardım edecek.'

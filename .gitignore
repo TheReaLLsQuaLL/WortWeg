@@ -22,3 +22,4 @@ run_suite.sh
 run_flows_independently.sh
 run_all_maestro.sh
 .archive/
+.agents/

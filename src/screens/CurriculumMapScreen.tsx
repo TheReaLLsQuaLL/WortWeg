@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
   lockedModule: { backgroundColor: colors.paperLavender, opacity: 0.72 },
   moduleIcon: {
     alignItems: 'center',
-    backgroundColor: colors.primaryPurple,
+    backgroundColor: colors.cyanAccent,
     borderColor: colors.comicBorderColor,
     borderRadius: radius.lg,
     borderWidth: colors.comicBorderWidth,
@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
     width: 48,
     ...shadows.comicSmall,
   },
-  moduleNumber: { ...typography.small, color: colors.white, fontWeight: '900' },
+  moduleNumber: { ...typography.small, color: colors.deepViolet, fontWeight: '900' },
   moduleCopy: { flex: 1, gap: spacing.xs },
   moduleTitleRow: {
     alignItems: 'flex-start',
